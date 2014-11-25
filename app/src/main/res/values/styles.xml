@@ -1,0 +1,18 @@
+<resources>
+
+    <!-- Default theme -->
+    <style name="Theme.Ghost" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/widget_background</item>
+        <item name="colorPrimaryDark">@color/background</item>
+        <item name="colorAccent">@color/button_blue_pressed</item>
+        <item name="colorControlNormal">@color/button_blue</item>
+        <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
+    </style>
+
+    <!-- Default button style -->
+    <style name="Theme.Ghost.Button" parent="@android:style/Widget.Button">
+        <item name="android:background">@drawable/selector_button_blue</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+</resources>

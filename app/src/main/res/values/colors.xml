@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colours from the web login page -->
+    <color name="background">#242628</color>
+    <color name="widget_background">#3b3f42</color>
+    <color name="widget_background_active">#474b4f</color>
+    <color name="button_blue">#5aa3e4</color>
+    <color name="button_blue_pressed">#2e8bdd</color>
+</resources>

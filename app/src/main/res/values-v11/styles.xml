@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Default button style -->
+    <style name="Theme.Ghost.Button" parent="@android:style/Widget.Holo.Light.Button">
+        <item name="android:background">@drawable/selector_button_blue</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+</resources>
