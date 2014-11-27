@@ -86,6 +86,7 @@
     <orderEntry type="library" exported="" name="support-annotations-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="activeandroid-3.1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" exported="" name="support-v4-21.0.2" level="project" />
+    <orderEntry type="library" exported="" name="calligraphy-1.2.0" level="project" />
     <orderEntry type="library" exported="" name="retrofit-1.8.0" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-21.0.2" level="project" />
     <orderEntry type="library" exported="" name="gson-2.3" level="project" />

@@ -4,14 +4,20 @@
     <style name="Theme.Ghost" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/widget_background</item>
         <item name="colorPrimaryDark">@color/background</item>
-        <item name="colorAccent">@color/button_blue_pressed</item>
-        <item name="colorControlNormal">@color/button_blue</item>
+        <item name="colorAccent">@color/accent_blue_active</item>
+        <item name="colorControlNormal">@color/accent_blue</item>
         <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
+    </style>
+
+    <!-- Splash theme -->
+    <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
     <!-- Default button style -->
     <style name="Theme.Ghost.Button" parent="@android:style/Widget.Button">
-        <item name="android:background">@drawable/selector_button_blue</item>
+        <item name="android:background">@drawable/selector_btn_blue</item>
         <item name="android:textColor">@android:color/white</item>
     </style>
 

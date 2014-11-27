@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Used by caligraphy -->
+    <attr name="fontPath" format="string" />
+
+</resources>
