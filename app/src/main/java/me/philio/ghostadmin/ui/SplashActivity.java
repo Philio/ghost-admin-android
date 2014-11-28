@@ -1,6 +1,11 @@
 package me.philio.ghostadmin.ui;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -14,9 +19,11 @@ import java.util.TimerTask;
 import me.philio.ghostadmin.R;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class SplashActivity extends ActionBarActivity {
+public class SplashActivity extends ActionBarActivity implements AccountManagerCallback<Bundle> {
 
     private Timer mTimer;
+
+    private boolean mAuthRequested;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -57,13 +64,36 @@ public class SplashActivity extends ActionBarActivity {
             }
         });
         findViewById(R.id.img_ghost).startAnimation(scale);
+    }
 
-        // Schedule a timer to check for a valid account
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Schedule a timer to kick off account/authentication checks after a short delay
+        if (mAuthRequested) {
+            return;
+        }
         mTimer = new Timer();
         mTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // TODO
+                // Check if already logged in
+                AccountManager accountManager = AccountManager.get(SplashActivity.this);
+                Account[] accounts =accountManager.getAccountsByType(getString(R.string.account_type));
+
+                if (accounts != null && accounts.length > 0) {
+                    // Logged in, show main screen
+                    Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+                    finish();
+                } else {
+                    // Not logged in, start authentication
+                    mAuthRequested = true;
+                    accountManager.addAccount(getString(R.string.account_type), null, null, null,
+                            SplashActivity.this, SplashActivity.this, null);
+                }
             }
         }, 1500);
     }
@@ -76,10 +106,12 @@ public class SplashActivity extends ActionBarActivity {
             mTimer.purge();
         }
 
-        // Finish the activity
-        finish();
-
         super.onStop();
+    }
+
+    @Override
+    public void run(AccountManagerFuture<Bundle> future) {
+        // TODO handle login result
     }
 
 }
