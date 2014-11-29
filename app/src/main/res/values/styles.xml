@@ -19,6 +19,11 @@
         <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
     </style>
 
+    <!-- Dark theme with no ActionBar -->
+    <style name="Theme.Ghost.Dark.NoActionBar">
+        <item name="windowActionBar">false</item>
+    </style>
+
     <!-- Splash theme -->
     <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>

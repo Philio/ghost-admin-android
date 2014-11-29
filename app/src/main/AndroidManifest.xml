@@ -3,6 +3,7 @@
     package="me.philio.ghostadmin">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- To manage, add, remove accounts, etc -->
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
@@ -31,7 +32,7 @@
         <activity
             android:name="me.philio.ghostadmin.ui.LoginActivity"
             android:label="@string/title_activity_login"
-            android:theme="@style/Theme.Ghost.Dark"
+            android:theme="@style/Theme.Ghost.Dark.NoActionBar"
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
             android:name="me.philio.ghostadmin.ui.MainActivity"

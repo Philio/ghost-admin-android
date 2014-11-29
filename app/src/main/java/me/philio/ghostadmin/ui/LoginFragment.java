@@ -82,12 +82,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
                 mUrl = getArguments().getString(ARG_BLOG_URL);
             }
         }
-
-        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
-        if (actionBar != null ) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            setHasOptionsMenu(true);
-        }
     }
 
     @Override
@@ -104,16 +98,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         mBlogUrl.setText(mUrl);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                getFragmentManager().popBackStack();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

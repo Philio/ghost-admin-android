@@ -10,6 +10,7 @@ import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
@@ -37,7 +38,7 @@ import retrofit.client.Response;
  * create an instance of this fragment.
  */
 public class LoginUrlFragment extends Fragment implements View.OnClickListener,
-        View.OnFocusChangeListener {
+        View.OnFocusChangeListener, Callback<JsonObject> {
 
     /**
      * Logging tag
@@ -55,6 +56,11 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     private GhostClient mClient;
 
     /**
+     * Blog URL
+     */
+    private String mBlogUrl;
+
+    /**
      * Views
      */
     @InjectView(R.id.layout_url_background)
@@ -63,6 +69,8 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     Spinner mScheme;
     @InjectView(R.id.edit_url)
     EditText mUrl;
+    @InjectView(R.id.btn_validate)
+    Button mValidate;
 
     /**
      * Use this factory method to create a new instance of
@@ -80,16 +88,6 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
 
         // Instantiate the client
         mClient = new GhostClient();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(false);
-        }
     }
 
     @Override
@@ -132,68 +130,15 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                     mUrl.setError(getString(R.string.error_invalid_url));
                 } else {
                     mUrl.setError(null);
+                    mValidate.setEnabled(false);
+                    ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(true);
 
                     // Try and check for a valid ghost install at the URL
                     // We're expecting a 401 with a JSON response
-                    final String blogUrl = mScheme.getSelectedItem().toString() +
-                            mUrl.getText().toString();
-                    mClient.setBlogUrl(blogUrl);
+                    mBlogUrl = mScheme.getSelectedItem().toString() + mUrl.getText().toString();
+                    mClient.setBlogUrl(mBlogUrl);
                     Discovery discovery = mClient.createDiscovery();
-                    discovery.test(new Callback<JsonObject>() {
-                        @Override
-                        public void success(JsonObject jsonObject, Response response) {
-                            // Shouldn't happen!
-                            mUrl.setError(getString(R.string.error_invalid_url));
-                        }
-
-                        @Override
-                        public void failure(RetrofitError error) {
-                            int status = 0;
-                            if (error.getResponse() != null) {
-                                status = error.getResponse().getStatus();
-                            }
-                            switch (status) {
-                                case 301:
-                                case 302:
-                                    Log.d(TAG, "Url is a redirect!");
-
-                                    // Get the redirect url and examine to attempt to provide most
-                                    // useful error message
-                                    String redirectUrl = null;
-                                    for (Header header : error.getResponse().getHeaders()) {
-                                        if (header.getName() == null) {
-                                            continue;
-                                        }
-                                        if (header.getName().equals("Location")) {
-                                            String value = header.getValue();
-                                            if (value.endsWith("/ghost/api/v0.1/")) {
-                                                redirectUrl = value.substring(0, value.length() - 16);
-                                            } else {
-                                                redirectUrl = value;
-                                            }
-                                        }
-                                    }
-                                    if (redirectUrl != null) {
-                                        mUrl.setError(getString(R.string.error_redirect_url_to, redirectUrl));
-                                    } else {
-                                        mUrl.setError(getString(R.string.error_redirect_url));
-                                    }
-                                    break;
-                                case 401:
-                                    Object body = error.getBodyAs(JsonObject.class);
-                                    if (body != null && body instanceof JsonObject) {
-                                        Log.d(TAG, "Url looks good!");
-                                        mListener.onValidUrl(blogUrl);
-                                    } else {
-                                        mUrl.setError(getString(R.string.error_invalid_url));
-                                    }
-                                    break;
-                                default:
-                                    mUrl.setError(getString(R.string.error_invalid_url));
-                                    break;
-                            }
-                        }
-                    });
+                    discovery.test(this);
                 }
                 break;
         }
@@ -211,6 +156,64 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                 }
                 break;
         }
+    }
+
+    @Override
+    public void success(JsonObject jsonObject, Response response) {
+        // Shouldn't happen!
+        mUrl.setError(getString(R.string.error_invalid_url));
+    }
+
+    @Override
+    public void failure(RetrofitError error) {
+        int status = 0;
+        if (error.getResponse() != null) {
+            status = error.getResponse().getStatus();
+        }
+        switch (status) {
+            case 301:
+            case 302:
+                // Got a redirect
+                Log.d(TAG, "Url is a redirect!");
+
+                // Get the redirect url and examine to attempt to provide most
+                // useful error message
+                String redirectUrl = null;
+                for (Header header : error.getResponse().getHeaders()) {
+                    if (header.getName() == null) {
+                        continue;
+                    }
+                    if (header.getName().equals("Location")) {
+                        String value = header.getValue();
+                        if (value.endsWith("/ghost/api/v0.1/")) {
+                            redirectUrl = value.substring(0, value.length() - 16);
+                        } else {
+                            redirectUrl = value;
+                        }
+                    }
+                }
+                if (redirectUrl != null) {
+                    mUrl.setError(getString(R.string.error_redirect_url_to, redirectUrl));
+                } else {
+                    mUrl.setError(getString(R.string.error_redirect_url));
+                }
+                break;
+            case 401:
+                // Got a 401 so could be a blog, check that the response is JSON
+                Object body = error.getBodyAs(JsonObject.class);
+                if (body != null && body instanceof JsonObject) {
+                    Log.d(TAG, "Url looks good!");
+                    mListener.onValidUrl(mBlogUrl);
+                } else {
+                    mUrl.setError(getString(R.string.error_invalid_url));
+                }
+                break;
+            default:
+                mUrl.setError(getString(R.string.error_invalid_url));
+                break;
+        }
+        mValidate.setEnabled(true);
+        ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
     }
 
     /**

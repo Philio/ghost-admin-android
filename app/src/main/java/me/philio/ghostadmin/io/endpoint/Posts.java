@@ -23,12 +23,12 @@ import retrofit.http.DELETE;
 import retrofit.http.GET;
 import retrofit.http.POST;
 import retrofit.http.PUT;
-import retrofit.http.Part;
+import retrofit.http.Path;
 import retrofit.http.Query;
 
 /**
  * Ghost API posts endpoint
- *
+ * <p/>
  * Created by phil on 25/11/2014.
  */
 public interface Posts {
@@ -58,7 +58,7 @@ public interface Posts {
      */
     @GET("/posts/{id}")
     public void getPost(
-            @Part("id") int id,
+            @Path("id") int id,
             Callback<PostWrapper> callback);
 
     /**
@@ -69,7 +69,7 @@ public interface Posts {
      */
     @GET("/posts/slug/{slug}")
     public void getPost(
-            @Part("slug") String slug,
+            @Path("slug") String slug,
             Callback<PostWrapper> callback);
 
     /**
@@ -92,7 +92,7 @@ public interface Posts {
      */
     @PUT("/posts/{id}")
     public void updatePost(
-            @Part("id") int id,
+            @Path("id") int id,
             @Body Post post,
             Callback<PostWrapper> callback);
 
@@ -104,7 +104,7 @@ public interface Posts {
      */
     @DELETE("/posts/{id}")
     public void deletePost(
-            @Part("id") int id,
+            @Path("id") int id,
             Callback<PostWrapper> callback);
 
 }

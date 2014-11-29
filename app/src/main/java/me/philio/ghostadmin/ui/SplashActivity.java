@@ -95,7 +95,7 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
                             SplashActivity.this, SplashActivity.this, null);
                 }
             }
-        }, 1500);
+        }, 2000);
     }
 
     @Override
