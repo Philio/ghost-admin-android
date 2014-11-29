@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -47,8 +48,8 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     Toolbar mToolbar;
     @InjectView(R.id.progressbar)
     ProgressBar mProgressBar;
-    @InjectView(R.id.text_alert)
-    TextView mAlert;
+    @InjectView(R.id.layout_alerts)
+    LinearLayout mAlerts;
 
     // ActionBar height
     private int mActionBarHeight;
@@ -154,17 +155,17 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlert.getLayoutParams();
+                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
                     layoutParams.height = value;
-                    mAlert.setLayoutParams(layoutParams);
+                    mAlerts.setLayoutParams(layoutParams);
                 }
             });
             anim.setDuration(750);
             anim.start();
         } else {
-            ViewGroup.LayoutParams layoutParams = mAlert.getLayoutParams();
+            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
             layoutParams.height = mActionBarHeight;
-            mAlert.setLayoutParams(layoutParams);
+            mAlerts.setLayoutParams(layoutParams);
         }
     }
 
@@ -181,17 +182,17 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlert.getLayoutParams();
+                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
                     layoutParams.height = value;
-                    mAlert.setLayoutParams(layoutParams);
+                    mAlerts.setLayoutParams(layoutParams);
                 }
             });
             anim.setDuration(750);
             anim.start();
         } else {
-            ViewGroup.LayoutParams layoutParams = mAlert.getLayoutParams();
+            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
             layoutParams.height = mActionBarHeight;
-            mAlert.setLayoutParams(layoutParams);
+            mAlerts.setLayoutParams(layoutParams);
         }
     }
 
