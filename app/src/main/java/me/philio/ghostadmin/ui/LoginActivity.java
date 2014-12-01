@@ -1,5 +1,7 @@
 package me.philio.ghostadmin.ui;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
@@ -8,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,6 +23,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -28,6 +32,13 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.account.AccountAuthenticatorActionBarActivity;
+import me.philio.ghostadmin.account.AccountConstants;
+import me.philio.ghostadmin.model.Token;
+
+import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
+import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
+import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_REFRESH;
 
 /**
  * A login screen that offers login via email/password.
@@ -51,8 +62,15 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     @InjectView(R.id.layout_alerts)
     LinearLayout mAlerts;
 
-    // ActionBar height
+    /**
+     * ActionBar height, used to calculate the number of pixels for network status alert
+     */
     private int mActionBarHeight;
+
+    /**
+     * The url of the blog
+     */
+    private String mBlogUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,28 +112,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         super.onStop();
     }
 
-    /**
-     * Emulate the old ActionBar progress bar functionality
-     *
-     * @param visible
-     */
-    public void setToolbarProgressBarVisibility(boolean visible) {
-        Log.d(getClass().getName(), "Visibility: " + visible);
-        mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-    }
-
-    @Override
-    public void onValidUrl(String blogUrl) {
-        // Replace url fragment with login fragment
-        getSupportFragmentManager().beginTransaction()
-                .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
-                        android.R.anim.slide_in_left, android.R.anim.slide_out_right)
-                .replace(R.id.container, LoginFragment.newInstance(blogUrl))
-                .addToBackStack(null)
-                .commit();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -137,9 +133,52 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         super.onBackPressed();
     }
 
+    /**
+     * Emulate the old ActionBar progress bar functionality
+     *
+     * @param visible
+     */
+    public void setToolbarProgressBarVisibility(boolean visible) {
+        Log.d(getClass().getName(), "Visibility: " + visible);
+        mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+    }
+
     @Override
-    public void onSuccess(String email, String password) {
-        // TODO
+    public void onValidUrl(String blogUrl) {
+        // Store for later
+        mBlogUrl = blogUrl;
+
+        // Replace url fragment with login fragment
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
+                        android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                .replace(R.id.container, LoginFragment.newInstance(blogUrl))
+                .addToBackStack(null)
+                .commit();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public void onSuccess(String email, String password, Token token) {
+        // Create the account
+        AccountManager accountManager = AccountManager.get(this);
+        Uri uri = Uri.parse(mBlogUrl);
+        String accountName = uri.getHost() + "/" + email;
+        Account account = new Account(accountName, getString(R.string.account_type));
+        Bundle userdata = new Bundle();
+        userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
+        userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Integer.toString(token.expires));
+        accountManager.addAccountExplicitly(account, password, userdata);
+        accountManager.setAuthToken(account, TOKEN_TYPE_ACCESS, token.accessToken);
+        accountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, token.refreshToken);
+
+        // Set response intent
+        Intent intent = new Intent();
+        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+        setAccountAuthenticatorResult(intent.getExtras());
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     /**

@@ -4,6 +4,8 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.TransitionDrawable;
@@ -13,6 +15,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,8 +24,19 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class SplashActivity extends ActionBarActivity implements AccountManagerCallback<Bundle> {
 
+    /**
+     * Timer to start next activity
+     */
     private Timer mTimer;
 
+    /**
+     * The account manager
+     */
+    private AccountManager mAccountManager;
+
+    /**
+     * If addAccount has been called
+     */
     private boolean mAuthRequested;
 
     @Override
@@ -34,6 +48,9 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
+        // Get account manager
+        mAccountManager = AccountManager.get(this);
 
         // Window background transition
         final TransitionDrawable transition = (TransitionDrawable) getResources()
@@ -79,19 +96,17 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
             @Override
             public void run() {
                 // Check if already logged in
-                AccountManager accountManager = AccountManager.get(SplashActivity.this);
-                Account[] accounts =accountManager.getAccountsByType(getString(R.string.account_type));
+                Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
 
                 if (accounts != null && accounts.length > 0) {
                     // Logged in, show main screen
                     Intent intent = new Intent(SplashActivity.this, MainActivity.class);
                     startActivity(intent);
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                     finish();
                 } else {
                     // Not logged in, start authentication
                     mAuthRequested = true;
-                    accountManager.addAccount(getString(R.string.account_type), null, null, null,
+                    mAccountManager.addAccount(getString(R.string.account_type), null, null, null,
                             SplashActivity.this, SplashActivity.this, null);
                 }
             }
@@ -111,7 +126,16 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
 
     @Override
     public void run(AccountManagerFuture<Bundle> future) {
-        // TODO handle login result
+        // Check if account exists now
+        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+        if (accounts != null && accounts.length > 0) {
+            // Logged in, show main screen
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+
+        // Whatever happened, we're done here
+        finish();
     }
 
 }

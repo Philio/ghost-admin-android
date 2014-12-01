@@ -19,12 +19,14 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+import me.philio.ghostadmin.io.endpoint.Posts;
+
 /**
- * A wrapper around a list of posts with meta data
- *
+ * A container for response of a {@link Posts} request
+ * <p/>
  * Created by phil on 26/11/2014.
  */
-public class PostWrapper {
+public class PostResponse {
 
     @SerializedName("posts")
     public List<Post> posts;

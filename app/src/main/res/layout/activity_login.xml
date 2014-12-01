@@ -34,7 +34,6 @@
         android:layout_alignParentBottom="true">
 
         <TextView
-            android:id="@+id/text_alert"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/widget_background"

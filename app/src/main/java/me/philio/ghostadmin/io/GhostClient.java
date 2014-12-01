@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.text.DateFormat;
 
+import me.philio.ghostadmin.BuildConfig;
 import me.philio.ghostadmin.io.endpoint.Authentication;
 import me.philio.ghostadmin.io.endpoint.Discovery;
 import me.philio.ghostadmin.io.endpoint.Posts;
@@ -36,6 +37,11 @@ import retrofit.converter.GsonConverter;
  * Created by phil on 24/11/2014.
  */
 public class GhostClient {
+
+    /**
+     * User agent
+     */
+    private static final String USER_AGENT = "GhostAdmin/" + BuildConfig.VERSION_NAME;
 
     /**
      * The path of the API from the ghost web root
@@ -141,6 +147,12 @@ public class GhostClient {
                 .setClient(client)
                 .setEndpoint(mBlogUrl + BASE_PATH)
                 .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setRequestInterceptor(new RequestInterceptor() {
+                    @Override
+                    public void intercept(RequestFacade request) {
+                        request.addHeader("User-Agent", USER_AGENT);
+                    }
+                })
                 .build()
                 .create(Discovery.class);
     }
@@ -154,6 +166,12 @@ public class GhostClient {
         return new RestAdapter.Builder()
                 .setEndpoint(mBlogUrl + BASE_PATH + "/authentication")
                 .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setRequestInterceptor(new RequestInterceptor() {
+                    @Override
+                    public void intercept(RequestFacade request) {
+                        request.addHeader("User-Agent", USER_AGENT);
+                    }
+                })
                 .build()
                 .create(Authentication.class);
     }
@@ -181,6 +199,7 @@ public class GhostClient {
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade request) {
+                        request.addHeader("User-Agent", USER_AGENT);
                         if (mAccessToken != null) {
                             request.addHeader("Authorization", "Bearer " + mAccessToken);
                         }

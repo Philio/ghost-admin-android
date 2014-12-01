@@ -3,8 +3,6 @@ package me.philio.ghostadmin.ui;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
@@ -16,6 +14,8 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 
 import com.google.gson.JsonObject;
+
+import java.net.HttpURLConnection;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -51,11 +51,6 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     private OnFragmentInteractionListener mListener;
 
     /**
-     * Ghost REST client
-     */
-    private GhostClient mClient;
-
-    /**
      * Blog URL
      */
     private String mBlogUrl;
@@ -66,11 +61,11 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     @InjectView(R.id.layout_url_background)
     RelativeLayout mUrlBackground;
     @InjectView(R.id.spinner_scheme)
-    Spinner mScheme;
+    Spinner mSpinnerScheme;
     @InjectView(R.id.edit_url)
-    EditText mUrl;
+    EditText mEditUrl;
     @InjectView(R.id.btn_validate)
-    Button mValidate;
+    Button mBtnValidate;
 
     /**
      * Use this factory method to create a new instance of
@@ -80,14 +75,6 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
      */
     public static LoginUrlFragment newInstance() {
         return new LoginUrlFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        // Instantiate the client
-        mClient = new GhostClient();
     }
 
     @Override
@@ -124,20 +111,20 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
         switch (v.getId()) {
             case R.id.btn_validate:
                 // Check that the URL looks valid
-                if (mUrl.getText().toString().trim().isEmpty()) {
-                    mUrl.setError(getString(R.string.error_field_required));
-                } else if (!Patterns.WEB_URL.matcher(mUrl.getText().toString()).matches()) {
-                    mUrl.setError(getString(R.string.error_invalid_url));
+                if (mEditUrl.getText().toString().trim().isEmpty()) {
+                    mEditUrl.setError(getString(R.string.error_field_required));
+                } else if (!Patterns.WEB_URL.matcher(mEditUrl.getText().toString()).matches()) {
+                    mEditUrl.setError(getString(R.string.error_invalid_url));
                 } else {
-                    mUrl.setError(null);
-                    mValidate.setEnabled(false);
+                    mEditUrl.setError(null);
+                    mBtnValidate.setEnabled(false);
                     ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(true);
 
                     // Try and check for a valid ghost install at the URL
                     // We're expecting a 401 with a JSON response
-                    mBlogUrl = mScheme.getSelectedItem().toString() + mUrl.getText().toString();
-                    mClient.setBlogUrl(mBlogUrl);
-                    Discovery discovery = mClient.createDiscovery();
+                    mBlogUrl = mSpinnerScheme.getSelectedItem().toString() + mEditUrl.getText().toString();
+                    GhostClient client = new GhostClient(mBlogUrl);
+                    Discovery discovery = client.createDiscovery();
                     discovery.test(this);
                 }
                 break;
@@ -161,7 +148,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     @Override
     public void success(JsonObject jsonObject, Response response) {
         // Shouldn't happen!
-        mUrl.setError(getString(R.string.error_invalid_url));
+        mEditUrl.setError(getString(R.string.error_invalid_url));
     }
 
     @Override
@@ -171,8 +158,8 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
             status = error.getResponse().getStatus();
         }
         switch (status) {
-            case 301:
-            case 302:
+            case HttpURLConnection.HTTP_MOVED_PERM:
+            case HttpURLConnection.HTTP_MOVED_TEMP:
                 // Got a redirect
                 Log.d(TAG, "Url is a redirect!");
 
@@ -193,26 +180,26 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                     }
                 }
                 if (redirectUrl != null) {
-                    mUrl.setError(getString(R.string.error_redirect_url_to, redirectUrl));
+                    mEditUrl.setError(getString(R.string.error_redirect_url_to, redirectUrl));
                 } else {
-                    mUrl.setError(getString(R.string.error_redirect_url));
+                    mEditUrl.setError(getString(R.string.error_redirect_url));
                 }
                 break;
-            case 401:
+            case HttpURLConnection.HTTP_UNAUTHORIZED:
                 // Got a 401 so could be a blog, check that the response is JSON
                 Object body = error.getBodyAs(JsonObject.class);
                 if (body != null && body instanceof JsonObject) {
                     Log.d(TAG, "Url looks good!");
                     mListener.onValidUrl(mBlogUrl);
                 } else {
-                    mUrl.setError(getString(R.string.error_invalid_url));
+                    mEditUrl.setError(getString(R.string.error_invalid_url));
                 }
                 break;
             default:
-                mUrl.setError(getString(R.string.error_invalid_url));
+                mEditUrl.setError(getString(R.string.error_invalid_url));
                 break;
         }
-        mValidate.setEnabled(true);
+        mBtnValidate.setEnabled(true);
         ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
     }
 

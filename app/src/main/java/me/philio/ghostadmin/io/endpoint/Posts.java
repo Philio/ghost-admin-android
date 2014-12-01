@@ -16,7 +16,7 @@
 package me.philio.ghostadmin.io.endpoint;
 
 import me.philio.ghostadmin.model.Post;
-import me.philio.ghostadmin.model.PostWrapper;
+import me.philio.ghostadmin.model.PostResponse;
 import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.DELETE;
@@ -48,7 +48,7 @@ public interface Posts {
             @Query("limit") Integer limit,
             @Query("status") Post.Status status,
             @Query("staticPages") Boolean staticPages,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
     /**
      * Get a post by id
@@ -59,7 +59,7 @@ public interface Posts {
     @GET("/posts/{id}")
     public void getPost(
             @Path("id") int id,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
     /**
      * Get a post by slug
@@ -70,7 +70,7 @@ public interface Posts {
     @GET("/posts/slug/{slug}")
     public void getPost(
             @Path("slug") String slug,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
     /**
      * Add a new post
@@ -81,7 +81,7 @@ public interface Posts {
     @POST("/posts")
     public void addPost(
             @Body Post post,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
     /**
      * Update an existing post
@@ -94,7 +94,7 @@ public interface Posts {
     public void updatePost(
             @Path("id") int id,
             @Body Post post,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
     /**
      * Delete a post
@@ -105,6 +105,6 @@ public interface Posts {
     @DELETE("/posts/{id}")
     public void deletePost(
             @Path("id") int id,
-            Callback<PostWrapper> callback);
+            Callback<PostResponse> callback);
 
 }
