@@ -1,6 +1,6 @@
 package me.philio.ghostadmin;
 
-import android.app.Application;
+import com.activeandroid.app.Application;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 

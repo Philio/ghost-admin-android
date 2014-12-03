@@ -15,6 +15,11 @@
  */
 package me.philio.ghostadmin.model;
 
+import android.provider.BaseColumns;
+
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
@@ -25,7 +30,8 @@ import java.util.UUID;
  *
  * Created by phil on 26/11/2014.
  */
-public class Post {
+@Table(name = "posts", id = BaseColumns._ID)
+public class Post extends Model {
 
     /**
      * Post status
@@ -53,70 +59,87 @@ public class Post {
 
     }
 
-    public void blah() {
-    }
-
+    @Column(name = "remote_id", unique = true, notNull = true)
     @SerializedName("id")
     public int id;
 
+    @Column(name = "uuid")
     @SerializedName("uuid")
     public UUID uuid;
 
+    @Column(name = "title")
     @SerializedName("title")
     public String title;
 
+    @Column(name = "slug")
     @SerializedName("slug")
     public String slug;
 
+    @Column(name = "markdown")
     @SerializedName("markdown")
     public String markdown;
 
+    @Column(name = "html")
     @SerializedName("html")
     public String html;
 
+    @Column(name = "image")
     @SerializedName("image")
     public String image;
 
+    @Column(name = "featured")
     @SerializedName("featured")
     public boolean featured;
 
+    @Column(name = "page")
     @SerializedName("page")
     public boolean page;
 
+    @Column(name = "status")
     @SerializedName("status")
     public Status status;
 
+    @Column(name = "language")
     @SerializedName("language")
     public String language;
 
+    @Column(name = "meta_title")
     @SerializedName("meta_title")
     public String metaTitle;
 
+    @Column(name = "meta_description")
     @SerializedName("meta_description")
     public String metaDescription;
 
+    @Column(name = "created_at")
     @SerializedName("created_at")
     public Date createdAt;
 
+    @Column(name = "created_by")
     @SerializedName("created_by")
     public int createdBy;
 
+    @Column(name = "updated_at")
     @SerializedName("updated_at")
     public Date updatedAt;
 
+    @Column(name = "updated_by")
     @SerializedName("updated_by")
     public int updatedBy;
 
+    @Column(name = "published_at")
     @SerializedName("published_at")
     public Date publishedAt;
 
+    @Column(name = "published_by")
     @SerializedName("published_by")
     public int publishedBy;
 
-    @SerializedName("tags")
-    public int[] tags;
-
+    @Column(name = "author")
     @SerializedName("author")
     public int author;
+
+    @SerializedName("tags")
+    public int[] tags;
 
 }

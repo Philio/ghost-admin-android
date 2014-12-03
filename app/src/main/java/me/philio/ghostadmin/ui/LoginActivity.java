@@ -37,6 +37,8 @@ import me.philio.ghostadmin.model.Token;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_URL;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_REFRESH;
 
@@ -163,9 +165,11 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         // Create the account
         AccountManager accountManager = AccountManager.get(this);
         Uri uri = Uri.parse(mBlogUrl);
-        String accountName = uri.getHost() + "/" + email;
+        String accountName = uri.getHost() + "|" + email;
         Account account = new Account(accountName, getString(R.string.account_type));
         Bundle userdata = new Bundle();
+        userdata.putString(KEY_BLOG_URL, mBlogUrl);
+        userdata.putString(KEY_EMAIL, email);
         userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
         userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Integer.toString(token.expires));
         accountManager.addAccountExplicitly(account, password, userdata);

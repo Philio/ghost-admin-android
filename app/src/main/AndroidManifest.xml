@@ -20,6 +20,18 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.Ghost">
+        <!-- ActiveAndroid database settings -->
+        <meta-data
+            android:name="AA_DB_NAME"
+            android:value="ghost.db" />
+        <meta-data
+            android:name="AA_DB_VERSION"
+            android:value="1" />
+        <meta-data
+            android:name="AA_MODELS"
+            android:value="me.philio.ghostadmin.model.Post" />
+
+        <!-- Activities -->
         <activity
             android:name="me.philio.ghostadmin.ui.SplashActivity"
             android:theme="@style/Theme.Ghost.Splash">
@@ -38,6 +50,7 @@
             android:name="me.philio.ghostadmin.ui.MainActivity"
             android:label="@string/title_activity_main" />
 
+        <!-- Service for account authentication -->
         <service
             android:name="me.philio.ghostadmin.account.AuthenticatorService"
             android:enabled="true"

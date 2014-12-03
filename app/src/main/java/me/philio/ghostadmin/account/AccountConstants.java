@@ -16,6 +16,8 @@ public class AccountConstants {
     /**
      * Account user data keys
      */
+    public static final String KEY_BLOG_URL = "blog_url";
+    public static final String KEY_EMAIL = "email";
     public static final String KEY_ACCESS_TOKEN_TYPE = "access_token_type";
     public static final String KEY_ACCESS_TOKEN_EXPIRES = "expires";
 
