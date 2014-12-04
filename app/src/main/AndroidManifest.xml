@@ -5,11 +5,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- To manage, add, remove accounts, etc -->
+    <!-- To manage, add, remove accounts, sync, etc -->
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.READ_PROFILE" />
@@ -56,7 +58,13 @@
             android:name="me.philio.ghostadmin.ui.MainActivity"
             android:label="@string/title_activity_main" />
 
-        <!-- Service for account authentication -->
+        <!-- ActiveAndroid content provider -->
+        <provider
+            android:name="com.activeandroid.content.ContentProvider"
+            android:authorities="@string/content_authority"
+            android:exported="false" />
+
+        <!-- Account authenticator service -->
         <service
             android:name="me.philio.ghostadmin.account.AuthenticatorService"
             android:enabled="true"
@@ -68,6 +76,19 @@
             <meta-data
                 android:name="android.accounts.AccountAuthenticator"
                 android:resource="@xml/authenticator" />
+        </service>
+
+        <!-- Sync adapter service -->
+        <service
+            android:name=".sync.SyncService"
+            android:exported="false"
+            android:process=":sync">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter" />
+            </intent-filter>
+            <meta-data
+                android:name="android.content.SyncAdapter"
+                android:resource="@xml/syncadapter" />
         </service>
     </application>
 </manifest>

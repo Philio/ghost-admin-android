@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Strings used for accounts/authentications -->
-    <string name="account_type">me.philio.ghostadmin.account</string>
-</resources>
