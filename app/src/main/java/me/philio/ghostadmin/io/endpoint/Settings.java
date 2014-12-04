@@ -19,7 +19,7 @@ public interface Settings {
     /**
      * Get all settings
      *
-     * @param type     Type of setting to get
+     * @param type     Type of settings to get
      * @param callback Response callback
      */
     @GET("/settings")
@@ -28,7 +28,7 @@ public interface Settings {
             Callback<SettingsContainer> callback);
 
     /**
-     * Get a setting by key
+     * Get a setting with key
      *
      * @param Key      The setting key
      * @param callback Response callback

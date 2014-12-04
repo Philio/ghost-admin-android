@@ -23,10 +23,11 @@ import com.activeandroid.annotation.Table;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * A post
+ * Post model
  *
  * Created by phil on 26/11/2014.
  */
@@ -65,7 +66,7 @@ public class Post extends Model {
 
     @Column(name = "uuid")
     @SerializedName("uuid")
-    public UUID uuid;
+    public String uuid;
 
     @Column(name = "title")
     @SerializedName("title")
@@ -139,7 +140,10 @@ public class Post extends Model {
     @SerializedName("author")
     public int author;
 
+    // TODO AA rel?
     @SerializedName("tags")
-    public int[] tags;
+    public List<Integer> tags;
+
+    // TODO fields - what is this?
 
 }

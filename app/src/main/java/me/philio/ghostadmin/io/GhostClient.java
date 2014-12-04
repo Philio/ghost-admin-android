@@ -25,6 +25,9 @@ import me.philio.ghostadmin.BuildConfig;
 import me.philio.ghostadmin.io.endpoint.Authentication;
 import me.philio.ghostadmin.io.endpoint.Discovery;
 import me.philio.ghostadmin.io.endpoint.Posts;
+import me.philio.ghostadmin.io.endpoint.Settings;
+import me.philio.ghostadmin.io.endpoint.Tags;
+import me.philio.ghostadmin.io.endpoint.Users;
 import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 import retrofit.client.Request;
@@ -177,12 +180,39 @@ public class GhostClient {
     }
 
     /**
-     * Create REST implementation for posts
+     * Create REST client for posts
      *
      * @return posts client
      */
     public Posts createPosts() {
         return create(Posts.class);
+    }
+
+    /**
+     * Create REST client for settings
+     *
+     * @return settings client
+     */
+    public Settings createSettings() {
+        return create(Settings.class);
+    }
+
+    /**
+     * Create REST client for tags
+     *
+     * @return tags client
+     */
+    public Tags createTags() {
+        return create(Tags.class);
+    }
+
+    /**
+     * Create REST client for users
+     *
+     * @return users client
+     */
+    public Users createUsers() {
+        return create(Users.class);
     }
 
     /**

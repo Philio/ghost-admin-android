@@ -51,7 +51,7 @@ public interface Posts {
             Callback<PostsContainer> callback);
 
     /**
-     * Get a post by id
+     * Get a post with id
      *
      * @param id       The id of the post
      * @param callback Response callback
@@ -62,38 +62,38 @@ public interface Posts {
             Callback<PostsContainer> callback);
 
     /**
-     * Get a post by slug
+     * Get a post with slug
      *
      * @param slug     The post slug
      * @param callback Response callback
      */
     @GET("/posts/slug/{slug}")
-    public void getPost(
+    public void getPostWithSlug(
             @Path("slug") String slug,
             Callback<PostsContainer> callback);
 
     /**
      * Add a new post
      *
-     * @param post     The post
-     * @param callback Response callback
+     * @param postsContainer The post
+     * @param callback       Response callback
      */
     @POST("/posts")
     public void addPost(
-            @Body Post post,
+            @Body PostsContainer postsContainer,
             Callback<PostsContainer> callback);
 
     /**
      * Update an existing post
      *
-     * @param id       The id of the post
-     * @param post     The post
-     * @param callback Response callback
+     * @param id             The id of the post
+     * @param postsContainer The post
+     * @param callback       Response callback
      */
     @PUT("/posts/{id}")
     public void updatePost(
             @Path("id") int id,
-            @Body Post post,
+            @Body PostsContainer postsContainer,
             Callback<PostsContainer> callback);
 
     /**

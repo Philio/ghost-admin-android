@@ -1,6 +1,7 @@
 package me.philio.ghostadmin;
 
 import com.activeandroid.app.Application;
+import com.activeandroid.util.Log;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 
@@ -15,6 +16,9 @@ public class GhostApplication extends Application {
 
         // Init calligraphy library
         CalligraphyConfig.initDefault("fonts/OpenSans-Regular.ttf", R.attr.fontPath);
+
+        // Turn on ActiveAndroid logging
+        Log.setEnabled(true);
     }
 
 }

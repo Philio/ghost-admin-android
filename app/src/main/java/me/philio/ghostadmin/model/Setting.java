@@ -1,17 +1,20 @@
 package me.philio.ghostadmin.model;
 
+import android.provider.BaseColumns;
+
 import com.activeandroid.Model;
 import com.activeandroid.annotation.Column;
+import com.activeandroid.annotation.Table;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
-import java.util.UUID;
 
 /**
- * A setting, doesn't work with themes as value is more complex
+ * Setting model (doesn't work with themes as value is more complex)
  *
  * Created by phil on 03/12/2014.
  */
+@Table(name = "settings", id = BaseColumns._ID)
 public class Setting extends Model {
 
     /**
@@ -46,7 +49,7 @@ public class Setting extends Model {
 
     @Column(name = "uuid")
     @SerializedName("uuid")
-    public UUID uuid;
+    public String uuid;
 
     @Column(name = "key")
     @SerializedName("key")

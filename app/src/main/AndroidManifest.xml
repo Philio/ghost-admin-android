@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->
     <uses-permission android:name="android.permission.READ_PROFILE" />
@@ -29,7 +30,12 @@
             android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="me.philio.ghostadmin.model.Post" />
+            android:value="
+                    me.philio.ghostadmin.model.Post,
+                    me.philio.ghostadmin.model.Setting,
+                    me.philio.ghostadmin.model.Tag,
+                    me.philio.ghostadmin.model.User,
+                    me.philio.ghostadmin.model.PostTag" />
 
         <!-- Activities -->
         <activity

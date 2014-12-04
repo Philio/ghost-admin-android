@@ -1,5 +1,11 @@
 package me.philio.ghostadmin.ui;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,13 +13,24 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.io.IOException;
+
 import me.philio.ghostadmin.R;
+import me.philio.ghostadmin.account.AccountConstants;
+import me.philio.ghostadmin.io.GhostClient;
+import me.philio.ghostadmin.io.endpoint.Users;
+import me.philio.ghostadmin.model.User;
+import me.philio.ghostadmin.model.UsersContainer;
+import retrofit.Callback;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -41,6 +58,44 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        // Testing
+        AccountManager accountManager = AccountManager.get(this);
+        Account[] accounts = accountManager.getAccountsByType(getString(R.string.account_type));
+        if (accounts != null && accounts.length > 0) {
+            Account account = accounts[0];
+            final String url = accountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+            accountManager.getAuthToken(account, AccountConstants.TOKEN_TYPE_ACCESS, null, this, new AccountManagerCallback<Bundle>() {
+                @Override
+                public void run(AccountManagerFuture<Bundle> future) {
+                    try {
+                        Bundle result = future.getResult();
+                        for (String key : result.keySet()) {
+                            Log.i(getClass().getName(), key + " " + result.getString(key));
+                        }
+                        String token = result.getString(AccountManager.KEY_AUTHTOKEN);
+                        GhostClient client = new GhostClient(url, token);
+                        Users users = client.createUsers();
+                        users.getUsers(new Callback<UsersContainer>() {
+                            @Override
+                            public void success(UsersContainer usersContainer, Response response) {
+                                Log.i(getClass().getName(), "Success");
+                                for (User user : usersContainer.users) {
+                                    user.save();
+                                }
+                            }
+
+                            @Override
+                            public void failure(RetrofitError error) {
+                                Log.i(getClass().getName(), "Failed");
+                            }
+                        });
+                    } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, null);
+        }
     }
 
     @Override
