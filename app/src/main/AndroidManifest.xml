@@ -68,7 +68,8 @@
         <service
             android:name="me.philio.ghostadmin.account.AuthenticatorService"
             android:enabled="true"
-            android:exported="false">
+            android:exported="false"
+            android:label="@string/provider_sync_name">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>

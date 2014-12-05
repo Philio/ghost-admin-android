@@ -42,7 +42,7 @@ public interface Posts {
      * @param staticPages Fetch static pages
      * @param callback    Response callback
      */
-    @GET("/posts")
+    @GET("/posts?include=tags")
     public void getPosts(
             @Query("page") Integer page,
             @Query("limit") Integer limit,
@@ -51,12 +51,28 @@ public interface Posts {
             Callback<PostsContainer> callback);
 
     /**
+     * Get all posts, blocks and executes on same thread
+     *
+     * @param page        Page number to get
+     * @param limit       Number of records per page
+     * @param status      Page status (all, published, draft)
+     * @param staticPages Fetch static pages
+     * @return A list of posts
+     */
+    @GET("/posts?include=tags")
+    public PostsContainer blockingGetPosts(
+            @Query("page") Integer page,
+            @Query("limit") Integer limit,
+            @Query("status") Post.Status status,
+            @Query("staticPages") Boolean staticPages);
+
+    /**
      * Get a post with id
      *
      * @param id       The id of the post
      * @param callback Response callback
      */
-    @GET("/posts/{id}")
+    @GET("/posts/{id}?include=tags")
     public void getPost(
             @Path("id") int id,
             Callback<PostsContainer> callback);
@@ -67,7 +83,7 @@ public interface Posts {
      * @param slug     The post slug
      * @param callback Response callback
      */
-    @GET("/posts/slug/{slug}")
+    @GET("/posts/slug/{slug}?include=tags")
     public void getPostWithSlug(
             @Path("slug") String slug,
             Callback<PostsContainer> callback);
@@ -78,7 +94,7 @@ public interface Posts {
      * @param postsContainer The post
      * @param callback       Response callback
      */
-    @POST("/posts")
+    @POST("/posts?include=tags")
     public void addPost(
             @Body PostsContainer postsContainer,
             Callback<PostsContainer> callback);
@@ -90,7 +106,7 @@ public interface Posts {
      * @param postsContainer The post
      * @param callback       Response callback
      */
-    @PUT("/posts/{id}")
+    @PUT("/posts/{id}?include=tags")
     public void updatePost(
             @Path("id") int id,
             @Body PostsContainer postsContainer,

@@ -18,7 +18,8 @@ import java.util.UUID;
 @Table(name = "tags", id = BaseColumns._ID)
 public class Tag extends Model {
 
-    @Column(name = "remote_id")
+    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
+            notNull = true)
     @SerializedName("id")
     public int id;
 

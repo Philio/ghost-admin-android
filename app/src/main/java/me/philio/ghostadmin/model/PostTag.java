@@ -14,10 +14,16 @@ import com.activeandroid.annotation.Table;
 @Table(name = "posts_tags", id = BaseColumns._ID)
 public class PostTag extends Model {
 
-    @Column(name = "post_id", uniqueGroups = {"posts_tags"}, onUniqueConflicts = {Column.ConflictAction.REPLACE})
+    @Column(name = "post_id", uniqueGroups = {"posts_tags"},
+            onUniqueConflicts = {Column.ConflictAction.REPLACE},
+            onDelete = Column.ForeignKeyAction.CASCADE,
+            onUpdate = Column.ForeignKeyAction.CASCADE)
     public Post post;
 
-    @Column(name = "tag_id", uniqueGroups = {"posts_tags"}, onUniqueConflicts = {Column.ConflictAction.REPLACE})
+    @Column(name = "tag_id", uniqueGroups = {"posts_tags"},
+            onUniqueConflicts = {Column.ConflictAction.REPLACE},
+            onDelete = Column.ForeignKeyAction.CASCADE,
+            onUpdate = Column.ForeignKeyAction.CASCADE)
     public Tag tag;
 
 }

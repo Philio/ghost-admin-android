@@ -58,44 +58,6 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
-
-        // Testing
-        AccountManager accountManager = AccountManager.get(this);
-        Account[] accounts = accountManager.getAccountsByType(getString(R.string.account_type));
-        if (accounts != null && accounts.length > 0) {
-            Account account = accounts[0];
-            final String url = accountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
-            accountManager.getAuthToken(account, AccountConstants.TOKEN_TYPE_ACCESS, null, this, new AccountManagerCallback<Bundle>() {
-                @Override
-                public void run(AccountManagerFuture<Bundle> future) {
-                    try {
-                        Bundle result = future.getResult();
-                        for (String key : result.keySet()) {
-                            Log.i(getClass().getName(), key + " " + result.getString(key));
-                        }
-                        String token = result.getString(AccountManager.KEY_AUTHTOKEN);
-                        GhostClient client = new GhostClient(url, token);
-                        Users users = client.createUsers();
-                        users.getUsers(new Callback<UsersContainer>() {
-                            @Override
-                            public void success(UsersContainer usersContainer, Response response) {
-                                Log.i(getClass().getName(), "Success");
-                                for (User user : usersContainer.users) {
-                                    user.save();
-                                }
-                            }
-
-                            @Override
-                            public void failure(RetrofitError error) {
-                                Log.i(getClass().getName(), "Failed");
-                            }
-                        });
-                    } catch (OperationCanceledException | IOException | AuthenticatorException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, null);
-        }
     }
 
     @Override

@@ -6,6 +6,7 @@ import retrofit.http.Body;
 import retrofit.http.GET;
 import retrofit.http.PUT;
 import retrofit.http.Path;
+import retrofit.http.Query;
 
 /**
  * Ghost API users endpoint
@@ -17,11 +18,23 @@ public interface Users {
     /**
      * Get all users
      *
+     * @param page     Page number
      * @param callback Response callback
      */
     @GET("/users")
     public void getUsers(
+            @Query("page") int page,
             Callback<UsersContainer> callback);
+
+    /**
+     * Get all users, blocks and executes on same thread
+     *
+     * @param page Page number
+     * @return A list of users
+     */
+    @GET("/users")
+    public UsersContainer blockingGetUsers(
+            @Query("page") int page);
 
     /**
      * Get user with id

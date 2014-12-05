@@ -47,6 +47,23 @@ public interface Authentication {
             Callback<Token> callback);
 
     /**
+     * Request an access token with login credentials, blocks and executes on same thread
+     *
+     * @param grantType Should be "password"
+     * @param clientId  Should be "ghost-admin" otherwise blog requires manual configuration
+     * @param email     The email address of the user
+     * @param password  The password of the user
+     * @return A token
+     */
+    @FormUrlEncoded
+    @POST("/token")
+    public Token blockingGetAccessToken(
+            @Field("grant_type") String grantType,
+            @Field("client_id") String clientId,
+            @Field("username") String email,
+            @Field("password") String password);
+
+    /**
      * Request an access token with a refresh token
      *
      * @param grantType    Should be "refresh_token"
@@ -61,5 +78,20 @@ public interface Authentication {
             @Field("client_id") String clientId,
             @Field("refresh_token") String refreshToken,
             Callback<Token> callback);
+
+    /**
+     * Request an access token with a refresh token, blocks and executes on same thread
+     *
+     * @param grantType    Should be "refresh_token"
+     * @param clientId     Should be "ghost-admin" otherwise blog requires manual configuration
+     * @param refreshToken The refresh token from a previous access token request
+     * @return A token
+     */
+    @FormUrlEncoded
+    @POST("/token")
+    public Token blockingGetAccessToken(
+            @Field("grant_type") String grantType,
+            @Field("client_id") String clientId,
+            @Field("refresh_token") String refreshToken);
 
 }

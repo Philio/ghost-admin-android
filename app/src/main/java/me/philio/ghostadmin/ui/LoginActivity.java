@@ -5,6 +5,7 @@ import android.accounts.AccountManager;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -165,16 +166,19 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         // Create the account
         AccountManager accountManager = AccountManager.get(this);
         Uri uri = Uri.parse(mBlogUrl);
-        String accountName = uri.getHost() + "|" + email;
-        Account account = new Account(accountName, getString(R.string.account_type));
+        Account account = new Account(email, getString(R.string.account_type));
         Bundle userdata = new Bundle();
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
         userdata.putString(KEY_EMAIL, email);
         userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
-        userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Integer.toString(token.expires));
+        userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Long.toString(System.currentTimeMillis() +
+                (token.expires * 1000)));
         accountManager.addAccountExplicitly(account, password, userdata);
         accountManager.setAuthToken(account, TOKEN_TYPE_ACCESS, token.accessToken);
         accountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, token.refreshToken);
+
+        // Enable sync for the account
+        ContentResolver.setSyncAutomatically(account, getString(R.string.content_authority), true);
 
         // Set response intent
         Intent intent = new Intent();

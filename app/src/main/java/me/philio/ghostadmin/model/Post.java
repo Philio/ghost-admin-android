@@ -60,7 +60,8 @@ public class Post extends Model {
 
     }
 
-    @Column(name = "remote_id", unique = true, notNull = true)
+    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
+            notNull = true)
     @SerializedName("id")
     public int id;
 
@@ -140,9 +141,9 @@ public class Post extends Model {
     @SerializedName("author")
     public int author;
 
-    // TODO AA rel?
+    // TODO Need anything here for AA?
     @SerializedName("tags")
-    public List<Integer> tags;
+    public List<Tag> tags;
 
     // TODO fields - what is this?
 

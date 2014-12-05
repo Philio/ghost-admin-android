@@ -43,7 +43,8 @@ public class Setting extends Model {
 
     }
 
-    @Column(name = "remote_id", unique = true)
+    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
+            notNull = true)
     @SerializedName("id")
     public int id;
 

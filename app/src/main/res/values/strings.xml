@@ -6,6 +6,9 @@
     <string name="ghost">Ghost</string>
     <string name="admin">Admin</string>
 
+    <!-- Name of the content provider in the sync menu -->
+    <string name="provider_sync_name">Blog posts and settings</string>
+
     <!-- Auto generated stuff, sort out later -->
     <string name="title_activity_main">MainActivity</string>
     <string name="title_section1">Section 1</string>
