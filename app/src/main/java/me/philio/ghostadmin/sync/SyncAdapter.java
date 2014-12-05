@@ -11,11 +11,13 @@ import android.content.SyncResult;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.activeandroid.ActiveAndroid;
 import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.List;
 
 import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.io.GhostClient;
@@ -75,20 +77,24 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             refreshAccessToken(account);
 
             // Sync remote
-            syncRemote(account);
+            syncRemote(account, syncResult);
         } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError e) {
             syncResult.stats.numIoExceptions++;
             return;
         }
 
         Log.d(TAG, "Sync finished for " + account.name);
+        Log.d(TAG, "Inserts: " + syncResult.stats.numInserts);
+        Log.d(TAG, "Updates: " + syncResult.stats.numUpdates);
+        Log.d(TAG, "Deletes: " + syncResult.stats.numDeletes);
+        Log.d(TAG, "Errors: " + syncResult.hasError());
     }
 
     /**
      * Access tokens only last 60 minutes so we need to manage this and refresh it frequently. If
      * token has less than 30 minutes remaining it will be refreshed and as a last resort we can
      * use the email/password combination that was saved on login to re-authenticate from scratch.
-     * <p/>
+     *
      * TODO Review later
      */
     private void refreshAccessToken(Account account) throws AuthenticatorException,
@@ -138,11 +144,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
     /**
      * Get blog data from the server, a pretty straight forward fetch all and replace approach for
-     * now, but this is far from optimal and ideally needs to pull changes only
+     * now, but this is far from optimal and ideally needs to pull changes only but this
+     * functionality doesn't yet look like it exists in the Ghost API.
      *
-     * TODO Look into syncing just changes, remove duplicate code, etc
+     * TODO Hopefully this can be optimised at a later date, depends on the API
      */
-    private void syncRemote(Account account) throws AuthenticatorException,
+    private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError {
         // Get blog url and access token
         String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
@@ -157,7 +164,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             UsersContainer usersContainer = users.blockingGetUsers(page);
             for (User user : usersContainer.users) {
-                user.save();
+                saveUser(user, syncResult);
             }
             totalPages = usersContainer.meta.pagination.pages;
             page++;
@@ -168,7 +175,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         SettingsContainer settingsContainer = settings.blockingGetSettings(Setting.Type.BLOG,
                 page);
         for (Setting setting : settingsContainer.settings) {
-            setting.save();
+            saveSetting(setting, syncResult);
         }
 
         // Sync tags
@@ -178,7 +185,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             TagsContainer tagsContainer = tags.blockingGetTags(page);
             for (Tag tag : tagsContainer.tags) {
-                tag.save();
+                saveTag(tag, syncResult);
             }
             totalPages = tagsContainer.meta.pagination.pages;
             page++;
@@ -191,25 +198,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             PostsContainer postsContainer = posts.blockingGetPosts(page, null, Status.ALL, false);
             for (Post post : postsContainer.posts) {
-                // Save the post
-                post.save();
-
-                // Delete existing tags
-                new Delete().from(PostTag.class).where("post_id = ?", post.getId()).execute();
-
-                // Link current tags to the post
-                for (Tag tag : post.tags) {
-                    Tag dbTag = new Select()
-                            .from(Tag.class)
-                            .where("remote_id = ?", tag.id)
-                            .executeSingle();
-                    if (dbTag != null) {
-                        PostTag postTag = new PostTag();
-                        postTag.post = post;
-                        postTag.tag = dbTag;
-                        postTag.save();
-                    }
-                }
+                savePost(post, syncResult);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -217,28 +206,164 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             PostsContainer postsContainer = posts.blockingGetPosts(page, null, Status.ALL, true);
             for (Post post : postsContainer.posts) {
-                // Save the post
-                post.save();
-
-                // Delete existing tags
-                new Delete().from(PostTag.class).where("post_id = ?", post.getId()).execute();
-
-                // Link current tags to the post
-                for (Tag tag : post.tags) {
-                    Tag dbTag = new Select()
-                            .from(Tag.class)
-                            .where("remote_id = ?", tag.id)
-                            .executeSingle();
-                    if (dbTag != null) {
-                        PostTag postTag = new PostTag();
-                        postTag.post = post;
-                        postTag.tag = dbTag;
-                        postTag.save();
-                    }
-                }
+                savePost(post, syncResult);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
+        }
+    }
+
+    /**
+     * Save a user record if necessary
+     *
+     * @param user
+     * @param syncResult
+     */
+    private void saveUser(User user, SyncResult syncResult) {
+        // Get the local record
+        User dbUser = new Select().from(User.class).where("remote_id = ?", user.id).executeSingle();
+
+        // Check to see if record needs saving
+        if (dbUser != null) {
+            // Check if user was actually updated
+            if (user.updatedAt.compareTo(dbUser.updatedAt) <= 0) {
+                Log.d(TAG, "User is unchanged");
+                return;
+            }
+        }
+
+        // Save the record
+        user.save();
+        if (dbUser == null) {
+            syncResult.stats.numInserts++;
+        } else {
+            syncResult.stats.numUpdates++;
+        }
+    }
+
+    /**
+     * Save a setting record if necessary
+     *
+     * @param setting
+     * @param syncResult
+     */
+    private void saveSetting(Setting setting, SyncResult syncResult) {
+        // Get the local record
+        Setting dbSetting = new Select().from(Setting.class).where("remote_id = ?", setting.id)
+                .executeSingle();
+
+        // Check to see if record needs saving
+        if (dbSetting != null) {
+            // Check if setting was actually updated
+            if (setting.updatedAt.compareTo(dbSetting.updatedAt) <= 0) {
+                Log.d(TAG, "Setting is unchanged");
+                return;
+            }
+        }
+
+        // Save the record
+        setting.save();
+        if (dbSetting == null) {
+            syncResult.stats.numInserts++;
+        } else {
+            syncResult.stats.numUpdates++;
+        }
+    }
+
+    /**
+     * Save a tag record if necessary
+     *
+     * @param tag
+     * @param syncResult
+     */
+    private void saveTag(Tag tag, SyncResult syncResult) {
+        // Get the local record
+        Tag dbTag = new Select().from(Tag.class).where("remote_id = ?", tag.id).executeSingle();
+
+        // Check to see if record needs saving
+        if (dbTag != null) {
+            // Check if tag was actually updated
+            if (tag.updatedAt.compareTo(dbTag.updatedAt) <= 0) {
+                Log.d(TAG, "Tag is unchanged");
+                return;
+            }
+        }
+
+        // Save the record
+        tag.save();
+        if (dbTag == null) {
+            syncResult.stats.numInserts++;
+        } else {
+            syncResult.stats.numUpdates++;
+        }
+    }
+
+    /**
+     * Save a post record if necessary
+     *
+     * @param post
+     * @param syncResult
+     */
+    private void savePost(Post post, SyncResult syncResult) {
+        // Get the local record
+        Post dbPost = new Select().from(Post.class).where("remote_id = ?", post.id).executeSingle();
+
+        // Check to see if record needs saving
+        if (dbPost != null) {
+            // If local updates exist, skip but check for conflicts
+            if (dbPost.updatedLocally) {
+                Log.d(TAG, "Won't update locally changed records");
+                if (dbPost.updatedAt != post.updatedAt) {
+                    Log.d(TAG, "Record is conflicted, changed locally and remotely");
+                    dbPost.remoteConflict = true;
+                    dbPost.save();
+                }
+                return;
+            }
+
+            // Check if post was actually updated
+            if (post.updatedAt.compareTo(dbPost.updatedAt) <= 0) {
+                Log.d(TAG, "Post is unchanged");
+                return;
+            }
+        }
+
+        // Save the record
+        ActiveAndroid.beginTransaction();
+        try {
+            // Save the post
+            post.save();
+            if (dbPost == null) {
+                syncResult.stats.numInserts++;
+            } else {
+                syncResult.stats.numUpdates++;
+            }
+
+            // Delete any existing post/tag associations
+            List<PostTag> dbPostTags = new Select().from(PostTag.class)
+                    .where("post_id = ?", post.getId()).execute();
+            for (PostTag dbPostTag : dbPostTags) {
+                dbPostTag.delete();
+                syncResult.stats.numDeletes++;
+            }
+
+            // Link current tags to the post
+            for (Tag tag : post.tags) {
+                // Get the tag record from the database as the object created from JSON doesn't
+                // save correctly unless saved first itself
+                Tag dbTag = new Select().from(Tag.class).where("remote_id = ?", tag.id)
+                        .executeSingle();
+                if (dbTag != null) {
+                    PostTag postTag = new PostTag();
+                    postTag.post = post;
+                    postTag.tag = dbTag;
+                    postTag.save();
+                    syncResult.stats.numInserts++;
+                }
+            }
+            ActiveAndroid.setTransactionSuccessful();
+        } finally {
+            ActiveAndroid.endTransaction();
         }
     }
 

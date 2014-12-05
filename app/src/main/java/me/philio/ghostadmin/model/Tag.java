@@ -73,4 +73,16 @@ public class Tag extends Model {
 
     // TODO parent - is a parent tag? future feature?
 
+    /**
+     * A flag to indicate that the record has local updates
+     */
+    @Column(name = "updated_locally")
+    public boolean updatedLocally;
+
+    /**
+     * A flag to indicate that the record was updated locally and remotely and is conflicted
+     */
+    @Column(name = "remote_conflict")
+    public boolean remoteConflict;
+
 }

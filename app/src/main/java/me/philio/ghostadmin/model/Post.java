@@ -141,10 +141,21 @@ public class Post extends Model {
     @SerializedName("author")
     public int author;
 
-    // TODO Need anything here for AA?
     @SerializedName("tags")
     public List<Tag> tags;
 
     // TODO fields - what is this?
+
+    /**
+     * A flag to indicate that the record has local updates
+     */
+    @Column(name = "updated_locally")
+    public boolean updatedLocally;
+
+    /**
+     * A flag to indicate that the record was updated locally and remotely and is conflicted
+     */
+    @Column(name = "remote_conflict")
+    public boolean remoteConflict;
 
 }

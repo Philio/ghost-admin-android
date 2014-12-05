@@ -48,6 +48,15 @@ public interface Users {
             Callback<UsersContainer> callback);
 
     /**
+     * Get current user
+     *
+     * @param callback Response callback
+     */
+    @GET("/users/me")
+    public void getMe(
+            Callback<UsersContainer> callback);
+
+    /**
      * Get user with slug
      *
      * @param slug     User slug
