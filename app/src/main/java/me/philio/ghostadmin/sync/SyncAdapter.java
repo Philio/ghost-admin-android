@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
-import com.activeandroid.query.Delete;
 import com.activeandroid.query.Select;
 
 import java.io.IOException;
@@ -76,11 +75,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             // Refresh the access token
             refreshAccessToken(account);
 
-            // Sync remote
+            // Sync remote changes
             syncRemote(account, syncResult);
         } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError e) {
             syncResult.stats.numIoExceptions++;
-            return;
         }
 
         Log.d(TAG, "Sync finished for " + account.name);
@@ -125,9 +123,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             mAccountManager.setUserData(account, KEY_ACCESS_TOKEN_EXPIRES,
                     Long.toString(System.currentTimeMillis() + (token.expires * 1000)));
         } catch (RetrofitError e) {
-            // Check for a 403 as we can try and re-authenticate with an email/password
+            // Check for a 401/403 as we can try and re-authenticate with an email/password
             if (e.getResponse() != null &&
-                    e.getResponse().getStatus() == HttpURLConnection.HTTP_FORBIDDEN) {
+                    (e.getResponse().getStatus() == HttpURLConnection.HTTP_UNAUTHORIZED ||
+                            e.getResponse().getStatus() == HttpURLConnection.HTTP_FORBIDDEN)) {
                 String email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
                 String password = mAccountManager.getPassword(account);
                 Token token = authentication.blockingGetAccessToken(GRANT_TYPE_PASSWORD,
@@ -138,6 +137,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 mAccountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, token.refreshToken);
                 mAccountManager.setUserData(account, KEY_ACCESS_TOKEN_EXPIRES,
                         Long.toString(System.currentTimeMillis() + (token.expires * 1000)));
+            } else {
+                // Rethrow the exception if something else went wrong
+                throw e;
             }
         }
     }

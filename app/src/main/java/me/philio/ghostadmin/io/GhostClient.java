@@ -168,7 +168,7 @@ public class GhostClient {
     public Authentication createAuthentication() {
         return new RestAdapter.Builder()
                 .setEndpoint(mBlogUrl + BASE_PATH + "/authentication")
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(RestAdapter.LogLevel.FULL)
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade request) {
