@@ -18,6 +18,9 @@ import java.util.UUID;
 @Table(name = "users", id = BaseColumns._ID)
 public class User extends Model {
 
+    @Column(name = "blog_id")
+    public Blog blog;
+
     @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
             notNull = true)
     @SerializedName("id")

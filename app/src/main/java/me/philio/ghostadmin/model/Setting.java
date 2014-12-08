@@ -43,6 +43,9 @@ public class Setting extends Model {
 
     }
 
+    @Column(name = "blog_id")
+    public Blog blog;
+
     @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
             notNull = true)
     @SerializedName("id")

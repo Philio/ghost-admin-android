@@ -60,6 +60,9 @@ public class Post extends Model {
 
     }
 
+    @Column(name = "blog_id")
+    public Blog blog;
+
     @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
             notNull = true)
     @SerializedName("id")
@@ -155,7 +158,13 @@ public class Post extends Model {
     /**
      * A flag to indicate that the record was updated locally and remotely and is conflicted
      */
-    @Column(name = "remote_conflict")
-    public boolean remoteConflict;
+    @Column(name = "remote_conflicted")
+    public boolean remoteConflicted;
+
+    /**
+     * A flag to indicate that the record was updated locally and deleted remotely
+     */
+    @Column(name = "remote_deleted")
+    public boolean remoteDeleted;
 
 }

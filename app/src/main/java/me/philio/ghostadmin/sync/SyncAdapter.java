@@ -16,6 +16,7 @@ import com.activeandroid.query.Select;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.List;
 
 import me.philio.ghostadmin.account.AccountConstants;
@@ -25,6 +26,7 @@ import me.philio.ghostadmin.io.endpoint.Posts;
 import me.philio.ghostadmin.io.endpoint.Settings;
 import me.philio.ghostadmin.io.endpoint.Tags;
 import me.philio.ghostadmin.io.endpoint.Users;
+import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Post;
 import me.philio.ghostadmin.model.PostTag;
 import me.philio.ghostadmin.model.PostsContainer;
@@ -153,6 +155,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError {
+        // Load the blog record
+        long blogId = Long.parseLong(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_ID));
+        Blog blog = new Select().from(Blog.class).where("_id = ?", blogId).executeSingle();
+        if (blog == null) {
+            Log.e(TAG, "Fatal error, blog record missing");
+            return;
+        }
+
         // Get blog url and access token
         String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
         String accessToken = mAccountManager.blockingGetAuthToken(account, TOKEN_TYPE_ACCESS,
@@ -166,6 +176,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             UsersContainer usersContainer = users.blockingGetUsers(page);
             for (User user : usersContainer.users) {
+                user.blog = blog;
                 saveUser(user, syncResult);
             }
             totalPages = usersContainer.meta.pagination.pages;
@@ -177,6 +188,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         SettingsContainer settingsContainer = settings.blockingGetSettings(Setting.Type.BLOG,
                 page);
         for (Setting setting : settingsContainer.settings) {
+            setting.blog = blog;
             saveSetting(setting, syncResult);
         }
 
@@ -187,6 +199,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             TagsContainer tagsContainer = tags.blockingGetTags(page);
             for (Tag tag : tagsContainer.tags) {
+                tag.blog = blog;
                 saveTag(tag, syncResult);
             }
             totalPages = tagsContainer.meta.pagination.pages;
@@ -197,9 +210,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Posts posts = client.createPosts();
         page = 1;
         totalPages = 1;
+        List<Integer> remoteIds = new ArrayList<>();
         while (page <= totalPages) {
             PostsContainer postsContainer = posts.blockingGetPosts(page, null, Status.ALL, false);
             for (Post post : postsContainer.posts) {
+                remoteIds.add(post.id);
+                post.blog = blog;
                 savePost(post, syncResult);
             }
             totalPages = postsContainer.meta.pagination.pages;
@@ -208,10 +224,27 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         while (page <= totalPages) {
             PostsContainer postsContainer = posts.blockingGetPosts(page, null, Status.ALL, true);
             for (Post post : postsContainer.posts) {
+                remoteIds.add(post.id);
+                post.blog = blog;
                 savePost(post, syncResult);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
+        }
+
+        // Check for deleted posts and remove/flag
+        List<Post> dbPosts = new Select().from(Post.class).execute();
+        for (Post post : dbPosts) {
+            if (!remoteIds.contains(post.id)) {
+                if (post.updatedLocally) {
+                    post.remoteDeleted = true;
+                    post.save();
+                    syncResult.stats.numUpdates++;
+                } else {
+                    post.delete();
+                    syncResult.stats.numDeletes++;
+                }
+            }
         }
     }
 
@@ -317,7 +350,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 Log.d(TAG, "Won't update locally changed records");
                 if (dbPost.updatedAt != post.updatedAt) {
                     Log.d(TAG, "Record is conflicted, changed locally and remotely");
-                    dbPost.remoteConflict = true;
+                    dbPost.remoteConflicted = true;
                     dbPost.save();
                 }
                 return;

@@ -34,10 +34,12 @@ import butterknife.InjectView;
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.account.AccountAuthenticatorActionBarActivity;
 import me.philio.ghostadmin.account.AccountConstants;
+import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Token;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_URL;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
@@ -163,11 +165,18 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
 
     @Override
     public void onSuccess(String email, String password, Token token) {
+        // Create blog entry
+        Blog blog = new Blog();
+        blog.url = mBlogUrl;
+        blog.email = email;
+        blog.save();
+
         // Create the account
         AccountManager accountManager = AccountManager.get(this);
         Uri uri = Uri.parse(mBlogUrl);
         Account account = new Account(email, getString(R.string.account_type));
         Bundle userdata = new Bundle();
+        userdata.putString(KEY_BLOG_ID, Long.toString(blog.getId()));
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
         userdata.putString(KEY_EMAIL, email);
         userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);

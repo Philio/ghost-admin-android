@@ -33,6 +33,7 @@
         <meta-data
             android:name="AA_MODELS"
             android:value="
+                    me.philio.ghostadmin.model.Blog,
                     me.philio.ghostadmin.model.Post,
                     me.philio.ghostadmin.model.Setting,
                     me.philio.ghostadmin.model.Tag,
