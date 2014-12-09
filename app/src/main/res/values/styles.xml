@@ -9,6 +9,13 @@
         <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
     </style>
 
+    <!-- Light theme with no ActionBar -->
+    <style name="Theme.Ghost.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="toolbarStyle">@style/Theme.Ghost.ToolbarStyle.Light.DarkActionBar</item>
+    </style>
+
     <!-- Dark theme -->
     <style name="Theme.Ghost.Dark" parent="Theme.AppCompat">
         <item name="android:windowBackground">@color/background</item>
@@ -22,6 +29,7 @@
     <!-- Dark theme with no ActionBar -->
     <style name="Theme.Ghost.Dark.NoActionBar">
         <item name="windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
 
     <!-- Splash theme -->
@@ -30,16 +38,23 @@
         <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
+    <!-- Toolbar styles, can probably remove some, following appcompat hierarchy for now -->
+    <style name="Theme.Ghost.ToolbarStyle" parent="Widget.AppCompat.Toolbar" />
+
+    <style name="Theme.Ghost.ToolbarStyle.Light" />
+
+    <style name="Theme.Ghost.ToolbarStyle.Light.DarkActionBar">
+        <item name="titleTextAppearance">@style/TextAppearance.Widget.Ghost.Toolbar.Title</item>
+    </style>
+
+    <style name="TextAppearance.Widget.Ghost.Toolbar.Title" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
     <!-- Default button style -->
     <style name="Theme.Ghost.Button" parent="@android:style/Widget.Button">
         <item name="android:background">@drawable/selector_btn_blue</item>
         <item name="android:textColor">@android:color/white</item>
-    </style>
-
-    <style name="Theme.Ghost.AutoCompleteTextView" parent="@style/Widget.AppCompat.EditText">
-        <item name="android:background">@drawable/abc_edit_text_material</item>
-        <item name="colorAccent">@color/accent_blue_active</item>
-        <item name="colorControlNormal">@color/accent_blue</item>
     </style>
 
 </resources>

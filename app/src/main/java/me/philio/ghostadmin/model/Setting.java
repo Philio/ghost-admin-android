@@ -8,6 +8,7 @@ import com.activeandroid.annotation.Table;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.Date;
+import java.util.UUID;
 
 /**
  * Setting model (doesn't work with themes as value is more complex)
@@ -53,7 +54,7 @@ public class Setting extends Model {
 
     @Column(name = "uuid")
     @SerializedName("uuid")
-    public String uuid;
+    public UUID uuid;
 
     @Column(name = "key")
     @SerializedName("key")

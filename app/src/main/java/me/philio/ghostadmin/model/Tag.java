@@ -28,7 +28,7 @@ public class Tag extends Model {
 
     @Column(name = "uuid")
     @SerializedName("uuid")
-    public String uuid;
+    public UUID uuid;
 
     @Column(name = "name")
     @SerializedName("name")

@@ -39,6 +39,10 @@
                     me.philio.ghostadmin.model.Tag,
                     me.philio.ghostadmin.model.User,
                     me.philio.ghostadmin.model.PostTag" />
+        <meta-data
+            android:name="AA_SERIALIZERS"
+            android:value="
+                    com.activeandroid.serializer.UUIDSerializer" />
 
         <!-- Activities -->
         <activity
@@ -57,7 +61,8 @@
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
             android:name="me.philio.ghostadmin.ui.MainActivity"
-            android:label="@string/title_activity_main" />
+            android:label="@string/title_activity_main"
+            android:theme="@style/Theme.Ghost.NoActionBar" />
 
         <!-- ActiveAndroid content provider -->
         <provider

@@ -70,7 +70,7 @@ public class Post extends Model {
 
     @Column(name = "uuid")
     @SerializedName("uuid")
-    public String uuid;
+    public UUID uuid;
 
     @Column(name = "title")
     @SerializedName("title")

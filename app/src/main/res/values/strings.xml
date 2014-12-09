@@ -10,7 +10,7 @@
     <string name="provider_sync_name">Blog posts and settings</string>
 
     <!-- Auto generated stuff, sort out later -->
-    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_main">@string/app_name</string>
     <string name="title_section1">Section 1</string>
     <string name="title_section2">Section 2</string>
     <string name="title_section3">Section 3</string>
