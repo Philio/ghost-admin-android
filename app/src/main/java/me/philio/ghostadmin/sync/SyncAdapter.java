@@ -8,20 +8,30 @@ import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.query.Select;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.io.GhostClient;
 import me.philio.ghostadmin.io.endpoint.Authentication;
+import me.philio.ghostadmin.io.endpoint.Content;
 import me.philio.ghostadmin.io.endpoint.Posts;
 import me.philio.ghostadmin.io.endpoint.Settings;
 import me.philio.ghostadmin.io.endpoint.Tags;
@@ -37,9 +47,12 @@ import me.philio.ghostadmin.model.TagsContainer;
 import me.philio.ghostadmin.model.Token;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.model.UsersContainer;
+import me.philio.ghostadmin.util.ImageUtils;
 import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_REFRESH;
 import static me.philio.ghostadmin.io.ApiConstants.CLIENT_ID;
@@ -79,7 +92,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
             // Sync remote changes
             syncRemote(account, syncResult);
-        } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError e) {
+        } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError |
+                NoSuchAlgorithmException e) {
+            Log.e(TAG, "Sync error: " + e.getMessage());
             syncResult.stats.numIoExceptions++;
         }
 
@@ -154,20 +169,31 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * TODO Hopefully this can be optimised at a later date, depends on the API
      */
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
-            OperationCanceledException, IOException, RetrofitError {
+            OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
         // Load the blog record
         long blogId = Long.parseLong(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_ID));
-        Blog blog = new Select().from(Blog.class).where("_id = ?", blogId).executeSingle();
+        Blog blog = new Select().from(Blog.class).where(BaseColumns._ID + " = ?", blogId).executeSingle();
+
+        // If record is missing, it can be fixed
         if (blog == null) {
-            Log.e(TAG, "Fatal error, blog record missing");
-            return;
+            // Create the record and save it
+            blog = new Blog();
+            blog.url = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+            blog.email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
+            blog.save();
+
+            // Update account
+            mAccountManager.setUserData(account, AccountConstants.KEY_BLOG_ID,
+                    Long.toString(blog.getId()));
         }
 
-        // Get blog url and access token
-        String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+        // Get access token and instantiate the client
         String accessToken = mAccountManager.blockingGetAuthToken(account, TOKEN_TYPE_ACCESS,
                 false);
-        GhostClient client = new GhostClient(blogUrl, accessToken);
+        GhostClient client = new GhostClient(blog.url, accessToken);
+
+        // Content client for downloading images
+        Content content = client.createContent();
 
         // Sync users
         Users users = client.createUsers();
@@ -178,6 +204,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             for (User user : usersContainer.users) {
                 user.blog = blog;
                 saveUser(user, syncResult);
+                saveContent(blog, content, user.image);
+                saveContent(blog, content, user.cover);
             }
             totalPages = usersContainer.meta.pagination.pages;
             page++;
@@ -217,6 +245,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
+                saveContent(blog, content, post.image);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -227,6 +256,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
+                saveContent(blog, content, post.image);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -246,6 +276,51 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 }
             }
         }
+    }
+
+    /**
+     * Save content (expects images)
+     *
+     * @param content Content client
+     * @param path    Path on the server
+     * TODO move a lot of this stuff into constants
+     */
+    private void saveContent(Blog blog, Content content, String path) throws NoSuchAlgorithmException, IOException {
+        // Check that the path looks like something valid
+        if (path == null || path.trim().isEmpty()) {
+            return;
+        }
+
+        // Remove any leading slashes
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        // Generate a filename
+        String sha1 = ImageUtils.sha1(path);
+        String directory = getContext().getFilesDir().getAbsolutePath() + "/content/" +
+                Long.toString(blog.getId());
+        String filename = directory + "/" + sha1 + ".png";
+
+        // Make sure destination directory exists
+        if (!ImageUtils.ensureDirectory(directory)) {
+            Log.e(TAG, "Content directory missing");
+            return;
+        }
+
+        // Check if the file exists
+        if (ImageUtils.fileExists(filename)) {
+            Log.e(TAG, "File exists skipping");
+            return;
+        }
+
+        // Get the response stream
+        Response response = content.getContent(path);
+        InputStream inputStream = response.getBody().in();
+
+        // Decode and scale the image
+        Log.d(TAG, "Saving file: " + filename);
+        ImageUtils.decodeScale(inputStream, filename, 2048, 2048);
     }
 
     /**

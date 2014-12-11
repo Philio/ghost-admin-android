@@ -1,5 +1,24 @@
-<ListView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:choiceMode="singleChoice"
-    android:divider="@android:color/transparent" android:dividerHeight="0dp"
-    android:background="#cccc" tools:context="me.philio.ghostadmin.ui.NavigationDrawerFragment" />
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="me.philio.ghostadmin.ui.NavigationDrawerFragment">
+
+    <RelativeLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/navigation_drawer_header_height"
+        android:background="@color/widget_background">
+
+    </RelativeLayout>
+
+    <ListView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/header"
+        android:choiceMode="singleChoice"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="0dp" />
+</RelativeLayout>

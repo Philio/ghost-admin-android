@@ -165,18 +165,11 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
 
     @Override
     public void onSuccess(String email, String password, Token token) {
-        // Create blog entry
-        Blog blog = new Blog();
-        blog.url = mBlogUrl;
-        blog.email = email;
-        blog.save();
-
         // Create the account
         AccountManager accountManager = AccountManager.get(this);
         Uri uri = Uri.parse(mBlogUrl);
         Account account = new Account(email, getString(R.string.account_type));
         Bundle userdata = new Bundle();
-        userdata.putString(KEY_BLOG_ID, Long.toString(blog.getId()));
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
         userdata.putString(KEY_EMAIL, email);
         userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);

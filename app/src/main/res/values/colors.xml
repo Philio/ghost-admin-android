@@ -6,4 +6,5 @@
     <color name="widget_background_active">#474b4f</color>
     <color name="accent_blue">#5aa3e4</color>
     <color name="accent_blue_active">#2e8bdd</color>
+    <color name="inset_foreground">#3000</color>
 </resources>

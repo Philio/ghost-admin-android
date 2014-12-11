@@ -7,7 +7,7 @@
     <string name="admin">Admin</string>
 
     <!-- Name of the content provider in the sync menu -->
-    <string name="provider_sync_name">Blog posts and settings</string>
+    <string name="provider_sync_name">Posts and settings</string>
 
     <!-- Auto generated stuff, sort out later -->
     <string name="title_activity_main">@string/app_name</string>

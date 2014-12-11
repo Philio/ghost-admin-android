@@ -62,13 +62,14 @@
         <activity
             android:name="me.philio.ghostadmin.ui.MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/Theme.Ghost.NoActionBar" />
+            android:theme="@style/Theme.Ghost.NoActionBar.NavigationDrawer" />
 
         <!-- ActiveAndroid content provider -->
         <provider
             android:name="com.activeandroid.content.ContentProvider"
             android:authorities="@string/content_authority"
-            android:exported="false" />
+            android:exported="false"
+            android:label="@string/provider_sync_name" />
 
         <!-- Account authenticator service -->
         <service

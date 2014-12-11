@@ -3,6 +3,7 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context="me.philio.ghostadmin.ui.MainActivity">
 
     <RelativeLayout
@@ -19,7 +20,8 @@
                 android:id="@+id/progressbar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
+                android:layout_gravity="end|center_vertical"
+                android:layout_marginEnd="10dp"
                 android:layout_marginRight="10dp"
                 android:indeterminate="true"
                 android:visibility="invisible" />
@@ -29,13 +31,36 @@
             android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <ImageButton
+            android:layout_width="@dimen/floating_action_button"
+            android:layout_height="@dimen/floating_action_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="@dimen/activity_vertical_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:background="@drawable/shape_oval"
+            android:elevation="4dp"
+            android:src="@drawable/ic_action_content_create" />
     </RelativeLayout>
 
-    <fragment
-        android:id="@+id/navigation_drawer"
-        android:name="me.philio.ghostadmin.ui.NavigationDrawerFragment"
+    <me.philio.ghostadmin.ui.widget.ScrimInsetsFrameLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/navigation_drawer_scrim"
         android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        tools:layout="@layout/fragment_navigation_drawer" />
+        android:background="@android:color/white"
+        android:elevation="10dp"
+        android:fitsSystemWindows="true"
+        app:insetForeground="@color/inset_foreground">
+
+        <fragment
+            android:id="@+id/navigation_drawer"
+            android:name="me.philio.ghostadmin.ui.NavigationDrawerFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_navigation_drawer" />
+    </me.philio.ghostadmin.ui.widget.ScrimInsetsFrameLayout>
 </android.support.v4.widget.DrawerLayout>

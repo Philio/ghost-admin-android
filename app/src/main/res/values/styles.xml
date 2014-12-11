@@ -16,6 +16,9 @@
         <item name="toolbarStyle">@style/Theme.Ghost.ToolbarStyle.Light.DarkActionBar</item>
     </style>
 
+    <!-- Light theme with no ActionBar for use with nav drawer -->
+    <style name="Theme.Ghost.NoActionBar.NavigationDrawer" />
+
     <!-- Dark theme -->
     <style name="Theme.Ghost.Dark" parent="Theme.AppCompat">
         <item name="android:windowBackground">@color/background</item>

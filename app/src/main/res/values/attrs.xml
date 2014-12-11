@@ -4,4 +4,9 @@
     <!-- Used by caligraphy -->
     <attr name="fontPath" format="string" />
 
+    <!-- Styleable for ScrimInsetsFrameLayout -->
+    <declare-styleable name="ScrimInsetsView">
+        <attr name="insetForeground" format="reference|color" />
+    </declare-styleable>
+
 </resources>
