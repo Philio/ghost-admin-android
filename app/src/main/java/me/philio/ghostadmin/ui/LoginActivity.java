@@ -36,6 +36,7 @@ import me.philio.ghostadmin.account.AccountAuthenticatorActionBarActivity;
 import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Token;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
@@ -76,6 +77,11 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
      * The url of the blog
      */
     private String mBlogUrl;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -4,5 +4,5 @@
     <string name="account_type">me.philio.ghostadmin.account</string>
 
     <!-- Content authority -->
-    <string name="content_authority">me.philio.ghostadmin.provider</string>
+    <string name="content_authority">me.philio.ghostadmin</string>
 </resources>

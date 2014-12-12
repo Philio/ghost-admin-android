@@ -44,6 +44,46 @@ public class Setting extends Model {
 
     }
 
+    /**
+     * Setting keys
+     */
+    public enum Key {
+
+        @SerializedName("title")
+        TITLE,
+
+        @SerializedName("description")
+        DESCRIPTION,
+
+        @SerializedName("email")
+        EMAIL,
+
+        @SerializedName("logo")
+        LOGO,
+
+        @SerializedName("cover")
+        COVER,
+
+        @SerializedName("defaultLang")
+        DEFAULT_LANG,
+
+        @SerializedName("postsPerPage")
+        POSTS_PER_PAGE,
+
+        @SerializedName("forceI18n")
+        FORCE_I18N,
+
+        @SerializedName("permalinks")
+        PERMALINKS,
+
+        @SerializedName("ghost_head")
+        GHOST_HEAD,
+
+        @SerializedName("ghost_foot")
+        GHOST_FOOT;
+
+    }
+
     @Column(name = "blog_id")
     public Blog blog;
 
@@ -58,7 +98,7 @@ public class Setting extends Model {
 
     @Column(name = "key")
     @SerializedName("key")
-    public String key;
+    public Key key;
 
     @Column(name = "value")
     @SerializedName("value")

@@ -5,9 +5,14 @@
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
 
+    <!-- Keylines from material guidelines -->
+    <dimen name="keyline_1">16dp</dimen>
+    <dimen name="keyline_2">72dp</dimen>
+
     <!-- Navigation drawer stuff -->
     <dimen name="navigation_drawer_width">300dp</dimen>
-    <dimen name="navigation_drawer_header_height">150dp</dimen>
+    <dimen name="navigation_drawer_header_height">160dp</dimen>
+    <dimen name="navigation_drawer_avatar_size">72dp</dimen>
 
     <!-- Floating action button sizes -->
     <dimen name="floating_action_button">56dp</dimen>

@@ -1,5 +1,6 @@
 package me.philio.ghostadmin.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -12,12 +13,45 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import me.philio.ghostadmin.model.Blog;
+
 /**
  * Utils for handling image downloads/saving/scaling
  *
  * Created by phil on 10/12/2014.
  */
 public class ImageUtils {
+
+    /**
+     * Clean up a path, no leading slashes
+     *
+     * @param path
+     * @return
+     */
+    public static String cleanPath(String path) {
+        // Remove any leading slashes
+        while (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return path;
+    }
+
+    /**
+     * Get filename for a given path in a blog
+     *
+     * @param context
+     * @param blog
+     * @param path
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws NoSuchAlgorithmException
+     */
+    public static String getFilename(Context context, Blog blog, String path) throws
+            UnsupportedEncodingException, NoSuchAlgorithmException {
+        // Generate a filename
+        return context.getFilesDir().getAbsolutePath() + "/content/" + Long.toString(blog.getId()) +
+                "/" + sha1(path) + ".png";
+    }
 
     /**
      * Create a SHA1 to use as local filename

@@ -1,5 +1,6 @@
 package me.philio.ghostadmin.ui;
 
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.ui.widget.ScrimInsetsFrameLayout;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -34,6 +36,11 @@ public class MainActivity extends ActionBarActivity
     Toolbar mToolbar;
     @InjectView(R.id.progressbar)
     ProgressBar mProgressBar;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

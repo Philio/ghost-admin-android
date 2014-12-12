@@ -1,38 +1,64 @@
 package me.philio.ghostadmin.ui;
 
-import android.graphics.Rect;
-import android.support.v7.app.ActionBarActivity;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.activeandroid.content.ContentProvider;
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghostadmin.R;
-import me.philio.ghostadmin.ui.widget.ScrimInsetsFrameLayout;
+import me.philio.ghostadmin.model.Setting;
+import me.philio.ghostadmin.model.User;
+import me.philio.ghostadmin.ui.widget.BezelImageView;
+import me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView;
+import me.philio.ghostadmin.util.ImageUtils;
+
+import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment {
+public class NavigationDrawerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    /**
+     * Logging tag
+     */
+    private static final String TAG = NavigationDrawerFragment.class.getName();
 
     /**
      * Remember the position of the selected item.
@@ -44,6 +70,12 @@ public class NavigationDrawerFragment extends Fragment {
      * expands it. This shared preference tracks this.
      */
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+
+    /**
+     * Loaders
+     */
+    private static final int LOADER_BLOG_NAME = 0;
+    private static final int LOADER_USER = 1;
 
     /**
      * A pointer to the current callbacks instance (the Activity).
@@ -66,25 +98,63 @@ public class NavigationDrawerFragment extends Fragment {
     private View mContainerView;
 
     /**
-     * Injected views
+     * State/prefs of the drawer
      */
-    @InjectView(android.R.id.list)
-    ListView mDrawerListView;
-    @InjectView(R.id.header)
-    RelativeLayout mHeader;
-
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
-    private int mHeaderOriginalHeight;
+    /**
+     * Account manager
+     */
+    private AccountManager mAccountManager;
 
-    public NavigationDrawerFragment() {
+    /**
+     * List of accounts
+     */
+    private List<Account> mAccounts;
+
+    /**
+     * Active account
+     */
+    private Account mSelectedAccount;
+
+    /**
+     * Injected views
+     */
+    @InjectView(R.id.header)
+    View mHeader;
+    @InjectView(R.id.header_content)
+    View mHeaderContent;
+    @InjectView(R.id.img_cover)
+    ImageView mCover;
+    @InjectView(R.id.img_avatar)
+    BezelImageView mAvatar;
+    @InjectView(R.id.text_name)
+    TextView mName;
+    @InjectView(R.id.text_email)
+    TextView mEmail;
+    @InjectView(R.id.text_blog_title)
+    TextView mBlogName;
+    @InjectView(R.id.text_blog_url)
+    TextView mBlogUrl;
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mCallbacks = (NavigationDrawerCallbacks) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement NavigationDrawerCallbacks.");
+        }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get the account manager
+        mAccountManager = AccountManager.get(getActivity());
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
         // drawer. See PREF_USER_LEARNED_DRAWER for details.
@@ -101,6 +171,15 @@ public class NavigationDrawerFragment extends Fragment {
     }
 
     @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(
+                R.layout.fragment_navigation_drawer, container, false);
+        ButterKnife.inject(this, view);
+        return view;
+    }
+
+    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
@@ -108,33 +187,30 @@ public class NavigationDrawerFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(
-                R.layout.fragment_navigation_drawer, container, false);
-        ButterKnife.inject(this, view);
-
-        mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectItem(position);
-            }
-        });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                getActivity(),
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                }));
-        mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
-        return view;
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
     }
 
-    public boolean isDrawerOpen() {
-        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Forward the new configuration the drawer toggle component.
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     /**
@@ -148,17 +224,23 @@ public class NavigationDrawerFragment extends Fragment {
         mDrawerLayout = drawerLayout;
 
         // Resize the header if necessary
-        // TODO this feels kinda hacky, maybe there is a nicer way? main problem is maintaining
-        // TODO compatibility, e.g. status bar might differ in size depending on manufacturer
-        if (mContainerView instanceof ScrimInsetsFrameLayout) {
-            ScrimInsetsFrameLayout layout = (ScrimInsetsFrameLayout) mContainerView;
-            mHeaderOriginalHeight = mHeader.getLayoutParams().height;
-            layout.setOnInsetsCallback(new ScrimInsetsFrameLayout.OnInsetsCallback() {
+        if (mContainerView instanceof ScrimInsetsScrollView) {
+            ScrimInsetsScrollView layout = (ScrimInsetsScrollView) mContainerView;
+            final int headerOriginalHeight = getResources()
+                    .getDimensionPixelSize(R.dimen.navigation_drawer_header_height);
+            layout.setOnInsetsCallback(new ScrimInsetsScrollView.OnInsetsCallback() {
                 @Override
                 public void onInsetsChanged(Rect insets) {
-                    ViewGroup.LayoutParams params = mHeader.getLayoutParams();
-                    params.height = mHeaderOriginalHeight - insets.height();
-                    mHeader.setLayoutParams(params);
+                    // Update the height of the header
+                    ViewGroup.LayoutParams headerParams = mHeader.getLayoutParams();
+                    headerParams.height = headerOriginalHeight + insets.top;
+                    mHeader.setLayoutParams(headerParams);
+
+                    // Update the top margin of the content
+                    ViewGroup.MarginLayoutParams contentParams = (ViewGroup.MarginLayoutParams)
+                            mHeaderContent.getLayoutParams();
+                    contentParams.topMargin = insets.top;
+                    mHeaderContent.setLayoutParams(contentParams);
                 }
             });
         }
@@ -224,13 +306,19 @@ public class NavigationDrawerFragment extends Fragment {
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // Load accounts and load data from database
+        refreshAccounts();
+        getLoaderManager().initLoader(LOADER_BLOG_NAME, null, this);
+        getLoaderManager().initLoader(LOADER_USER, null, this);
+    }
+
+    public boolean isDrawerOpen() {
+        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
     }
 
     private void selectItem(int position) {
         mCurrentSelectedPosition = position;
-        if (mDrawerListView != null) {
-            mDrawerListView.setItemChecked(position, true);
-        }
         if (mDrawerLayout != null) {
             mDrawerLayout.closeDrawer(mContainerView);
         }
@@ -239,45 +327,107 @@ public class NavigationDrawerFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mCallbacks = (NavigationDrawerCallbacks) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException("Activity must implement NavigationDrawerCallbacks.");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mCallbacks = null;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // Forward the new configuration the drawer toggle component.
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     private ActionBar getActionBar() {
         return ((ActionBarActivity) getActivity()).getSupportActionBar();
+    }
+
+    /**
+     * Load the accounts list and make sure that an account is selected/active
+     */
+    private void refreshAccounts() {
+        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+        mAccounts = new ArrayList<>(Arrays.asList(accounts));
+        if (mSelectedAccount == null) {
+            mSelectedAccount = mAccounts.get(0);
+        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case LOADER_BLOG_NAME:
+                // Get title setting
+                return new CursorLoader(getActivity(), ContentProvider.createUri(Setting.class,
+                        null), null, "key = ?", new String[]{Setting.Key.TITLE.toString()}, null);
+            case LOADER_USER:
+                // Get user details
+                String blogId = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_ID);
+                String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
+                return new CursorLoader(getActivity(), ContentProvider.createUri(User.class, null),
+                        null, "blog_id = ? AND email = ?", new String[]{blogId, email}, null);
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        switch (loader.getId()) {
+            case LOADER_BLOG_NAME:
+                // Validity check
+                if (cursor == null || cursor.getCount() == 0) {
+                    Log.e(TAG, "Failed to load setting");
+                    return;
+                }
+
+                // Create a model from the cursor as it's easier than lots of string manipulation
+                cursor.moveToFirst();
+                Setting setting = new Setting();
+                setting.loadFromCursor(cursor);
+
+                // Set the title/url
+                mBlogName.setText(setting.value);
+                mBlogUrl.setText(setting.blog.url);
+                break;
+            case LOADER_USER:
+                // Validity check
+                if (cursor == null || cursor.getCount() == 0) {
+                    Log.e(TAG, "Failed to load user");
+                    return;
+                }
+
+                // Create a model from the cursor as it's easier than lots of string manipulation
+                cursor.moveToFirst();
+                User user = new User();
+                user.loadFromCursor(cursor);
+
+                // Show cover image
+                if (user.cover != null) {
+                    try {
+                        String path = ImageUtils.cleanPath(user.cover);
+                        String filename = ImageUtils.getFilename(getActivity(), user.blog, path);
+                        File cover = new File(filename);
+                        if (cover.exists()) {
+                            Picasso.with(getActivity()).load(cover).fit().centerCrop().into(mCover);
+                        }
+                    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                        Log.e(TAG, "Error loading image");
+                    }
+                }
+
+                // Show avatar
+                if (user.image != null) {
+                    try {
+                        String path = ImageUtils.cleanPath(user.image);
+                        String filename = ImageUtils.getFilename(getActivity(), user.blog, path);
+                        File avatar = new File(filename);
+                        if (avatar.exists()) {
+                            Picasso.with(getActivity()).load(avatar).fit().into(mAvatar);
+                        }
+                    } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                        Log.e(TAG, "Error loading image");
+                    }
+                }
+
+                // Set text values
+                mName.setText(user.name);
+                mEmail.setText(user.email);
+                break;
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
     /**

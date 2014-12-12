@@ -6,6 +6,7 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
 import android.graphics.Bitmap;
@@ -171,8 +172,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
         // Load the blog record
-        long blogId = Long.parseLong(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_ID));
-        Blog blog = new Select().from(Blog.class).where(BaseColumns._ID + " = ?", blogId).executeSingle();
+        Blog blog = null;
+        String blogIdStr = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_ID);
+        if (blogIdStr != null) {
+            long blogId = Long.parseLong(blogIdStr);
+            blog = new Select().from(Blog.class).where(BaseColumns._ID + " = ?", blogId).executeSingle();
+        }
 
         // If record is missing, it can be fixed
         if (blog == null) {
@@ -214,10 +219,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Sync settings (no pagination)
         Settings settings = client.createSettings();
         SettingsContainer settingsContainer = settings.blockingGetSettings(Setting.Type.BLOG,
-                page);
+                1);
         for (Setting setting : settingsContainer.settings) {
             setting.blog = blog;
             saveSetting(setting, syncResult);
+            if (setting.key.equals(Setting.Key.LOGO) || setting.key.equals(Setting.Key.COVER)) {
+                saveContent(blog, content, setting.value);
+            }
         }
 
         // Sync tags
@@ -291,26 +299,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             return;
         }
 
-        // Remove any leading slashes
-        while (path.startsWith("/")) {
-            path = path.substring(1);
-        }
+        // Clean up the path
+        path = ImageUtils.cleanPath(path);
 
         // Generate a filename
-        String sha1 = ImageUtils.sha1(path);
-        String directory = getContext().getFilesDir().getAbsolutePath() + "/content/" +
-                Long.toString(blog.getId());
-        String filename = directory + "/" + sha1 + ".png";
+        String filename = ImageUtils.getFilename(getContext(), blog, path);
 
         // Make sure destination directory exists
-        if (!ImageUtils.ensureDirectory(directory)) {
+        if (!ImageUtils.ensureDirectory(filename.substring(0, filename.lastIndexOf('/')))) {
             Log.e(TAG, "Content directory missing");
             return;
         }
 
         // Check if the file exists
         if (ImageUtils.fileExists(filename)) {
-            Log.e(TAG, "File exists skipping");
+            Log.d(TAG, "File exists skipping");
             return;
         }
 
@@ -366,7 +369,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         if (dbSetting != null) {
             // Check if setting was actually updated
             if (setting.updatedAt.compareTo(dbSetting.updatedAt) <= 0) {
-                Log.d(TAG, "Setting is unchanged");
+                Log.d(TAG, "Setting is unchanged " + setting.updatedAt.toString() + " " + dbSetting.updatedAt.toString());
                 return;
             }
         }

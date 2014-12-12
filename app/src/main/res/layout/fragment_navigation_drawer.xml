@@ -1,24 +1,74 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     tools:context="me.philio.ghostadmin.ui.NavigationDrawerFragment">
 
-    <RelativeLayout
+    <FrameLayout
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="@dimen/navigation_drawer_header_height"
         android:background="@color/widget_background">
 
-    </RelativeLayout>
+        <ImageView
+            android:id="@+id/img_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@+id/header"
-        android:choiceMode="singleChoice"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="0dp" />
-</RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/header_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/keyline_1">
+
+            <me.philio.ghostadmin.ui.widget.BezelImageView
+                android:id="@+id/img_avatar"
+                android:layout_width="@dimen/navigation_drawer_avatar_size"
+                android:layout_height="@dimen/navigation_drawer_avatar_size"
+                android:scaleType="centerCrop"
+                app:maskDrawable="@drawable/shape_oval" />
+
+            <TextView
+                android:id="@+id/text_blog_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                fontPath="fonts/OpenSans-Bold.ttf"
+                android:layout_alignParentRight="true"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/text_blog_url"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/text_blog_title"
+                fontPath="fonts/OpenSans-Italic.ttf"
+                android:layout_alignParentRight="true"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/text_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_above="@+id/text_email"
+                android:textColor="@android:color/white"
+                fontPath="fonts/OpenSans-Bold.ttf" />
+
+            <TextView
+                android:id="@+id/text_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:textColor="@android:color/white" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:src="@drawable/ic_drawer_accounts_expand"/>
+        </RelativeLayout>
+    </FrameLayout>
+</LinearLayout>
