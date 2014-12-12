@@ -33,5 +33,4 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.4.0'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.jakewharton:butterknife:6.0.0'
-    compile 'com.makeramen:roundedimageview:1.5.0'
 }
