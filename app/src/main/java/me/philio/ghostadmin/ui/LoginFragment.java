@@ -14,12 +14,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import org.json.JSONObject;
-
 import java.net.HttpURLConnection;
 
 import butterknife.ButterKnife;
@@ -201,16 +195,16 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
         switch (v.getId()) {
             case R.id.edit_email:
                 if (hasFocus) {
-                    mEmailBackground.setBackgroundResource(R.color.widget_background_active);
+                    mEmailBackground.setBackgroundResource(R.color.primary_active);
                 } else {
-                    mEmailBackground.setBackgroundResource(R.color.widget_background);
+                    mEmailBackground.setBackgroundResource(R.color.primary);
                 }
                 break;
             case R.id.edit_password:
                 if (hasFocus) {
-                    mPasswordBackground.setBackgroundResource(R.color.widget_background_active);
+                    mPasswordBackground.setBackgroundResource(R.color.primary_active);
                 } else {
-                    mPasswordBackground.setBackgroundResource(R.color.widget_background);
+                    mPasswordBackground.setBackgroundResource(R.color.primary);
                 }
                 break;
         }

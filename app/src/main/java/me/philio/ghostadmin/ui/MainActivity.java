@@ -1,16 +1,12 @@
 package me.philio.ghostadmin.ui;
 
-import android.content.Context;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
@@ -18,8 +14,6 @@ import android.widget.ProgressBar;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghostadmin.R;
-import me.philio.ghostadmin.ui.widget.ScrimInsetsFrameLayout;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -36,11 +30,6 @@ public class MainActivity extends ActionBarActivity
     Toolbar mToolbar;
     @InjectView(R.id.progressbar)
     ProgressBar mProgressBar;
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,19 +49,21 @@ public class MainActivity extends ActionBarActivity
     }
 
     @Override
-    public void onNavigationDrawerItemSelected(int position) {
+    public void onNavigationDrawerItemSelected(int id) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                .replace(R.id.container, PlaceholderFragment.newInstance(id + 1))
                 .commit();
     }
 
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+    /**
+     * Emulate the old ActionBar progress bar functionality
+     *
+     * @param visible Progress bar visibility
+     */
+    public void setToolbarProgressBarVisibility(boolean visible) {
+        mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
     /**

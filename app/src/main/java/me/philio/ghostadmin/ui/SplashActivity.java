@@ -4,9 +4,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
@@ -15,12 +12,10 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import me.philio.ghostadmin.R;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class SplashActivity extends ActionBarActivity implements AccountManagerCallback<Bundle> {
 
@@ -38,11 +33,6 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
      * If addAccount has been called
      */
     private boolean mAuthRequested;
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

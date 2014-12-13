@@ -10,7 +10,7 @@
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="@dimen/navigation_drawer_header_height"
-        android:background="@color/widget_background">
+        android:background="@color/primary">
 
         <ImageView
             android:id="@+id/img_cover"
@@ -35,18 +35,18 @@
                 android:id="@+id/text_blog_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                fontPath="fonts/OpenSans-Bold.ttf"
                 android:layout_alignParentRight="true"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/text_blog_url"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/text_blog_title"
-                fontPath="fonts/OpenSans-Italic.ttf"
                 android:layout_alignParentRight="true"
-                android:textColor="@android:color/white" />
+                android:layout_below="@+id/text_blog_title"
+                android:textColor="@android:color/white"
+                android:textStyle="italic" />
 
             <TextView
                 android:id="@+id/text_name"
@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_above="@+id/text_email"
                 android:textColor="@android:color/white"
-                fontPath="fonts/OpenSans-Bold.ttf" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/text_email"
@@ -68,7 +68,20 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
-                android:src="@drawable/ic_drawer_accounts_expand"/>
+                android:src="@drawable/ic_drawer_accounts_expand" />
         </RelativeLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/item_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/navigation_drawer_section_vertical_margin"
+            android:layout_marginTop="@dimen/navigation_drawer_section_vertical_margin"
+            android:orientation="vertical" />
     </FrameLayout>
 </LinearLayout>

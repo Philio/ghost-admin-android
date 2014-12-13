@@ -137,9 +137,9 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
         switch (v.getId()) {
             case R.id.edit_url:
                 if (hasFocus) {
-                    mUrlBackground.setBackgroundResource(R.color.widget_background_active);
+                    mUrlBackground.setBackgroundResource(R.color.primary_active);
                 } else {
-                    mUrlBackground.setBackgroundResource(R.color.widget_background);
+                    mUrlBackground.setBackgroundResource(R.color.primary);
                 }
                 break;
         }

@@ -24,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:background="@color/widget_background">
+            android:background="@color/primary">
 
             <EditText
                 android:id="@+id/edit_email"
@@ -39,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:background="@color/widget_background">
+            android:background="@color/primary">
 
             <EditText
                 android:id="@+id/edit_password"

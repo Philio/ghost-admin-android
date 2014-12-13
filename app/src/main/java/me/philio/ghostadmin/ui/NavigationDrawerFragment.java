@@ -9,6 +9,7 @@ import android.database.Cursor;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -100,7 +101,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     /**
      * State/prefs of the drawer
      */
-    private int mCurrentSelectedPosition = 0;
+    private int mCurrentSelectedItem = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
@@ -118,6 +119,45 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
      * Active account
      */
     private Account mSelectedAccount;
+
+    /**
+     * Item ids
+     */
+    private static final int ITEM_DIVIDER = -1;
+    public static final int ITEM_POSTS = 0;
+    public static final int ITEM_PAGES = 1;
+    public static final int ITEM_SETTINGS = 2;
+    public static final int ITEM_ABOUT = 3;
+
+    /**
+     * Item icons
+     */
+    private static final int[] ICONS = new int[]{
+            R.drawable.ic_action_action_description,
+            R.drawable.ic_action_action_description,
+            R.drawable.ic_action_action_settings,
+            R.drawable.ic_action_action_help
+    };
+
+    /**
+     * Item titles
+     */
+    private static final int[] TITLES = new int[]{
+            R.string.navigation_drawer_posts,
+            R.string.navigation_drawer_pages,
+            R.string.navigation_drawer_settings,
+            R.string.navigation_drawer_about
+    };
+
+    /**
+     * Items in the drawer
+     */
+    List<Integer> mItems = new ArrayList<>();
+
+    /**
+     * Views in the drawer list
+     */
+    private View[] mItemViews;
 
     /**
      * Injected views
@@ -138,6 +178,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     TextView mBlogName;
     @InjectView(R.id.text_blog_url)
     TextView mBlogUrl;
+    @InjectView(R.id.item_list)
+    ViewGroup mItemList;
 
     @Override
     public void onAttach(Activity activity) {
@@ -162,21 +204,32 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
 
         if (savedInstanceState != null) {
-            mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
+            mCurrentSelectedItem = savedInstanceState.getInt(STATE_SELECTED_POSITION);
             mFromSavedInstanceState = true;
         }
 
         // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedPosition);
+        selectItem(mCurrentSelectedItem);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(
+        View view = getActivity().getLayoutInflater().inflate(
                 R.layout.fragment_navigation_drawer, container, false);
         ButterKnife.inject(this, view);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        // Load accounts and load data from database
+        refreshAccounts();
+        getLoaderManager().initLoader(LOADER_BLOG_NAME, null, this);
+        getLoaderManager().initLoader(LOADER_USER, null, this);
+
+        // Populate the drawer
+        refreshDrawerItems();
     }
 
     @Override
@@ -195,7 +248,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
+        outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedItem);
     }
 
     @Override
@@ -207,10 +260,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
     /**
@@ -306,24 +356,27 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        // Load accounts and load data from database
-        refreshAccounts();
-        getLoaderManager().initLoader(LOADER_BLOG_NAME, null, this);
-        getLoaderManager().initLoader(LOADER_USER, null, this);
     }
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
     }
 
-    private void selectItem(int position) {
-        mCurrentSelectedPosition = position;
+    private void selectItem(int item) {
+        mCurrentSelectedItem = item;
+        if (mItemViews != null) {
+            for (int i = 0; i < mItemViews.length; i++) {
+                if (mItems.get(i) != ITEM_DIVIDER) {
+                    mItemViews[i].setSelected(mItems.get(i) == item);
+                    colorView(mItemViews[i], mItems.get(i) == item);
+                }
+            }
+        }
         if (mDrawerLayout != null) {
             mDrawerLayout.closeDrawer(mContainerView);
         }
         if (mCallbacks != null) {
-            mCallbacks.onNavigationDrawerItemSelected(position);
+            mCallbacks.onNavigationDrawerItemSelected(item);
         }
     }
 
@@ -339,6 +392,68 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         mAccounts = new ArrayList<>(Arrays.asList(accounts));
         if (mSelectedAccount == null) {
             mSelectedAccount = mAccounts.get(0);
+        }
+    }
+
+    /**
+     * Generate the drawer items
+     */
+    private void refreshDrawerItems() {
+        // Generate a list of items to show
+        mItems.clear();
+        mItems = new ArrayList<>();
+        mItems.add(ITEM_POSTS);
+        mItems.add(ITEM_PAGES);
+        mItems.add(ITEM_DIVIDER);
+        mItems.add(ITEM_SETTINGS);
+        mItems.add(ITEM_DIVIDER);
+        mItems.add(ITEM_ABOUT);
+
+        // Generate views
+        mItemList.removeAllViews();
+        mItemViews = new View[mItems.size()];
+        LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        int position = 0;
+        for (final Integer item : mItems) {
+            View view;
+            if (item == ITEM_DIVIDER) {
+                view = layoutInflater.inflate(R.layout.item_navigation_drawer_divider, mItemList, false);
+            } else {
+                view = layoutInflater.inflate(R.layout.item_navigation_drawer, mItemList, false);
+                ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
+                TextView titleView = (TextView) view.findViewById(R.id.text_title);
+                iconView.setImageResource(ICONS[item]);
+                titleView.setText(TITLES[item]);
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        selectItem(item);
+                    }
+                });
+                view.setSelected(mCurrentSelectedItem == item);
+                colorView(view, mCurrentSelectedItem == item);
+            }
+            mItemViews[position] = view;
+            mItemList.addView(view);
+            position++;
+        }
+    }
+
+    /**
+     * Set the view colours based on selection state
+     *
+     * @param view     View to apply colours to
+     * @param selected If the view is the selected item
+     */
+    private void colorView(View view, boolean selected) {
+        ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
+        TextView titleView = (TextView) view.findViewById(R.id.text_title);
+        if (selected) {
+            iconView.setColorFilter(getResources().getColor(R.color.accent_blue));
+            titleView.setTextColor(getResources().getColor(R.color.accent_blue));
+        } else {
+            iconView.setColorFilter(getResources().getColor(R.color.primary));
+            titleView.setTextColor(getResources().getColor(R.color.primary));
         }
     }
 
@@ -427,7 +542,6 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-
     }
 
     /**
@@ -438,7 +552,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         /**
          * Called when an item in the navigation drawer is selected.
          */
-        void onNavigationDrawerItemSelected(int position);
+        void onNavigationDrawerItemSelected(int id);
 
     }
 

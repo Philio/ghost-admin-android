@@ -21,7 +21,6 @@
 
         <TextView
             android:id="@+id/txt_ghost"
-            fontPath="fonts/OpenSans-Bold.ttf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -30,11 +29,10 @@
             android:text="@string/ghost"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@android:color/white"
-            tools:ignore="MissingPrefix" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/txt_admin"
-            fontPath="fonts/OpenSans-Bold.ttf"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -43,6 +41,6 @@
             android:text="@string/admin"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/accent_blue"
-            tools:ignore="MissingPrefix" />
+            android:textStyle="bold" />
     </LinearLayout>
 </RelativeLayout>

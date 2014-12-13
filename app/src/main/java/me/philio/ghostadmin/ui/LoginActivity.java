@@ -3,7 +3,6 @@ package me.philio.ghostadmin.ui;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.animation.ValueAnimator;
-import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -11,36 +10,24 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.account.AccountAuthenticatorActionBarActivity;
-import me.philio.ghostadmin.account.AccountConstants;
-import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Token;
-import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
-import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_URL;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
@@ -77,11 +64,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
      * The url of the blog
      */
     private String mBlogUrl;
-
-    @Override
-    protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,10 +129,9 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     /**
      * Emulate the old ActionBar progress bar functionality
      *
-     * @param visible
+     * @param visible Progress bar visibility
      */
     public void setToolbarProgressBarVisibility(boolean visible) {
-        Log.d(getClass().getName(), "Visibility: " + visible);
         mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
     }
 
@@ -173,7 +154,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     public void onSuccess(String email, String password, Token token) {
         // Create the account
         AccountManager accountManager = AccountManager.get(this);
-        Uri uri = Uri.parse(mBlogUrl);
         Account account = new Account(email, getString(R.string.account_type));
         Bundle userdata = new Bundle();
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
@@ -258,7 +238,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         mActionBarHeight = getSupportActionBar().getHeight();
         if (mActionBarHeight == 0) {
             TypedArray styledAttributes = getTheme()
-                    .obtainStyledAttributes(new int[] { R.attr.actionBarSize });
+                    .obtainStyledAttributes(new int[]{R.attr.actionBarSize});
             mActionBarHeight = styledAttributes.getDimensionPixelSize(0, 0);
         }
     }
@@ -298,10 +278,8 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
             if (mConnectivityManager == null) {
                 mConnectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
             }
-            if (mConnectivityManager.getActiveNetworkInfo() != null) {
-                return mConnectivityManager.getActiveNetworkInfo().isConnected();
-            }
-            return false;
+            return mConnectivityManager.getActiveNetworkInfo() != null &&
+                    mConnectivityManager.getActiveNetworkInfo().isConnected();
         }
 
     }
