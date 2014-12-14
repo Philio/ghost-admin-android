@@ -83,5 +83,14 @@
             android:layout_marginBottom="@dimen/navigation_drawer_section_vertical_margin"
             android:layout_marginTop="@dimen/navigation_drawer_section_vertical_margin"
             android:orientation="vertical" />
+
+        <LinearLayout
+            android:id="@+id/account_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/navigation_drawer_section_vertical_margin"
+            android:layout_marginTop="@dimen/navigation_drawer_section_vertical_margin"
+            android:orientation="vertical"
+            android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

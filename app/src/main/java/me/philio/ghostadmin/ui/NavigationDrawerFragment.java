@@ -11,7 +11,6 @@ import android.database.Cursor;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -79,6 +78,12 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
      */
     private static final int LOADER_BLOG_NAME = 0;
     private static final int LOADER_USER = 1;
+
+    /**
+     * Loader bundle keys
+     */
+    private static final String LOADER_KEY_BLOG_ID = "blog_id";
+    private static final String LOADER_KEY_EMAIL = "email";
 
     /**
      * A pointer to the current callbacks instance (the Activity).
@@ -197,7 +202,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Get the account manager
+        // Get the account manager and get accounts
         mAccountManager = AccountManager.get(getActivity());
 
         // Read in the flag indicating whether or not the user has demonstrated awareness of the
@@ -209,6 +214,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             mCurrentSelectedItem = savedInstanceState.getInt(STATE_SELECTED_POSITION);
             mFromSavedInstanceState = true;
         }
+
+        // Get accounts and set active account
+        getAccounts();
 
         // Select either the default item (0) or the last selected item.
         selectItem(mCurrentSelectedItem);
@@ -224,21 +232,14 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        // Load accounts and load data from database
-        refreshAccounts();
-        getLoaderManager().initLoader(LOADER_BLOG_NAME, null, this);
-        getLoaderManager().initLoader(LOADER_USER, null, this);
-
-        // Populate the drawer
-        refreshDrawerItems();
-    }
-
-    @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
+
+        // Populate the account details in the header section
+        populateAccountDetails();
     }
 
     @Override
@@ -361,6 +362,9 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         });
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // Populate the drawer
+        populateDrawerItems();
     }
 
     public boolean isDrawerOpen() {
@@ -392,7 +396,7 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     /**
      * Load the accounts list and make sure that an account is selected/active
      */
-    private void refreshAccounts() {
+    private void getAccounts() {
         Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
         mAccounts = new ArrayList<>(Arrays.asList(accounts));
         if (mSelectedAccount == null) {
@@ -401,9 +405,27 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     /**
-     * Generate the drawer items
+     * Populate account details for the current account
      */
-    private void refreshDrawerItems() {
+    private void populateAccountDetails() {
+        // Get user details
+        String blogId = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_ID);
+        String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
+
+        // Create bundle of loader args
+        Bundle args = new Bundle();
+        args.putString(LOADER_KEY_BLOG_ID, blogId);
+        args.putString(LOADER_KEY_EMAIL, email);
+
+        // Load accounts and load data from database
+        getLoaderManager().restartLoader(LOADER_BLOG_NAME, args, this);
+        getLoaderManager().restartLoader(LOADER_USER, args, this);
+    }
+
+    /**
+     * Populate the drawer items
+     */
+    private void populateDrawerItems() {
         // Generate a list of items to show
         mItems.clear();
         mItems = new ArrayList<>();
@@ -472,17 +494,27 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
     }
 
+    /**
+     * Populate the account items
+     */
+    private void populateAccountItems() {
+
+    }
+
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        // Get args
+        String blogId = args.getString(LOADER_KEY_BLOG_ID);
+        String email = args.getString(LOADER_KEY_EMAIL);
+
+        // Return loader for the specified id
         switch (id) {
             case LOADER_BLOG_NAME:
                 // Get title setting
                 return new CursorLoader(getActivity(), ContentProvider.createUri(Setting.class,
-                        null), null, "key = ?", new String[]{Setting.Key.TITLE.toString()}, null);
+                        null), null, "blog_id = ? AND key = ?", new String[]{blogId, Setting.Key.TITLE.toString()}, null);
             case LOADER_USER:
                 // Get user details
-                String blogId = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_ID);
-                String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
                 return new CursorLoader(getActivity(), ContentProvider.createUri(User.class, null),
                         null, "blog_id = ? AND email = ?", new String[]{blogId, email}, null);
         }

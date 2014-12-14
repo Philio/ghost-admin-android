@@ -5,7 +5,8 @@ Ghost Admin for Android
 
 An open source offline editor and admin tool for the [Ghost](https://ghost.org/) blogging software.
 
-This app is under development and is expected to be released to [Google Play](https://play.google.com/) in the coming weeks.
+This app is under development and is expected to be released to
+[Google Play](https://play.google.com/) in the coming weeks.
 
 Contributions to the project are welcome, please contact me to discuss if you're interested.
 
@@ -23,6 +24,7 @@ This is a high level view of the main features and current progress and is very 
 * HTML viewer [NOT STARTED]
 * Image upload [NOT STARTED]
 * App settings [NOT STARTED]
+* Tablet layouts [NOT STARTED]
 
 # License
 
