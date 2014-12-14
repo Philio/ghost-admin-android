@@ -195,16 +195,16 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
         switch (v.getId()) {
             case R.id.edit_email:
                 if (hasFocus) {
-                    mEmailBackground.setBackgroundResource(R.color.primary_active);
+                    mEmailBackground.setBackgroundResource(R.color.grey_lighter);
                 } else {
-                    mEmailBackground.setBackgroundResource(R.color.primary);
+                    mEmailBackground.setBackgroundResource(R.color.grey);
                 }
                 break;
             case R.id.edit_password:
                 if (hasFocus) {
-                    mPasswordBackground.setBackgroundResource(R.color.primary_active);
+                    mPasswordBackground.setBackgroundResource(R.color.grey_lighter);
                 } else {
-                    mPasswordBackground.setBackgroundResource(R.color.primary);
+                    mPasswordBackground.setBackgroundResource(R.color.grey);
                 }
                 break;
         }

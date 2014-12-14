@@ -5,6 +5,8 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -296,7 +298,10 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         }
 
         // Set status bar colour for Lollipop
-        mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(R.color.background));
+        Resources.Theme theme = getActivity().getTheme();
+        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
+        mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(typedArray
+                .getResourceId(0, 0)));
 
         // Set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -446,14 +451,24 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
      * @param selected If the view is the selected item
      */
     private void colorView(View view, boolean selected) {
+        // Find views
         ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
         TextView titleView = (TextView) view.findViewById(R.id.text_title);
+
+        // Get colours from theme
+        Resources.Theme theme = getActivity().getTheme();
+        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimary,
+                R.attr.colorPrimaryDark});
+        int colorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
+        int colorPrimaryDark = getResources().getColor(typedArray.getResourceId(1, 0));
+
+        // Colour the icon/title
         if (selected) {
-            iconView.setColorFilter(getResources().getColor(R.color.accent_blue));
-            titleView.setTextColor(getResources().getColor(R.color.accent_blue));
+            iconView.setColorFilter(colorPrimaryDark);
+            titleView.setTextColor(colorPrimaryDark);
         } else {
-            iconView.setColorFilter(getResources().getColor(R.color.primary));
-            titleView.setTextColor(getResources().getColor(R.color.primary));
+            iconView.setColorFilter(colorPrimary);
+            titleView.setTextColor(colorPrimary);
         }
     }
 

@@ -10,7 +10,7 @@
         android:id="@+id/header"
         android:layout_width="match_parent"
         android:layout_height="@dimen/navigation_drawer_header_height"
-        android:background="@color/primary">
+        android:background="?attr/colorPrimaryDark">
 
         <ImageView
             android:id="@+id/img_cover"

@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Colours from the web login page -->
-    <color name="background">#242628</color>
-    <color name="primary">#3b3f42</color>
-    <color name="primary_active">#474b4f</color>
-    <color name="accent_blue">#5aa3e4</color>
-    <color name="accent_blue_pressed">#2e8bdd</color>
+    <!-- Colours from the web admin -->
+    <color name="grey_darker">#242628</color>
+    <color name="grey">#3c4043</color>
+    <color name="grey_lighter">#484c50</color>
+    <color name="blue">#5ba4e5</color>
+    <color name="blue_darker">#2f8cde</color>
+    <color name="green">#9fbb58</color>
+    <color name="green_darker">#849f41</color>
+    <color name="red">#e25440</color>
+    <color name="red_darker">#cf3520</color>
+
+    <!-- Other colours -->
     <color name="inset_foreground">#3000</color>
-    <color name="divider_background">#ccc</color>
+    <color name="divider_background">#ddd</color>
     <color name="list_selected">#eee</color>
     <color name="list_pressed">#eee</color>
     <color name="list_selected_pressed">#ddd</color>
-    <color name="list_ripple">#aaa</color>
+    <color name="list_ripple">#9ccc</color>
 </resources>

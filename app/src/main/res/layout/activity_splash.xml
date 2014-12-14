@@ -40,7 +40,7 @@
             android:paddingLeft="3dp"
             android:text="@string/admin"
             android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@color/accent_blue"
+            android:textColor="@color/blue"
             android:textStyle="bold" />
     </LinearLayout>
 </RelativeLayout>
