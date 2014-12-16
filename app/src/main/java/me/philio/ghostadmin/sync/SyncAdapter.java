@@ -6,25 +6,17 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SyncResult;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.query.Select;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +45,6 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
-import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_REFRESH;
 import static me.philio.ghostadmin.io.ApiConstants.CLIENT_ID;
@@ -63,7 +54,7 @@ import static me.philio.ghostadmin.model.Post.Status;
 
 /**
  * Sync adapter
- *
+ * <p/>
  * Created by phil on 04/12/2014.
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
@@ -110,7 +101,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Access tokens only last 60 minutes so we need to manage this and refresh it frequently. If
      * token has less than 30 minutes remaining it will be refreshed and as a last resort we can
      * use the email/password combination that was saved on login to re-authenticate from scratch.
-     *
+     * <p/>
      * TODO Review later
      */
     private void refreshAccessToken(Account account) throws AuthenticatorException,
@@ -166,30 +157,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Get blog data from the server, a pretty straight forward fetch all and replace approach for
      * now, but this is far from optimal and ideally needs to pull changes only but this
      * functionality doesn't yet look like it exists in the Ghost API.
-     *
+     * <p/>
      * TODO Hopefully this can be optimised at a later date, depends on the API
      */
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
+        // Get user data
+        String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+        String email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
+
         // Load the blog record
-        Blog blog = null;
-        String blogIdStr = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_ID);
-        if (blogIdStr != null) {
-            long blogId = Long.parseLong(blogIdStr);
-            blog = new Select().from(Blog.class).where(BaseColumns._ID + " = ?", blogId).executeSingle();
-        }
+        Blog blog = new Select().from(Blog.class).where("url = ? AND email = ?", blogUrl, email)
+                .executeSingle();
 
-        // If record is missing, it can be fixed
+        // If record is missing, recreate it
         if (blog == null) {
-            // Create the record and save it
             blog = new Blog();
-            blog.url = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
-            blog.email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
+            blog.url = blogUrl;
+            blog.email = email;
             blog.save();
-
-            // Update account
-            mAccountManager.setUserData(account, AccountConstants.KEY_BLOG_ID,
-                    Long.toString(blog.getId()));
         }
 
         // Get access token and instantiate the client
@@ -291,7 +277,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      *
      * @param content Content client
      * @param path    Path on the server
-     * TODO move a lot of this stuff into constants
+     *                TODO move a lot of this stuff into constants
      */
     private void saveContent(Blog blog, Content content, String path) throws NoSuchAlgorithmException, IOException {
         // Check that the path looks like something valid

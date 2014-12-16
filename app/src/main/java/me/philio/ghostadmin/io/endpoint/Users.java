@@ -57,6 +57,12 @@ public interface Users {
             Callback<UsersContainer> callback);
 
     /**
+     * Get current user, blocks and executes on same thread
+     */
+    @GET("/users/me")
+    public UsersContainer blockingGetMe();
+
+    /**
      * Get user with slug
      *
      * @param slug     User slug

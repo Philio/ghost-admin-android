@@ -110,8 +110,15 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     public void onClick(final View v) {
         switch (v.getId()) {
             case R.id.btn_validate:
+                // Make sure URL is all lower case and remove trailing slashes
+                String url = mEditUrl.getText().toString().trim().toLowerCase();
+                while (url.endsWith("/")) {
+                    url = url.substring(0, url.length() - 1);
+                }
+                mEditUrl.setText(url);
+
                 // Check that the URL looks valid
-                if (mEditUrl.getText().toString().trim().isEmpty()) {
+                if (mEditUrl.getText().toString().isEmpty()) {
                     mEditUrl.setError(getString(R.string.error_field_required));
                 } else if (!Patterns.WEB_URL.matcher(mEditUrl.getText().toString()).matches()) {
                     mEditUrl.setError(getString(R.string.error_invalid_url));
@@ -123,6 +130,8 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                     // Try and check for a valid ghost install at the URL
                     // We're expecting a 401 with a JSON response
                     mBlogUrl = mSpinnerScheme.getSelectedItem().toString() + mEditUrl.getText().toString();
+
+                    // Run discovery test
                     GhostClient client = new GhostClient(mBlogUrl);
                     Discovery discovery = client.createDiscovery();
                     discovery.test(this);

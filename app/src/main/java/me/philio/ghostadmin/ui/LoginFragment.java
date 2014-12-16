@@ -14,6 +14,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.activeandroid.query.Select;
+
 import java.net.HttpURLConnection;
 
 import butterknife.ButterKnife;
@@ -24,8 +26,12 @@ import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.io.ApiConstants;
 import me.philio.ghostadmin.io.GhostClient;
 import me.philio.ghostadmin.io.endpoint.Authentication;
+import me.philio.ghostadmin.io.endpoint.Users;
+import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.ErrorResponse;
 import me.philio.ghostadmin.model.Token;
+import me.philio.ghostadmin.model.User;
+import me.philio.ghostadmin.model.UsersContainer;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -55,6 +61,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
      * Listener
      */
     private OnFragmentInteractionListener mListener;
+
+    /**
+     * REST client
+     */
+    private GhostClient mClient;
 
     /**
      * Blog URL
@@ -107,6 +118,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
                 mBlogUrl = getArguments().getString(ARG_BLOG_URL);
             }
         }
+
+        // Setup client
+        mClient = new GhostClient(mBlogUrl);
     }
 
     @Override
@@ -147,15 +161,22 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_login:
+                // Make sure email is lower case
+                mEditEmail.setText(mEditEmail.getText().toString().trim().toLowerCase());
+
                 // Validate data before requesting an access token
                 boolean valid = true;
 
                 // Validate email address
-                if (mEditEmail.getText().toString().trim().isEmpty()) {
+                if (mEditEmail.getText().toString().isEmpty()) {
                     mEditEmail.setError(getString(R.string.error_field_required));
                     valid = false;
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(mEditEmail.getText().toString()).matches()) {
                     mEditEmail.setError(getString(R.string.error_invalid_email));
+                    valid = false;
+                } else if (new Select().from(Blog.class).where("url = ? AND email = ?", mBlogUrl,
+                        mEditEmail.getText().toString()).exists()) {
+                    mEditEmail.setError(getString(R.string.error_email_exists));
                     valid = false;
                 } else {
                     mEditEmail.setError(null);
@@ -180,8 +201,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
                     mPassword = mEditPassword.getText().toString();
 
                     // Request access token
-                    GhostClient client = new GhostClient(mBlogUrl);
-                    Authentication authentication = client.createAuthentication();
+                    Authentication authentication = mClient.createAuthentication();
                     authentication.getAccessToken(ApiConstants.GRANT_TYPE_PASSWORD,
                             ApiConstants.CLIENT_ID, mEmail, mPassword, this);
                 }
@@ -211,14 +231,32 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
     }
 
     @Override
-    public void success(Token token, Response response) {
+    public void success(final Token token, Response response) {
         Log.d(TAG, "Authentication successful");
 
-        // Hide progress bar
-        ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
+        // Load the user's record
+        mClient.setAccessToken(token.accessToken);
+        Users users = mClient.createUsers();
+        users.getMe(new Callback<UsersContainer>() {
+            @Override
+            public void success(UsersContainer usersContainer, Response response) {
+                // Hide progress bar
+                ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
 
-        // Notify activity of successful login
-        mListener.onSuccess(mEmail, mPassword, token);
+                // Notify activity of successful login
+                mListener.onSuccess(mEmail, mPassword, token, usersContainer.users.get(0));
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                // Show error
+                mEditEmail.setError(getString(R.string.error_profile));
+
+                // Enable button and hide progress bar
+                mBtnLogin.setEnabled(true);
+                ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
+            }
+        });
     }
 
     @Override
@@ -264,7 +302,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
      */
     public interface OnFragmentInteractionListener {
 
-        public void onSuccess(String email, String password, Token token);
+        public void onSuccess(String email, String password, Token token, User user);
 
     }
 

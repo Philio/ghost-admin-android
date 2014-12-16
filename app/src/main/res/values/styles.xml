@@ -30,7 +30,10 @@
         <item name="windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="toolbarStyle">@style/Theme.Ghost.ToolbarStyle.Light.DarkActionBar</item>
+        <!-- Commenting out for now for consistency, review later -->
+        <!--
         <item name="drawerArrowStyle">@style/Widget.Ghost.DrawerArrowToggle</item>
+        -->
     </style>
 
     <!-- Light theme with no ActionBar for use with nav drawer -->

@@ -2,6 +2,10 @@ package me.philio.ghostadmin.ui;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -29,9 +33,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.activeandroid.content.ContentProvider;
+import com.activeandroid.query.Select;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -40,14 +46,17 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import me.philio.ghostadmin.R;
+import me.philio.ghostadmin.account.AccountConstants;
+import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Setting;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.ui.widget.BezelImageView;
 import me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView;
 import me.philio.ghostadmin.util.ImageUtils;
 
-import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_ID;
+import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_URL;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
 
 /**
@@ -55,7 +64,8 @@ import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
  * See the <a href="https://developer.android.com/design/patterns/navigation-drawer.html#Interaction">
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
-public class NavigationDrawerFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class NavigationDrawerFragment extends Fragment implements View.OnClickListener,
+        LoaderManager.LoaderCallbacks<Cursor>, AccountManagerCallback<Bundle> {
 
     /**
      * Logging tag
@@ -159,12 +169,17 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     /**
      * Items in the drawer
      */
-    List<Integer> mItems = new ArrayList<>();
+    private List<Integer> mItems = new ArrayList<>();
 
     /**
      * Views in the drawer list
      */
     private View[] mItemViews;
+
+    /**
+     * Set to true if the account view is visible
+     */
+    private boolean mAccountListVisible;
 
     /**
      * Injected views
@@ -185,8 +200,12 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     TextView mBlogName;
     @InjectView(R.id.text_blog_url)
     TextView mBlogUrl;
+    @InjectView(R.id.img_account_indicator)
+    ImageView mAccountIndictor;
     @InjectView(R.id.item_list)
     ViewGroup mItemList;
+    @InjectView(R.id.account_list)
+    ViewGroup mAccountList;
 
     @Override
     public void onAttach(Activity activity) {
@@ -243,6 +262,11 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
@@ -266,239 +290,14 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
         return mDrawerToggle.onOptionsItemSelected(item) || super.onOptionsItemSelected(item);
     }
 
-    /**
-     * Users of this fragment must call this method to set up the navigation drawer interactions.
-     *
-     * @param viewId       The android:id of the top level drawer layout
-     * @param drawerLayout The DrawerLayout containing this fragment's UI.
-     */
-    public void setUp(int viewId, DrawerLayout drawerLayout) {
-        mContainerView = getActivity().findViewById(viewId);
-        mDrawerLayout = drawerLayout;
-
-        // Resize the header if necessary
-        if (mContainerView instanceof ScrimInsetsScrollView) {
-            ScrimInsetsScrollView layout = (ScrimInsetsScrollView) mContainerView;
-            final int headerOriginalHeight = getResources()
-                    .getDimensionPixelSize(R.dimen.navigation_drawer_header_height);
-            layout.setOnInsetsCallback(new ScrimInsetsScrollView.OnInsetsCallback() {
-                @Override
-                public void onInsetsChanged(Rect insets) {
-                    // Update the height of the header
-                    ViewGroup.LayoutParams headerParams = mHeader.getLayoutParams();
-                    headerParams.height = headerOriginalHeight + insets.top;
-                    mHeader.setLayoutParams(headerParams);
-
-                    // Update the top margin of the content
-                    ViewGroup.MarginLayoutParams contentParams = (ViewGroup.MarginLayoutParams)
-                            mHeaderContent.getLayoutParams();
-                    contentParams.topMargin = insets.top;
-                    mHeaderContent.setLayoutParams(contentParams);
-                }
-            });
+    @OnClick(R.id.header_content)
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.header_content:
+                toggleAccountView();
+                break;
         }
-
-        // Set status bar colour for Lollipop
-        Resources.Theme theme = getActivity().getTheme();
-        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
-        mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(typedArray
-                .getResourceId(0, 0)));
-
-        // Set a custom shadow that overlays the main content when the drawer opens
-        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-
-        // Setup actionbar button and toggle
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
-        mDrawerToggle = new ActionBarDrawerToggle(
-                getActivity(),                    /* host Activity */
-                mDrawerLayout,                    /* DrawerLayout object */
-                R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
-                R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
-        ) {
-            @Override
-            public void onDrawerClosed(View drawerView) {
-                super.onDrawerClosed(drawerView);
-                if (!isAdded()) {
-                    return;
-                }
-
-                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
-            }
-
-            @Override
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                if (!isAdded()) {
-                    return;
-                }
-
-                if (!mUserLearnedDrawer) {
-                    // The user manually opened the drawer; store this flag to prevent auto-showing
-                    // the navigation drawer automatically in the future.
-                    mUserLearnedDrawer = true;
-                    SharedPreferences sp = PreferenceManager
-                            .getDefaultSharedPreferences(getActivity());
-                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
-                }
-
-                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
-            }
-        };
-
-        // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
-        // per the navigation drawer design guidelines.
-        if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
-            mDrawerLayout.openDrawer(mContainerView);
-        }
-
-        // Defer code dependent on restoration of previous instance state.
-        mDrawerLayout.post(new Runnable() {
-            @Override
-            public void run() {
-                mDrawerToggle.syncState();
-            }
-        });
-
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-
-        // Populate the drawer
-        populateDrawerItems();
-    }
-
-    public boolean isDrawerOpen() {
-        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
-    }
-
-    private void selectItem(int item) {
-        mCurrentSelectedItem = item;
-        if (mItemViews != null) {
-            for (int i = 0; i < mItemViews.length; i++) {
-                if (mItems.get(i) != ITEM_DIVIDER) {
-                    mItemViews[i].setSelected(mItems.get(i) == item);
-                    colorView(mItemViews[i], mItems.get(i) == item);
-                }
-            }
-        }
-        if (mDrawerLayout != null) {
-            mDrawerLayout.closeDrawer(mContainerView);
-        }
-        if (mCallbacks != null) {
-            mCallbacks.onNavigationDrawerItemSelected(item);
-        }
-    }
-
-    private ActionBar getActionBar() {
-        return ((ActionBarActivity) getActivity()).getSupportActionBar();
-    }
-
-    /**
-     * Load the accounts list and make sure that an account is selected/active
-     */
-    private void getAccounts() {
-        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
-        mAccounts = new ArrayList<>(Arrays.asList(accounts));
-        if (mSelectedAccount == null) {
-            mSelectedAccount = mAccounts.get(0);
-        }
-    }
-
-    /**
-     * Populate account details for the current account
-     */
-    private void populateAccountDetails() {
-        // Get user details
-        String blogId = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_ID);
-        String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
-
-        // Create bundle of loader args
-        Bundle args = new Bundle();
-        args.putString(LOADER_KEY_BLOG_ID, blogId);
-        args.putString(LOADER_KEY_EMAIL, email);
-
-        // Load accounts and load data from database
-        getLoaderManager().restartLoader(LOADER_BLOG_NAME, args, this);
-        getLoaderManager().restartLoader(LOADER_USER, args, this);
-    }
-
-    /**
-     * Populate the drawer items
-     */
-    private void populateDrawerItems() {
-        // Generate a list of items to show
-        mItems.clear();
-        mItems = new ArrayList<>();
-        mItems.add(ITEM_POSTS);
-        mItems.add(ITEM_PAGES);
-        mItems.add(ITEM_DIVIDER);
-        mItems.add(ITEM_SETTINGS);
-        mItems.add(ITEM_DIVIDER);
-        mItems.add(ITEM_ABOUT);
-
-        // Generate views
-        mItemList.removeAllViews();
-        mItemViews = new View[mItems.size()];
-        LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-        int position = 0;
-        for (final Integer item : mItems) {
-            View view;
-            if (item == ITEM_DIVIDER) {
-                view = layoutInflater.inflate(R.layout.item_navigation_drawer_divider, mItemList, false);
-            } else {
-                view = layoutInflater.inflate(R.layout.item_navigation_drawer, mItemList, false);
-                ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
-                TextView titleView = (TextView) view.findViewById(R.id.text_title);
-                iconView.setImageResource(ICONS[item]);
-                titleView.setText(TITLES[item]);
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectItem(item);
-                    }
-                });
-                view.setSelected(mCurrentSelectedItem == item);
-                colorView(view, mCurrentSelectedItem == item);
-            }
-            mItemViews[position] = view;
-            mItemList.addView(view);
-            position++;
-        }
-    }
-
-    /**
-     * Set the view colours based on selection state
-     *
-     * @param view     View to apply colours to
-     * @param selected If the view is the selected item
-     */
-    private void colorView(View view, boolean selected) {
-        // Find views
-        ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
-        TextView titleView = (TextView) view.findViewById(R.id.text_title);
-
-        // Get colours from theme
-        Resources.Theme theme = getActivity().getTheme();
-        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimary,
-                R.attr.colorPrimaryDark});
-        int colorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
-        int colorPrimaryDark = getResources().getColor(typedArray.getResourceId(1, 0));
-
-        // Colour the icon/title
-        if (selected) {
-            iconView.setColorFilter(colorPrimaryDark);
-            titleView.setTextColor(colorPrimaryDark);
-        } else {
-            iconView.setColorFilter(colorPrimary);
-            titleView.setTextColor(colorPrimary);
-        }
-    }
-
-    /**
-     * Populate the account items
-     */
-    private void populateAccountItems() {
-
     }
 
     @Override
@@ -512,7 +311,8 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
             case LOADER_BLOG_NAME:
                 // Get title setting
                 return new CursorLoader(getActivity(), ContentProvider.createUri(Setting.class,
-                        null), null, "blog_id = ? AND key = ?", new String[]{blogId, Setting.Key.TITLE.toString()}, null);
+                        null), null, "blog_id = ? AND key = ?", new String[]{blogId,
+                        Setting.Key.TITLE.toString()}, null);
             case LOADER_USER:
                 // Get user details
                 return new CursorLoader(getActivity(), ContentProvider.createUri(User.class, null),
@@ -589,6 +389,327 @@ public class NavigationDrawerFragment extends Fragment implements LoaderManager.
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+    }
+
+    @Override
+    public void run(AccountManagerFuture<Bundle> future) {
+        try {
+            Bundle result = future.getResult();
+        } catch (OperationCanceledException | IOException | AuthenticatorException e) {
+            Log.e(TAG, "Add account operation failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Users of this fragment must call this method to set up the navigation drawer interactions.
+     *
+     * @param viewId       The android:id of the top level drawer layout
+     * @param drawerLayout The DrawerLayout containing this fragment's UI.
+     */
+    public void setUp(int viewId, DrawerLayout drawerLayout) {
+        mContainerView = getActivity().findViewById(viewId);
+        mDrawerLayout = drawerLayout;
+
+        // Resize the header if necessary
+        if (mContainerView instanceof ScrimInsetsScrollView) {
+            ScrimInsetsScrollView layout = (ScrimInsetsScrollView) mContainerView;
+            final int headerOriginalHeight = getResources()
+                    .getDimensionPixelSize(R.dimen.navigation_drawer_header_height);
+            layout.setOnInsetsCallback(new ScrimInsetsScrollView.OnInsetsCallback() {
+                @Override
+                public void onInsetsChanged(Rect insets) {
+                    // Update the height of the header
+                    ViewGroup.LayoutParams headerParams = mHeader.getLayoutParams();
+                    headerParams.height = headerOriginalHeight + insets.top;
+                    mHeader.setLayoutParams(headerParams);
+
+                    // Update the top margin of the content
+                    ViewGroup.MarginLayoutParams contentParams = (ViewGroup.MarginLayoutParams)
+                            mHeaderContent.getLayoutParams();
+                    contentParams.topMargin = insets.top;
+                    mHeaderContent.setLayoutParams(contentParams);
+                }
+            });
+        }
+
+        // Set status bar colour for Lollipop
+        Resources.Theme theme = getActivity().getTheme();
+        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
+        mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(typedArray
+                .getResourceId(0, 0)));
+
+        // Set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+
+        // Setup actionbar button and toggle
+        ActionBar actionBar = getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
+        mDrawerToggle = new ActionBarDrawerToggle(
+                getActivity(),                    /* host Activity */
+                mDrawerLayout,                    /* DrawerLayout object */
+                R.string.navigation_drawer_open,  /* "open drawer" description for accessibility */
+                R.string.navigation_drawer_close  /* "close drawer" description for accessibility */
+        ) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (mAccountListVisible) {
+                    toggleAccountView();
+                }
+
+                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (!mUserLearnedDrawer) {
+                    // The user manually opened the drawer; store this flag to prevent auto-showing
+                    // the navigation drawer automatically in the future.
+                    mUserLearnedDrawer = true;
+                    SharedPreferences sp = PreferenceManager
+                            .getDefaultSharedPreferences(getActivity());
+                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
+                }
+
+                getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
+            }
+        };
+
+        // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
+        // per the navigation drawer design guidelines.
+        if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
+            mDrawerLayout.openDrawer(mContainerView);
+        }
+
+        // Defer code dependent on restoration of previous instance state.
+        mDrawerLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mDrawerToggle.syncState();
+            }
+        });
+
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // Populate the drawer
+        populateDrawerItems();
+        populateAccountItems();
+    }
+
+    public boolean isDrawerOpen() {
+        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
+    }
+
+    private void selectItem(int item) {
+        mCurrentSelectedItem = item;
+        if (mItemViews != null) {
+            for (int i = 0; i < mItemViews.length; i++) {
+                if (mItems.get(i) != ITEM_DIVIDER) {
+                    mItemViews[i].setSelected(mItems.get(i) == item);
+                    colorView(mItemViews[i], mItems.get(i) == item);
+                }
+            }
+        }
+        if (mDrawerLayout != null) {
+            mDrawerLayout.closeDrawer(mContainerView);
+        }
+        if (mCallbacks != null) {
+            mCallbacks.onNavigationDrawerItemSelected(item);
+        }
+    }
+
+    private ActionBar getActionBar() {
+        return ((ActionBarActivity) getActivity()).getSupportActionBar();
+    }
+
+    /**
+     * Load the accounts list and make sure that an account is selected/active
+     */
+    private void getAccounts() {
+        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+        mAccounts = new ArrayList<>(Arrays.asList(accounts));
+        if (mSelectedAccount == null) {
+            mSelectedAccount = mAccounts.get(0);
+        }
+    }
+
+    /**
+     * Populate account details for the current account
+     */
+    private void populateAccountDetails() {
+        // Get user details
+        String blogUrl = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_URL);
+        String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
+        Blog blog = new Select().from(Blog.class).where("url = ? AND email = ?", blogUrl, email)
+                .executeSingle();
+
+        // Create bundle of loader args
+        Bundle args = new Bundle();
+        args.putString(LOADER_KEY_BLOG_ID, blog.getId().toString());
+        args.putString(LOADER_KEY_EMAIL, email);
+
+        // Load the blog and account data using the content provider so that any changes to the
+        // data will be notified
+        getLoaderManager().restartLoader(LOADER_BLOG_NAME, args, this);
+        getLoaderManager().restartLoader(LOADER_USER, args, this);
+    }
+
+    /**
+     * Populate the drawer items
+     */
+    private void populateDrawerItems() {
+        // Generate a list of items to show
+        mItems.clear();
+        mItems = new ArrayList<>();
+        mItems.add(ITEM_POSTS);
+        mItems.add(ITEM_PAGES);
+        mItems.add(ITEM_DIVIDER);
+        mItems.add(ITEM_SETTINGS);
+        mItems.add(ITEM_DIVIDER);
+        mItems.add(ITEM_ABOUT);
+
+        // Generate views
+        mItemList.removeAllViews();
+        mItemViews = new View[mItems.size()];
+        LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        int position = 0;
+        for (final Integer item : mItems) {
+            View view;
+            if (item == ITEM_DIVIDER) {
+                view = layoutInflater.inflate(R.layout.item_navigation_drawer_divider, mItemList, false);
+            } else {
+                view = layoutInflater.inflate(R.layout.item_navigation_drawer, mItemList, false);
+                ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
+                TextView titleView = (TextView) view.findViewById(R.id.text_title);
+                iconView.setImageResource(ICONS[item]);
+                titleView.setText(TITLES[item]);
+                view.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        selectItem(item);
+                    }
+                });
+                view.setSelected(mCurrentSelectedItem == item);
+                colorView(view, mCurrentSelectedItem == item);
+            }
+            mItemViews[position] = view;
+            mItemList.addView(view);
+            position++;
+        }
+    }
+
+    /**
+     * Populate the account items
+     */
+    private void populateAccountItems() {
+        // Add accounts
+        mAccountList.removeAllViews();
+        LayoutInflater layoutInflater = getActivity().getLayoutInflater();
+        for (Account account : mAccounts) {
+            if (account.equals(mSelectedAccount)) {
+                continue;
+            }
+            View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account, mAccountList, false);
+            TextView titleView = (TextView) view.findViewById(R.id.text_title);
+            TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
+            titleView.setText(account.name);
+            subtitleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL));
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // TODO switch account
+                }
+            });
+            colorView(view, false);
+            mAccountList.addView(view);
+        }
+
+        // Add add account view
+        View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account_action,
+                mAccountList, false);
+        ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
+        TextView titleView = (TextView) view.findViewById(R.id.text_title);
+        iconView.setImageResource(R.drawable.ic_action_content_add);
+        titleView.setText(R.string.navigation_drawer_add_account);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mAccountManager.addAccount(getString(R.string.account_type), null, null, null,
+                        getActivity(), NavigationDrawerFragment.this, null);
+            }
+        });
+        colorView(view, false);
+        mAccountList.addView(view);
+    }
+
+    /**
+     * Set the view colours based on selection state
+     *
+     * @param view     View to apply colours to
+     * @param selected If the view is the selected item
+     */
+    private void colorView(View view, boolean selected) {
+        // Find views
+        ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
+        TextView titleView = (TextView) view.findViewById(R.id.text_title);
+        TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
+
+        // Get colours from theme
+        Resources.Theme theme = getActivity().getTheme();
+        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimary,
+                R.attr.colorPrimaryDark});
+        int colorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
+        int colorPrimaryDark = getResources().getColor(typedArray.getResourceId(1, 0));
+
+        // Colour the icon/title
+        if (selected) {
+            if (iconView != null) {
+                iconView.setColorFilter(colorPrimaryDark);
+            }
+            if (titleView != null) {
+                titleView.setTextColor(colorPrimaryDark);
+            }
+            if (subtitleView != null) {
+                subtitleView.setTextColor(colorPrimaryDark);
+            }
+        } else {
+            if (iconView != null) {
+                iconView.setColorFilter(colorPrimary);
+            }
+            if (titleView != null) {
+                titleView.setTextColor(colorPrimary);
+            }
+            if (subtitleView != null) {
+                subtitleView.setTextColor(colorPrimary);
+            }
+        }
+    }
+
+    /**
+     * Toggle the account view
+     */
+    private void toggleAccountView() {
+        if (mAccountListVisible) {
+            mAccountIndictor.setImageResource(R.drawable.ic_drawer_accounts_expand);
+            mAccountList.setVisibility(View.GONE);
+            mItemList.setVisibility(View.VISIBLE);
+            mAccountListVisible = false;
+        } else {
+            mAccountIndictor.setImageResource(R.drawable.ic_drawer_accounts_collapse);
+            mAccountList.setVisibility(View.VISIBLE);
+            mItemList.setVisibility(View.GONE);
+            mAccountListVisible = true;
+        }
     }
 
     /**

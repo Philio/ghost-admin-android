@@ -18,7 +18,8 @@ package me.philio.ghostadmin.account;
 import android.accounts.AccountAuthenticatorResponse;
 import android.accounts.AccountManager;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+
+import me.philio.ghostadmin.ui.BaseActivity;
 
 /**
  * Base class for implementing an Activity that is used to help implement an
@@ -38,7 +39,7 @@ import android.support.v7.app.ActionBarActivity;
  * versions of Android, support fragments and declared abstract as should not be instantiated
  * directly
  */
-abstract public class AccountAuthenticatorActionBarActivity extends ActionBarActivity {
+abstract public class AccountAuthenticatorActionBarActivity extends BaseActivity {
 
     private AccountAuthenticatorResponse mAccountAuthenticatorResponse = null;
     private Bundle mResultBundle = null;

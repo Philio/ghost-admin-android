@@ -15,8 +15,10 @@
     <string name="error_redirect_url_to">This URL is redirecting to %1$s</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_incorrect_email">This email address is incorrect</string>
+    <string name="error_email_exists">An account already exists for this email/blog</string>
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="error_no_connectivity">You are offline</string>
+    <string name="error_profile">Unable to load your user profile</string>
 </resources>

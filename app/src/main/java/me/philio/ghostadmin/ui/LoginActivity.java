@@ -2,29 +2,20 @@ package me.philio.ghostadmin.ui;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.animation.ValueAnimator;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.res.TypedArray;
-import android.net.ConnectivityManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 
-import butterknife.ButterKnife;
-import butterknife.InjectView;
+import com.activeandroid.ActiveAndroid;
+
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.account.AccountAuthenticatorActionBarActivity;
+import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Token;
+import me.philio.ghostadmin.model.User;
+import me.philio.ghostadmin.sync.SyncHelper;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
@@ -41,26 +32,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         LoginFragment.OnFragmentInteractionListener {
 
     /**
-     * Broadcast receiver for network events
-     */
-    private NetworkStateReceiver mReceiver = new NetworkStateReceiver();
-
-    /**
-     * Views
-     */
-    @InjectView(R.id.toolbar)
-    Toolbar mToolbar;
-    @InjectView(R.id.progressbar)
-    ProgressBar mProgressBar;
-    @InjectView(R.id.layout_alerts)
-    LinearLayout mAlerts;
-
-    /**
-     * ActionBar height, used to calculate the number of pixels for network status alert
-     */
-    private int mActionBarHeight;
-
-    /**
      * The url of the blog
      */
     private String mBlogUrl;
@@ -69,10 +40,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ButterKnife.inject(this);
-
-        // Setup toolbar
-        setSupportActionBar(mToolbar);
 
         // Add login url fragment to request the blog url to login to
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
@@ -86,23 +53,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Recieve network connectivity change broadcasts
-        mReceiver.setInitialState();
-        registerReceiver(mReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
-    }
-
-    @Override
-    protected void onStop() {
-        // Stop receiving broadcasts
-        unregisterReceiver(mReceiver);
-
-        super.onStop();
     }
 
     @Override
@@ -126,15 +76,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         super.onBackPressed();
     }
 
-    /**
-     * Emulate the old ActionBar progress bar functionality
-     *
-     * @param visible Progress bar visibility
-     */
-    public void setToolbarProgressBarVisibility(boolean visible) {
-        mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-    }
-
     @Override
     public void onValidUrl(String blogUrl) {
         // Store for later
@@ -151,9 +92,8 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     }
 
     @Override
-    public void onSuccess(String email, String password, Token token) {
+    public void onSuccess(String email, String password, Token token, User user) {
         // Create the account
-        AccountManager accountManager = AccountManager.get(this);
         Account account = new Account(email, getString(R.string.account_type));
         Bundle userdata = new Bundle();
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
@@ -161,12 +101,32 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
         userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Long.toString(System.currentTimeMillis() +
                 (token.expires * 1000)));
+
+        // Add account to the system
+        AccountManager accountManager = AccountManager.get(this);
         accountManager.addAccountExplicitly(account, password, userdata);
+
+        // Set the account auth tokens
         accountManager.setAuthToken(account, TOKEN_TYPE_ACCESS, token.accessToken);
         accountManager.setAuthToken(account, TOKEN_TYPE_REFRESH, token.refreshToken);
 
+        // Create initial database records
+        Blog blog = new Blog();
+        blog.url = mBlogUrl;
+        blog.email = email;
+        user.blog = blog;
+        ActiveAndroid.beginTransaction();
+        try {
+            blog.save();
+            user.save();
+            ActiveAndroid.setTransactionSuccessful();
+        } finally {
+            ActiveAndroid.endTransaction();
+        }
+
         // Enable sync for the account
         ContentResolver.setSyncAutomatically(account, getString(R.string.content_authority), true);
+        SyncHelper.requestSync(account, getString(R.string.content_authority));
 
         // Set response intent
         Intent intent = new Intent();
@@ -175,113 +135,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         setAccountAuthenticatorResult(intent.getExtras());
         setResult(RESULT_OK, intent);
         finish();
-    }
-
-    /**
-     * Slide up the network error view
-     */
-    private void showNetworkError() {
-        if (mActionBarHeight == 0) {
-            setActionBarHeight();
-        }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            ValueAnimator anim = ValueAnimator.ofInt(0, mActionBarHeight);
-            anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-                    layoutParams.height = value;
-                    mAlerts.setLayoutParams(layoutParams);
-                }
-            });
-            anim.setDuration(750);
-            anim.start();
-        } else {
-            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-            layoutParams.height = mActionBarHeight;
-            mAlerts.setLayoutParams(layoutParams);
-        }
-    }
-
-    /**
-     * Slide down the network error view
-     */
-    private void hideNetworkError() {
-        if (mActionBarHeight == 0) {
-            setActionBarHeight();
-        }
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            ValueAnimator anim = ValueAnimator.ofInt(mActionBarHeight, 0);
-            anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-                    layoutParams.height = value;
-                    mAlerts.setLayoutParams(layoutParams);
-                }
-            });
-            anim.setDuration(750);
-            anim.start();
-        } else {
-            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-            layoutParams.height = mActionBarHeight;
-            mAlerts.setLayoutParams(layoutParams);
-        }
-    }
-
-    /**
-     * Set the height of the ActionBar
-     */
-    private void setActionBarHeight() {
-        mActionBarHeight = getSupportActionBar().getHeight();
-        if (mActionBarHeight == 0) {
-            TypedArray styledAttributes = getTheme()
-                    .obtainStyledAttributes(new int[]{R.attr.actionBarSize});
-            mActionBarHeight = styledAttributes.getDimensionPixelSize(0, 0);
-        }
-    }
-
-    /**
-     * Broadcast receiver to monitor network connectivity and display an alert if connectivity is
-     * lost
-     */
-    private class NetworkStateReceiver extends BroadcastReceiver {
-
-        private ConnectivityManager mConnectivityManager;
-
-        private boolean mConnected = false;
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            boolean state = isConnected();
-            if (state != mConnected) {
-                if (mConnected) {
-                    showNetworkError();
-                    mConnected = false;
-                } else {
-                    hideNetworkError();
-                    mConnected = true;
-                }
-            }
-        }
-
-        public void setInitialState() {
-            mConnected = isConnected();
-            if (!mConnected) {
-                showNetworkError();
-            }
-        }
-
-        private boolean isConnected() {
-            if (mConnectivityManager == null) {
-                mConnectivityManager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-            }
-            return mConnectivityManager.getActiveNetworkInfo() != null &&
-                    mConnectivityManager.getActiveNetworkInfo().isConnected();
-        }
-
     }
 
 }
