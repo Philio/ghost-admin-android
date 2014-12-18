@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.MenuItem;
@@ -94,7 +95,9 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     @Override
     public void onSuccess(String email, String password, Token token, User user) {
         // Create the account
-        Account account = new Account(email, getString(R.string.account_type));
+        Uri uri = Uri.parse(mBlogUrl);
+        Account account = new Account(email + " (" + uri.getHost() + ")",
+                getString(R.string.account_type));
         Bundle userdata = new Bundle();
         userdata.putString(KEY_BLOG_URL, mBlogUrl);
         userdata.putString(KEY_EMAIL, email);

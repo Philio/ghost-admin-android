@@ -41,36 +41,6 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
 
         // Get account manager
         mAccountManager = AccountManager.get(this);
-
-        // Window background transition
-        final TransitionDrawable transition = (TransitionDrawable) getResources()
-                .getDrawable(R.drawable.transition_fade_in);
-        getWindow().setBackgroundDrawable(transition);
-
-        // Title alpha fade in
-        final Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.alpha_fade_in);
-
-        // Logo zoom / fly in
-        Animation scale = AnimationUtils.loadAnimation(this, R.anim.scale_zoom_in);
-        scale.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                // Kick off the other animations
-                transition.startTransition(250);
-                View title = findViewById(R.id.txt_title);
-                title.startAnimation(fadeIn);
-                title.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-        });
-        findViewById(R.id.img_ghost).startAnimation(scale);
     }
 
     @Override

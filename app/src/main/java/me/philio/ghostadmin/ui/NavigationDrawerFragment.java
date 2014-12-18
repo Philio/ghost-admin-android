@@ -54,6 +54,7 @@ import me.philio.ghostadmin.model.Setting;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.ui.widget.BezelImageView;
 import me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView;
+import me.philio.ghostadmin.util.DatabaseUtils;
 import me.philio.ghostadmin.util.ImageUtils;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_BLOG_URL;
@@ -84,7 +85,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
 
     /**
-     * Loaders
+     * Loader ids
      */
     private static final int LOADER_BLOG_NAME = 0;
     private static final int LOADER_USER = 1;
@@ -236,9 +237,6 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
         // Get accounts and set active account
         getAccounts();
-
-        // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedItem);
     }
 
     @Override
@@ -259,6 +257,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
         // Populate the account details in the header section
         populateAccountDetails();
+
+        // Select either the default item (0) or the last selected item.
+        selectItem(mCurrentSelectedItem);
     }
 
     @Override
@@ -510,6 +511,10 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
     }
 
+    public Account getSelectedAccount() {
+        return mSelectedAccount;
+    }
+
     private void selectItem(int item) {
         mCurrentSelectedItem = item;
         if (mItemViews != null) {
@@ -550,8 +555,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         // Get user details
         String blogUrl = mAccountManager.getUserData(mSelectedAccount, KEY_BLOG_URL);
         String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
-        Blog blog = new Select().from(Blog.class).where("url = ? AND email = ?", blogUrl, email)
-                .executeSingle();
+        Blog blog = DatabaseUtils.getBlog(blogUrl, email);
 
         // Create bundle of loader args
         Bundle args = new Bundle();
@@ -575,7 +579,6 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         mItems.add(ITEM_PAGES);
         mItems.add(ITEM_DIVIDER);
         mItems.add(ITEM_SETTINGS);
-        mItems.add(ITEM_DIVIDER);
         mItems.add(ITEM_ABOUT);
 
         // Generate views

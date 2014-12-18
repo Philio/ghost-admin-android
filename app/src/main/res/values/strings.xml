@@ -16,6 +16,35 @@
     <string name="navigation_drawer_about">About</string>
     <string name="navigation_drawer_add_account">Add account</string>
 
+    <!-- Posts -->
+    <string name="post_draft">Draft</string>
+    <string name="post_page">Page</string>
+    <string name="post_published_ago">Published %1$s ago</string>
+    <plurals name="post_seconds">
+        <item quantity="other">a few seconds</item>
+    </plurals>
+    <plurals name="post_minutes">
+        <item quantity="one">a minute</item>
+        <item quantity="few">a few minutes</item>
+        <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="post_hours">
+        <item quantity="one">an hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <plurals name="post_days">
+        <item quantity="one">a day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <plurals name="post_months">
+        <item quantity="one">a month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <plurals name="post_years">
+        <item quantity="one">a year</item>
+        <item quantity="other">%d years</item>
+    </plurals>
+
     <!-- Auto generated stuff, sort out later -->
     <string name="title_activity_main">@string/app_name</string>
     <string name="title_section1">Section 1</string>

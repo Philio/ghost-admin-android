@@ -8,10 +8,12 @@ import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.SyncResult;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.activeandroid.ActiveAndroid;
+import com.activeandroid.content.ContentProvider;
 import com.activeandroid.query.Select;
 
 import java.io.IOException;
@@ -40,6 +42,7 @@ import me.philio.ghostadmin.model.TagsContainer;
 import me.philio.ghostadmin.model.Token;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.model.UsersContainer;
+import me.philio.ghostadmin.util.DatabaseUtils;
 import me.philio.ghostadmin.util.ImageUtils;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -167,8 +170,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         String email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
 
         // Load the blog record
-        Blog blog = new Select().from(Blog.class).where("url = ? AND email = ?", blogUrl, email)
-                .executeSingle();
+        Blog blog = DatabaseUtils.getBlog(blogUrl, email);
 
         // If record is missing, recreate it
         if (blog == null) {
@@ -195,8 +197,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             for (User user : usersContainer.users) {
                 user.blog = blog;
                 saveUser(user, syncResult);
-                saveContent(blog, content, user.image);
-                saveContent(blog, content, user.cover);
+                saveContent(blog, content, user.image,
+                        ContentProvider.createUri(User.class, user.getId()));
+                saveContent(blog, content, user.cover,
+                        ContentProvider.createUri(User.class, user.getId()));
             }
             totalPages = usersContainer.meta.pagination.pages;
             page++;
@@ -210,7 +214,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             setting.blog = blog;
             saveSetting(setting, syncResult);
             if (setting.key.equals(Setting.Key.LOGO) || setting.key.equals(Setting.Key.COVER)) {
-                saveContent(blog, content, setting.value);
+                saveContent(blog, content, setting.value,
+                        ContentProvider.createUri(Setting.class, null));
             }
         }
 
@@ -239,18 +244,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, content, post.image);
+                saveContent(blog, content, post.image,
+                        ContentProvider.createUri(Post.class, post.getId()));
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
         }
+        page = 1;
+        totalPages = 1;
         while (page <= totalPages) {
             PostsContainer postsContainer = posts.blockingGetPosts(page, null, Status.ALL, true);
             for (Post post : postsContainer.posts) {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, content, post.image);
+                saveContent(blog, content, post.image,
+                        ContentProvider.createUri(Post.class, post.getId()));
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -277,9 +286,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      *
      * @param content Content client
      * @param path    Path on the server
-     *                TODO move a lot of this stuff into constants
+     * TODO move some of this stuff into constants
      */
-    private void saveContent(Blog blog, Content content, String path) throws NoSuchAlgorithmException, IOException {
+    private void saveContent(Blog blog, Content content, String path, Uri notificationUri) throws NoSuchAlgorithmException, IOException {
         // Check that the path looks like something valid
         if (path == null || path.trim().isEmpty()) {
             return;
@@ -310,6 +319,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Decode and scale the image
         Log.d(TAG, "Saving file: " + filename);
         ImageUtils.decodeScale(inputStream, filename, 2048, 2048);
+        if (notificationUri != null) {
+            getContext().getContentResolver().notifyChange(notificationUri, null);
+        }
     }
 
     /**

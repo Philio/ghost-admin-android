@@ -28,7 +28,9 @@
                 android:id="@+id/img_avatar"
                 android:layout_width="@dimen/navigation_drawer_avatar_size"
                 android:layout_height="@dimen/navigation_drawer_avatar_size"
+                android:background="@drawable/shape_oval"
                 android:scaleType="centerCrop"
+                android:src="@drawable/ic_action_social_person"
                 app:maskDrawable="@drawable/shape_oval" />
 
             <TextView

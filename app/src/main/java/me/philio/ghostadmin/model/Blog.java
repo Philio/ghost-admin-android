@@ -12,7 +12,7 @@ import com.activeandroid.annotation.Table;
  * Created by phil on 08/12/2014.
  */
 @Table(name = "blogs", id = BaseColumns._ID)
-public class Blog extends Model{
+public class Blog extends Model {
 
     @Column(name = "url", uniqueGroups = {"account"})
     public String url;
