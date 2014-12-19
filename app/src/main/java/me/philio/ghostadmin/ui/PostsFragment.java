@@ -11,7 +11,9 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -189,6 +191,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Load posts
         getLoaderManager().initLoader(LOADER_LIST, null, this);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return getActivity().getLayoutInflater().inflate(R.layout.fragment_posts, container, false);
     }
 
     @Override

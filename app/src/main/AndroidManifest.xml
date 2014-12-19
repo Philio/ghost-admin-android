@@ -61,7 +61,7 @@
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
             android:name="me.philio.ghostadmin.ui.MainActivity"
-            android:label="@string/title_activity_main"
+            android:label="@string/app_name"
             android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer" />
 
         <!-- ActiveAndroid content provider -->
