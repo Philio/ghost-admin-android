@@ -221,13 +221,13 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     ImageView mCover;
     @InjectView(R.id.img_avatar)
     BezelImageView mAvatar;
-    @InjectView(R.id.text_name)
+    @InjectView(R.id.txt_name)
     TextView mName;
-    @InjectView(R.id.text_email)
+    @InjectView(R.id.txt_email)
     TextView mEmail;
-    @InjectView(R.id.text_blog_title)
+    @InjectView(R.id.txt_blog_title)
     TextView mBlogName;
-    @InjectView(R.id.text_blog_url)
+    @InjectView(R.id.txt_blog_url)
     TextView mBlogUrl;
     @InjectView(R.id.img_account_indicator)
     ImageView mAccountIndictor;
@@ -709,7 +709,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
             } else {
                 view = layoutInflater.inflate(R.layout.item_navigation_drawer, mItemList, false);
                 ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
-                TextView titleView = (TextView) view.findViewById(R.id.text_title);
+                TextView titleView = (TextView) view.findViewById(R.id.txt_title);
                 iconView.setImageResource(ICONS[item]);
                 titleView.setText(TITLES[item]);
                 view.setOnClickListener(new View.OnClickListener() {
@@ -739,9 +739,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 continue;
             }
             View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account, mAccountList, false);
-            TextView titleView = (TextView) view.findViewById(R.id.text_title);
+            TextView titleView = (TextView) view.findViewById(R.id.txt_title);
             titleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL));
-            TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
+            TextView subtitleView = (TextView) view.findViewById(R.id.txt_subtitle);
             subtitleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL));
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -758,7 +758,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account_action,
                 mAccountList, false);
         ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
-        TextView titleView = (TextView) view.findViewById(R.id.text_title);
+        TextView titleView = (TextView) view.findViewById(R.id.txt_title);
         iconView.setImageResource(R.drawable.ic_action_content_add);
         titleView.setText(R.string.navigation_drawer_add_account);
         view.setOnClickListener(new View.OnClickListener() {
@@ -781,8 +781,8 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     private void colorView(View view, boolean selected) {
         // Find views
         ImageView iconView = (ImageView) view.findViewById(R.id.img_icon);
-        TextView titleView = (TextView) view.findViewById(R.id.text_title);
-        TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
+        TextView titleView = (TextView) view.findViewById(R.id.txt_title);
+        TextView subtitleView = (TextView) view.findViewById(R.id.txt_subtitle);
 
         // Get colours from theme
         Resources.Theme theme = getActivity().getTheme();

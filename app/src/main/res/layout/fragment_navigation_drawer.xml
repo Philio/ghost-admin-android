@@ -34,7 +34,7 @@
                 app:maskDrawable="@drawable/shape_oval" />
 
             <TextView
-                android:id="@+id/text_blog_title"
+                android:id="@+id/txt_blog_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
@@ -42,24 +42,24 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/text_blog_url"
+                android:id="@+id/txt_blog_url"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentRight="true"
-                android:layout_below="@+id/text_blog_title"
+                android:layout_below="@+id/txt_blog_title"
                 android:textColor="@android:color/white"
                 android:textStyle="italic" />
 
             <TextView
-                android:id="@+id/text_name"
+                android:id="@+id/txt_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/text_email"
+                android:layout_above="@+id/txt_email"
                 android:textColor="@android:color/white"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/text_email"
+                android:id="@+id/txt_email"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"

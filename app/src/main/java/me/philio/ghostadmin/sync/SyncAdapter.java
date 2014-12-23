@@ -363,7 +363,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void saveUser(User user, SyncResult syncResult) {
         // Get the local record
-        User dbUser = new Select().from(User.class).where("remote_id = ?", user.id).executeSingle();
+        User dbUser = new Select()
+                .from(User.class)
+                .where("blog_id = ? AND remote_id = ?", user.blog.getId(), user.id)
+                .executeSingle();
 
         // Check to see if record needs saving
         if (dbUser != null) {
@@ -391,14 +394,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void saveSetting(Setting setting, SyncResult syncResult) {
         // Get the local record
-        Setting dbSetting = new Select().from(Setting.class).where("remote_id = ?", setting.id)
+        Setting dbSetting = new Select()
+                .from(Setting.class)
+                .where("blog_id = ? AND remote_id = ?",setting.blog.getId(), setting.id)
                 .executeSingle();
 
         // Check to see if record needs saving
         if (dbSetting != null) {
             // Check if setting was actually updated
             if (setting.updatedAt.compareTo(dbSetting.updatedAt) <= 0) {
-                Log.d(TAG, "Setting is unchanged " + setting.updatedAt.toString() + " " + dbSetting.updatedAt.toString());
+                Log.d(TAG, "Setting is unchanged");
                 return;
             }
         }
@@ -420,7 +425,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void saveTag(Tag tag, SyncResult syncResult) {
         // Get the local record
-        Tag dbTag = new Select().from(Tag.class).where("remote_id = ?", tag.id).executeSingle();
+        Tag dbTag = new Select()
+                .from(Tag.class)
+                .where("blog_id = ? AND remote_id = ?", tag.blog.getId(), tag.id)
+                .executeSingle();
 
         // Check to see if record needs saving
         if (dbTag != null) {
@@ -448,7 +456,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void savePost(Post post, SyncResult syncResult) {
         // Get the local record
-        Post dbPost = new Select().from(Post.class).where("remote_id = ?", post.id).executeSingle();
+        Post dbPost = new Select()
+                .from(Post.class)
+                .where("blog_id = ? AND remote_id = ?", post.blog.getId(), post.id)
+                .executeSingle();
 
         // Check to see if record needs saving
         if (dbPost != null) {
@@ -482,8 +493,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             }
 
             // Delete any existing post/tag associations
-            List<PostTag> dbPostTags = new Select().from(PostTag.class)
-                    .where("post_id = ?", post.getId()).execute();
+            List<PostTag> dbPostTags = new Select()
+                    .from(PostTag.class)
+                    .where("post_id = ?", post.getId())
+                    .execute();
             for (PostTag dbPostTag : dbPostTags) {
                 dbPostTag.delete();
                 syncResult.stats.numDeletes++;
@@ -493,7 +506,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             for (Tag tag : post.tags) {
                 // Get the tag record from the database as the object created from JSON doesn't
                 // save correctly unless saved first itself
-                Tag dbTag = new Select().from(Tag.class).where("remote_id = ?", tag.id)
+                Tag dbTag = new Select()
+                        .from(Tag.class)
+                        .where("remote_id = ?", tag.id)
                         .executeSingle();
                 if (dbTag != null) {
                     PostTag postTag = new PostTag();

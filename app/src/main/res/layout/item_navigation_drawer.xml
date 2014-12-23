@@ -13,7 +13,7 @@
         android:layout_centerVertical="true" />
 
     <TextView
-        android:id="@+id/text_title"
+        android:id="@+id/txt_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"

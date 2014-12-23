@@ -29,8 +29,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.activeandroid.query.Select;
-
 import java.net.HttpURLConnection;
 
 import butterknife.ButterKnife;
@@ -42,7 +40,6 @@ import me.philio.ghostadmin.io.ApiConstants;
 import me.philio.ghostadmin.io.GhostClient;
 import me.philio.ghostadmin.io.endpoint.Authentication;
 import me.philio.ghostadmin.io.endpoint.Users;
-import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.ErrorResponse;
 import me.philio.ghostadmin.model.Token;
 import me.philio.ghostadmin.model.User;
@@ -97,7 +94,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
     /**
      * Views
      */
-    @InjectView(R.id.text_blog_url)
+    @InjectView(R.id.txt_blog_url)
     TextView mTextUrl;
     @InjectView(R.id.layout_email_background)
     View mEmailBackground;

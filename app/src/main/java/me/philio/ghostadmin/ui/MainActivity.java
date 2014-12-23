@@ -23,6 +23,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 
 import me.philio.ghostadmin.R;
@@ -42,6 +43,11 @@ public class MainActivity extends BaseActivity implements
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
+
+    /**
+     * Swipe refresh layout
+     */
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     /**
      * Broadcast receiver to get sync status
@@ -65,11 +71,7 @@ public class MainActivity extends BaseActivity implements
     protected void onStart() {
         super.onStart();
 
-        // Update progress bar
-        setToolbarProgressBarVisibility(ContentResolver.isSyncActive(
-                mNavigationDrawerFragment.getSelectedAccount(),
-                getString(R.string.content_authority)));
-
+        // Receive sync events
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(SyncConstants.ACTION_SYNC_STARTED);
         intentFilter.addAction(SyncConstants.ACTION_SYNC_FINISHED);
@@ -78,6 +80,7 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     protected void onStop() {
+        // Stop receiving sync events
         unregisterReceiver(mReceiver);
 
         super.onStop();
@@ -104,6 +107,27 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
+    public void onSwipeRefreshCreated(SwipeRefreshLayout layout) {
+        mSwipeRefreshLayout = layout;
+
+        if (ContentResolver.isSyncActive(mNavigationDrawerFragment.getSelectedAccount(),
+                getString(R.string.content_authority))) {
+            mSwipeRefreshLayout.setRefreshing(true);
+        }
+    }
+
+    @Override
+    public void onSwipeRefreshDestoryed() {
+        mSwipeRefreshLayout = null;
+    }
+
+    @Override
+    public void onRefresh() {
+        SyncHelper.requestSync(mNavigationDrawerFragment.getSelectedAccount(),
+                getString(R.string.content_authority));
+    }
+
+    @Override
     public void onListItemClick(long id) {
 
     }
@@ -117,6 +141,11 @@ public class MainActivity extends BaseActivity implements
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Got action: " + intent.getAction());
 
+            // If swipe refresh layout is null ignore
+            if (mSwipeRefreshLayout == null) {
+                return;
+            }
+
             // Ignore accounts other than the selected account
             if (!mNavigationDrawerFragment.getSelectedAccount()
                     .equals(intent.getParcelableExtra(SyncConstants.EXTRA_ACCOUNT))) {
@@ -126,10 +155,10 @@ public class MainActivity extends BaseActivity implements
             // Set toolbar visibility based on intent action
             switch (intent.getAction()) {
                 case SyncConstants.ACTION_SYNC_STARTED:
-                    setToolbarProgressBarVisibility(true);
+                    mSwipeRefreshLayout.setRefreshing(true);
                     break;
                 case SyncConstants.ACTION_SYNC_FINISHED:
-                    setToolbarProgressBarVisibility(false);
+                    mSwipeRefreshLayout.setRefreshing(false);
                     break;
             }
         }

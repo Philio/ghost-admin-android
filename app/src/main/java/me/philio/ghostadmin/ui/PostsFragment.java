@@ -25,6 +25,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,6 +40,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import me.philio.ghostadmin.R;
 import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Post;
@@ -56,7 +59,8 @@ import static me.philio.ghostadmin.account.AccountConstants.KEY_EMAIL;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class PostsFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PostsFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>,
+        SwipeRefreshLayout.OnRefreshListener {
 
     /**
      * Logging tag
@@ -107,6 +111,12 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     private Blog mBlog;
 
     /**
+     * Swipe to refresh layout
+     */
+    @InjectView(R.id.swipe_refresh)
+    protected SwipeRefreshLayout mSwipeRefreshLayout;
+
+    /**
      * Create a new instance of the fragment
      *
      * @param show Posts to show
@@ -148,7 +158,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Set up list adapater
         String[] from = new String[]{"image", "title", "published_at"};
-        int[] to = new int[]{R.id.img_post, R.id.text_title, R.id.text_subtitle};
+        int[] to = new int[]{R.id.img_post, R.id.txt_title, R.id.txt_subtitle};
         mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.item_post, null,  from, to, 0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
@@ -162,7 +172,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         if (post.image != null) {
                             try {
                                 String path = ImageUtils.getUrl(post.blog, post.image);
-                                String filename = ImageUtils.getFilename(getActivity(), mBlog, path);
+                                String filename = ImageUtils.getFilename(getActivity(), mBlog,
+                                        path);
                                 File cover = new File(filename);
                                 if (cover.exists()) {
                                     Picasso.with(getActivity()).load(cover).fit().centerCrop()
@@ -176,7 +187,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         }
                         return true;
                     // Format the subtitle like on the web admin
-                    case R.id.text_subtitle:
+                    case R.id.txt_subtitle:
                         TextView textView = (TextView) view;
                         if (post.status == Post.Status.DRAFT) {
                             textView.setTextColor(getResources().getColor(R.color.red));
@@ -209,13 +220,31 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return getActivity().getLayoutInflater().inflate(R.layout.fragment_posts, container, false);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = getActivity().getLayoutInflater()
+                .inflate(R.layout.fragment_posts, container, false);
+        ButterKnife.inject(this, view);
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
+    }
+
+    @Override
+    public void onDestroyView() {
+        mListener.onSwipeRefreshDestoryed();
+        super.onDestroyView();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+
         mListener = null;
     }
 
@@ -255,7 +284,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Return loader
         return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, null), null,
-                builder.toString(), new String[]{Long.toString(mBlog.getId())}, null);
+                builder.toString(), new String[]{Long.toString(mBlog.getId())}, "status ASC, published_at DESC");
     }
 
     @Override
@@ -267,6 +296,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     public void onLoaderReset(Loader<Cursor> loader) {
     }
 
+    @Override
+    public void onRefresh() {
+        mListener.onRefresh();
+    }
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -274,6 +308,12 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      * activity.
      */
     public interface OnFragmentInteractionListener {
+
+        public void onSwipeRefreshCreated(SwipeRefreshLayout layout);
+
+        public void onSwipeRefreshDestoryed();
+
+        public void onRefresh();
 
         public void onListItemClick(long id);
 

@@ -15,16 +15,16 @@
         app:maskDrawable="@drawable/shape_oval" />
 
     <TextView
-        android:id="@+id/text_title"
+        android:id="@+id/txt_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="@dimen/keyline_1_to_2"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
-        android:id="@+id/text_subtitle"
+        android:id="@+id/txt_subtitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/text_title"
+        android:layout_below="@+id/txt_title"
         android:layout_marginLeft="@dimen/keyline_1_to_2" />
 </RelativeLayout>
