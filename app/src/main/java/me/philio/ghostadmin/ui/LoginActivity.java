@@ -32,6 +32,7 @@ import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Token;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.sync.SyncHelper;
+import me.philio.ghostadmin.util.AccountUtils;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
@@ -110,8 +111,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     @Override
     public void onSuccess(String email, String password, Token token, User user) {
         // Create the account
-        Uri uri = Uri.parse(mBlogUrl);
-        Account account = new Account(email + " (" + uri.getHost() + ")",
+        Account account = new Account(AccountUtils.getName(mBlogUrl, email),
                 getString(R.string.account_type));
         Bundle userdata = new Bundle();
         userdata.putString(KEY_BLOG_URL, mBlogUrl);

@@ -22,6 +22,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -56,12 +57,15 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import me.philio.ghostadmin.R;
+import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Setting;
 import me.philio.ghostadmin.model.User;
@@ -88,6 +92,11 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     private static final String TAG = NavigationDrawerFragment.class.getName();
 
     /**
+     * Remember the selected account
+     */
+    private static final String STATE_SELECTED_ACCOUNT = "selected_navigation_drawer_account";
+
+    /**
      * Remember the position of the selected item.
      */
     private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
@@ -97,6 +106,11 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
      * expands it. This shared preference tracks this.
      */
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+
+    /**
+     * Last account that was used is remembered in a preference
+     */
+    private static final String PREF_LAST_ACCOUNT = "navigation_drawer_account_name";
 
     /**
      * Loader ids
@@ -245,12 +259,13 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
 
         if (savedInstanceState != null) {
+            mSelectedAccount = savedInstanceState.getParcelable(STATE_SELECTED_ACCOUNT);
             mCurrentSelectedItem = savedInstanceState.getInt(STATE_SELECTED_POSITION);
             mFromSavedInstanceState = true;
         }
 
         // Get accounts and set active account
-        getAccounts();
+        getAccounts(sp.getString(PREF_LAST_ACCOUNT, null));
     }
 
     @Override
@@ -279,6 +294,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     @Override
     public void onResume() {
         super.onResume();
+
+        // Check if any account changes took place while paused or stopped
+        checkAccounts();
     }
 
     @Override
@@ -290,6 +308,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putParcelable(STATE_SELECTED_ACCOUNT, mSelectedAccount);
         outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedItem);
     }
 
@@ -385,6 +404,8 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                     } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
                         Log.e(TAG, "Error loading image");
                     }
+                } else {
+                    mCover.setImageDrawable(null);
                 }
 
                 // Show avatar
@@ -399,6 +420,8 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                     } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
                         Log.e(TAG, "Error loading image");
                     }
+                } else {
+                    mAvatar.setImageResource(R.drawable.ic_action_social_person);
                 }
 
                 // Set text values
@@ -560,12 +583,69 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     /**
      * Load the accounts list and make sure that an account is selected/active
      */
-    private void getAccounts() {
+    private void getAccounts(String selectedName) {
         Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
         mAccounts = new ArrayList<>(Arrays.asList(accounts));
+        if (mSelectedAccount == null && selectedName != null) {
+            for (Account account : mAccounts) {
+                if (account.name.equals(selectedName)) {
+                    mSelectedAccount = account;
+                    break;
+                }
+            }
+        }
         if (mSelectedAccount == null) {
             mSelectedAccount = mAccounts.get(0);
         }
+    }
+
+    /**
+     * Check to see if accounts have changed and fix any stale data/UI
+     */
+    private void checkAccounts() {
+        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+        List<Account> currentAcccounts = new ArrayList<>(Arrays.asList(accounts));
+
+        // If no accounts found bump to the splash screen
+        if (currentAcccounts.size() == 0) {
+            Intent intent  = new Intent(getActivity(), SplashActivity.class);
+            startActivity(intent);
+            getActivity().finish();
+            return;
+        }
+
+        // Look for account changes
+        Set<Account> existingSet = new HashSet<>();
+        existingSet.addAll(mAccounts);
+        Set<Account> currentSet = new HashSet<>();
+        currentSet.addAll(currentAcccounts);
+        if (!currentSet.equals(existingSet)) {
+            mAccounts = currentAcccounts;
+            if (!mAccounts.contains(mSelectedAccount)) {
+                changeAccount(mAccounts.get(0));
+            } else {
+                populateAccountItems();
+            }
+        }
+    }
+
+    /**
+     * Change the active account
+     *
+     * @param account
+     */
+    private void changeAccount(Account account) {
+        // Change selected account
+        mSelectedAccount = account;
+
+        // Update preference
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        sp.edit().putString(PREF_LAST_ACCOUNT, account.name).apply();
+
+        // Update UI
+        populateAccountItems();
+        populateAccountDetails();
+        selectItem(ITEM_POSTS);
     }
 
     /**
@@ -654,17 +734,20 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         // Add accounts
         mAccountList.removeAllViews();
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-        for (Account account : mAccounts) {
+        for (final Account account : mAccounts) {
             if (account.equals(mSelectedAccount)) {
                 continue;
             }
             View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account, mAccountList, false);
             TextView titleView = (TextView) view.findViewById(R.id.text_title);
-            titleView.setText(account.name);
+            titleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL));
+            TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
+            subtitleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL));
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // TODO switch account
+                    // Change selected account
+                    changeAccount(account);
                 }
             });
             colorView(view, false);

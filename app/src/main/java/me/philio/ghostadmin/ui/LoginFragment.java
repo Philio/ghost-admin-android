@@ -47,6 +47,7 @@ import me.philio.ghostadmin.model.ErrorResponse;
 import me.philio.ghostadmin.model.Token;
 import me.philio.ghostadmin.model.User;
 import me.philio.ghostadmin.model.UsersContainer;
+import me.philio.ghostadmin.util.AccountUtils;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
@@ -189,8 +190,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(mEditEmail.getText().toString()).matches()) {
                     mEditEmail.setError(getString(R.string.error_invalid_email));
                     valid = false;
-                } else if (new Select().from(Blog.class).where("url = ? AND email = ?", mBlogUrl,
-                        mEditEmail.getText().toString()).exists()) {
+                } else if (AccountUtils.accountExists(getActivity(), mBlogUrl, mEditEmail.getText().toString())) {
                     mEditEmail.setError(getString(R.string.error_email_exists));
                     valid = false;
                 } else {

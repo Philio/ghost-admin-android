@@ -16,6 +16,7 @@
 package me.philio.ghostadmin.ui;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -64,7 +65,7 @@ public class MainActivity extends BaseActivity implements
     protected void onStart() {
         super.onStart();
 
-        if (SyncHelper.isSyncActivePending(mNavigationDrawerFragment.getSelectedAccount(),
+        if (ContentResolver.isSyncActive(mNavigationDrawerFragment.getSelectedAccount(),
                 getString(R.string.content_authority))) {
             setToolbarProgressBarVisibility(true);
         }
@@ -115,6 +116,14 @@ public class MainActivity extends BaseActivity implements
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d(TAG, "Got action: " + intent.getAction());
+
+            // Ignore accounts other than the selected account
+            if (!mNavigationDrawerFragment.getSelectedAccount()
+                    .equals(intent.getParcelableExtra(SyncConstants.EXTRA_ACCOUNT))) {
+                return;
+            }
+
+            // Set toolbar visibility based on intent action
             switch (intent.getAction()) {
                 case SyncConstants.ACTION_SYNC_STARTED:
                     setToolbarProgressBarVisibility(true);

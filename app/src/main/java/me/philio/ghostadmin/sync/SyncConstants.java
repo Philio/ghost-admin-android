@@ -28,4 +28,10 @@ public class SyncConstants {
     public static final String ACTION_SYNC_STARTED = "me.philio.ghostadmin.sync.action.SYNC_STARTED";
     public static final String ACTION_SYNC_FINISHED = "me.philio.ghostadmin.sync.action.SYNC_FINISHED";
 
+    /**
+     * Broadcast extras
+     */
+    public static final String EXTRA_ACCOUNT = "account";
+    public static final String EXTRA_RESULT = "result";
+
 }

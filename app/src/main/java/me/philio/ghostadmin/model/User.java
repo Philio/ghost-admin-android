@@ -33,11 +33,12 @@ import java.util.UUID;
 @Table(name = "users", id = BaseColumns._ID)
 public class User extends Model {
 
-    @Column(name = "blog_id")
+    @Column(name = "blog_id", notNull = true, uniqueGroups = "blog_user",
+            onUniqueConflicts = Column.ConflictAction.REPLACE)
     public Blog blog;
 
-    @Column(name = "remote_id", unique = true, onUniqueConflict = Column.ConflictAction.REPLACE,
-            notNull = true)
+    @Column(name = "remote_id", notNull = true, uniqueGroups = "blog_user",
+            onUniqueConflicts = Column.ConflictAction.REPLACE)
     @SerializedName("id")
     public int id;
 

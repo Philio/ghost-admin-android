@@ -77,7 +77,7 @@ import static me.philio.ghostadmin.model.Post.Status;
 
 /**
  * Sync adapter
- * <p/>
+ *
  * Created by phil on 04/12/2014.
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
@@ -101,7 +101,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
         Log.d(TAG, "Sync started for " + account.name);
-        getContext().sendBroadcast(new Intent(SyncConstants.ACTION_SYNC_STARTED));
+
+        Intent intent = new Intent(SyncConstants.ACTION_SYNC_STARTED);
+        intent.putExtra(SyncConstants.EXTRA_ACCOUNT, account);
+        getContext().sendBroadcast(intent);
 
         try {
             // Refresh the access token
@@ -120,7 +123,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Log.d(TAG, "Updates: " + syncResult.stats.numUpdates);
         Log.d(TAG, "Deletes: " + syncResult.stats.numDeletes);
         Log.d(TAG, "Errors: " + syncResult.hasError());
-        getContext().sendBroadcast(new Intent(SyncConstants.ACTION_SYNC_FINISHED));
+
+        intent.setAction(SyncConstants.ACTION_SYNC_FINISHED);
+        intent.putExtra(SyncConstants.EXTRA_RESULT, syncResult);
+        getContext().sendBroadcast(intent);
     }
 
     /**
