@@ -19,7 +19,7 @@ This is a high level view of the main features and current progress and is very 
 * Sync data to the device for offline usage [COMPLETE]
 * Sync changes from the device to the server [NOT STARTED]
 * Navigation and account switching [COMPLETE]
-* Display list of posts and pages on a blog [COMPLETEgi]
+* Display list of posts and pages on a blog [COMPLETE]
 * Markdown editor [IN PROGRESS]
 * HTML viewer [IN PROGRESS]
 * Image upload [NOT STARTED]
