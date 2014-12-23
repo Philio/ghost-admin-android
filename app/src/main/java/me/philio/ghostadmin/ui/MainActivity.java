@@ -65,10 +65,10 @@ public class MainActivity extends BaseActivity implements
     protected void onStart() {
         super.onStart();
 
-        if (ContentResolver.isSyncActive(mNavigationDrawerFragment.getSelectedAccount(),
-                getString(R.string.content_authority))) {
-            setToolbarProgressBarVisibility(true);
-        }
+        // Update progress bar
+        setToolbarProgressBarVisibility(ContentResolver.isSyncActive(
+                mNavigationDrawerFragment.getSelectedAccount(),
+                getString(R.string.content_authority)));
 
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(SyncConstants.ACTION_SYNC_STARTED);
