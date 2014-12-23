@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Phil Bayfield
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package me.philio.ghostadmin.util;
 
 import android.content.Context;
@@ -23,17 +38,19 @@ import me.philio.ghostadmin.model.Blog;
 public class ImageUtils {
 
     /**
-     * Clean up a path, no leading slashes
+     * Work out the URL of an image
      *
+     * @param blog
      * @param path
      * @return
      */
-    public static String cleanPath(String path) {
-        // Remove any leading slashes
-        while (path.startsWith("/")) {
-            path = path.substring(1);
+    public static String getUrl(Blog blog, String path) {
+        if (path.startsWith("http://") || path.startsWith("https://")) {
+            return path;
+        } else if (path.startsWith("//")) {
+            return "https:" + path;
         }
-        return path;
+        return blog.url + path;
     }
 
     /**

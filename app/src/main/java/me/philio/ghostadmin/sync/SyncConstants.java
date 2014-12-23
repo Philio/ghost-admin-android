@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.philio.ghostadmin.model;
-
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-
-import me.philio.ghostadmin.io.endpoint.Users;
+package me.philio.ghostadmin.sync;
 
 /**
- * A container for response of a {@link Users} request
+ * Sync related constants
  *
- * Created by phil on 03/12/2014.
+ * Created by phil on 22/12/2014.
  */
-public class UsersContainer {
+public class SyncConstants {
 
-    @SerializedName("users")
-    public List<User> users;
-
-    @SerializedName("meta")
-    public Meta meta;
+    /**
+     * Broadcast actions
+     */
+    public static final String ACTION_SYNC_STARTED = "me.philio.ghostadmin.sync.action.SYNC_STARTED";
+    public static final String ACTION_SYNC_FINISHED = "me.philio.ghostadmin.sync.action.SYNC_FINISHED";
 
 }

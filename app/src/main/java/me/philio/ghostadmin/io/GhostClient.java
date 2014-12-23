@@ -19,11 +19,9 @@ import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.text.DateFormat;
 
 import me.philio.ghostadmin.BuildConfig;
 import me.philio.ghostadmin.io.endpoint.Authentication;
-import me.philio.ghostadmin.io.endpoint.Content;
 import me.philio.ghostadmin.io.endpoint.Discovery;
 import me.philio.ghostadmin.io.endpoint.Posts;
 import me.philio.ghostadmin.io.endpoint.Settings;
@@ -214,25 +212,6 @@ public class GhostClient {
      */
     public Users createUsers() {
         return create(Users.class);
-    }
-
-    /**
-     * Create client for streaming content
-     *
-     * @return content client
-     */
-    public Content createContent() {
-        return new RestAdapter.Builder()
-                .setEndpoint(mBlogUrl)
-                .setLogLevel(RestAdapter.LogLevel.HEADERS)
-                .setRequestInterceptor(new RequestInterceptor() {
-                    @Override
-                    public void intercept(RequestFacade request) {
-                        request.addHeader("User-Agent", USER_AGENT);
-                    }
-                })
-                .build()
-                .create(Content.class);
     }
 
     /**

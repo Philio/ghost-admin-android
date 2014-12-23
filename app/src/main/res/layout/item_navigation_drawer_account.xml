@@ -17,27 +17,12 @@
         android:src="@drawable/ic_action_social_person"
         app:maskDrawable="@drawable/shape_oval" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/text_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_marginLeft="@dimen/keyline_1_to_2"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/text_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/text_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="italic" />
-    </LinearLayout>
-
+        android:ellipsize="end"
+        android:textSize="16sp" />
 </RelativeLayout>

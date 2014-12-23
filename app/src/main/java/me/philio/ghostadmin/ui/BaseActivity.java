@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Phil Bayfield
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package me.philio.ghostadmin.ui;
 
 import android.animation.ValueAnimator;
@@ -37,6 +52,21 @@ public abstract class BaseActivity extends ActionBarActivity {
      * Broadcast receiver for network events
      */
     private NetworkStateReceiver mReceiver = new NetworkStateReceiver();
+
+    /**
+     * Current network state
+     */
+    private boolean mNetworkConnected;
+
+    /**
+     * A runnable that will be run when network connectivity is restored
+     */
+    private Runnable mNetworkConnectedRunnable;
+
+    /**
+     * A runnable that will be run when network connectivity is lost
+     */
+    private Runnable mNetworkDisconnectedRunnable;
 
     /**
      * ActionBar height, used to calculate the number of pixels for network status alert
@@ -113,7 +143,36 @@ public abstract class BaseActivity extends ActionBarActivity {
             unregisterReceiver(mReceiver);
         }
 
+        // Remove references to runnables
+        mNetworkConnectedRunnable = null;
+        mNetworkDisconnectedRunnable = null;
+
         super.onStop();
+    }
+
+    /**
+     * Check if network is connected
+     */
+    protected boolean isConnected() {
+        return mNetworkConnected;
+    }
+
+    /**
+     * Set a runnable to be run when network connectivity is restored
+     *
+     * @param runnable
+     */
+    protected void setNetworkConnectedRunnable(Runnable runnable) {
+        mNetworkConnectedRunnable = runnable;
+    }
+
+    /**
+     * Set a runnable to be run when network connectivity is lost
+     *
+     * @param runnable
+     */
+    protected void setNetworkDisconnectedRunnable(Runnable runnable) {
+        mNetworkDisconnectedRunnable = runnable;
     }
 
     /**
@@ -203,25 +262,31 @@ public abstract class BaseActivity extends ActionBarActivity {
 
         private ConnectivityManager mConnectivityManager;
 
-        private boolean mConnected = false;
-
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean state = isConnected();
-            if (state != mConnected) {
-                if (mConnected) {
+            if (state != mNetworkConnected) {
+                if (mNetworkConnected) {
                     showNetworkError();
-                    mConnected = false;
+                    mNetworkConnected = false;
+                    if (mNetworkConnectedRunnable != null) {
+                        mNetworkConnectedRunnable.run();
+                        mNetworkConnectedRunnable = null;
+                    }
                 } else {
                     hideNetworkError();
-                    mConnected = true;
+                    mNetworkConnected = true;
+                    if (mNetworkDisconnectedRunnable != null) {
+                        mNetworkDisconnectedRunnable.run();
+                        mNetworkDisconnectedRunnable = null;
+                    }
                 }
             }
         }
 
         public void setInitialState() {
-            mConnected = isConnected();
-            if (!mConnected) {
+            mNetworkConnected = isConnected();
+            if (!mNetworkConnected) {
                 showNetworkError();
             }
         }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Phil Bayfield
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package me.philio.ghostadmin.ui;
 
 import android.accounts.Account;
@@ -33,7 +48,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.activeandroid.content.ContentProvider;
-import com.activeandroid.query.Select;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -48,10 +62,10 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import me.philio.ghostadmin.R;
-import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.model.Blog;
 import me.philio.ghostadmin.model.Setting;
 import me.philio.ghostadmin.model.User;
+import me.philio.ghostadmin.sync.SyncHelper;
 import me.philio.ghostadmin.ui.widget.BezelImageView;
 import me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView;
 import me.philio.ghostadmin.util.DatabaseUtils;
@@ -329,6 +343,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 // Validity check
                 if (cursor == null || cursor.getCount() == 0) {
                     Log.e(TAG, "Failed to load setting");
+
+                    // Make sure a sync is scheduled to fix the problem
+                    SyncHelper.requestSync(mSelectedAccount, getString(R.string.content_authority));
                     return;
                 }
 
@@ -345,6 +362,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 // Validity check
                 if (cursor == null || cursor.getCount() == 0) {
                     Log.e(TAG, "Failed to load user");
+
+                    // Make sure a sync is scheduled to fix the problem
+                    SyncHelper.requestSync(mSelectedAccount, getString(R.string.content_authority));
                     return;
                 }
 
@@ -356,7 +376,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 // Show cover image
                 if (user.cover != null) {
                     try {
-                        String path = ImageUtils.cleanPath(user.cover);
+                        String path = ImageUtils.getUrl(user.blog, user.cover);
                         String filename = ImageUtils.getFilename(getActivity(), user.blog, path);
                         File cover = new File(filename);
                         if (cover.exists()) {
@@ -370,7 +390,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 // Show avatar
                 if (user.image != null) {
                     try {
-                        String path = ImageUtils.cleanPath(user.image);
+                        String path = ImageUtils.getUrl(user.blog, user.image);
                         String filename = ImageUtils.getFilename(getActivity(), user.blog, path);
                         File avatar = new File(filename);
                         if (avatar.exists()) {
@@ -557,6 +577,22 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         String email = mAccountManager.getUserData(mSelectedAccount, KEY_EMAIL);
         Blog blog = DatabaseUtils.getBlog(blogUrl, email);
 
+        // If blog record is missing, create it and request a sync so that we can start the loaders
+        // and they will load the missing data as it becomes available
+        if (blog == null) {
+            blog = new Blog();
+            blog.url = blogUrl;
+            blog.email = email;
+            blog.save();
+
+            // Show dialog
+            AccountWarningDialog dialog = new AccountWarningDialog();
+            dialog.show(getFragmentManager(), "warning");
+
+            // Make sure a sync is scheduled to fix the problem
+            SyncHelper.requestSync(mSelectedAccount, getString(R.string.content_authority));
+        }
+
         // Create bundle of loader args
         Bundle args = new Bundle();
         args.putString(LOADER_KEY_BLOG_ID, blog.getId().toString());
@@ -624,9 +660,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
             }
             View view = layoutInflater.inflate(R.layout.item_navigation_drawer_account, mAccountList, false);
             TextView titleView = (TextView) view.findViewById(R.id.text_title);
-            TextView subtitleView = (TextView) view.findViewById(R.id.text_subtitle);
             titleView.setText(account.name);
-            subtitleView.setText(mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL));
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

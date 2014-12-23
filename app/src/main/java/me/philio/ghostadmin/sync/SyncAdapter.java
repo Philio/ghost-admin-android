@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Phil Bayfield
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package me.philio.ghostadmin.sync;
 
 import android.accounts.Account;
@@ -7,6 +22,7 @@ import android.accounts.OperationCanceledException;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SyncResult;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,9 +32,15 @@ import com.activeandroid.ActiveAndroid;
 import com.activeandroid.content.ContentProvider;
 import com.activeandroid.query.Select;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +48,6 @@ import java.util.List;
 import me.philio.ghostadmin.account.AccountConstants;
 import me.philio.ghostadmin.io.GhostClient;
 import me.philio.ghostadmin.io.endpoint.Authentication;
-import me.philio.ghostadmin.io.endpoint.Content;
 import me.philio.ghostadmin.io.endpoint.Posts;
 import me.philio.ghostadmin.io.endpoint.Settings;
 import me.philio.ghostadmin.io.endpoint.Tags;
@@ -45,7 +66,6 @@ import me.philio.ghostadmin.model.UsersContainer;
 import me.philio.ghostadmin.util.DatabaseUtils;
 import me.philio.ghostadmin.util.ImageUtils;
 import retrofit.RetrofitError;
-import retrofit.client.Response;
 
 import static me.philio.ghostadmin.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
 import static me.philio.ghostadmin.account.AccountConstants.TOKEN_TYPE_ACCESS;
@@ -78,8 +98,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     @Override
-    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+    public void onPerformSync(Account account, Bundle extras, String authority,
+                              ContentProviderClient provider, SyncResult syncResult) {
         Log.d(TAG, "Sync started for " + account.name);
+        getContext().sendBroadcast(new Intent(SyncConstants.ACTION_SYNC_STARTED));
 
         try {
             // Refresh the access token
@@ -98,6 +120,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Log.d(TAG, "Updates: " + syncResult.stats.numUpdates);
         Log.d(TAG, "Deletes: " + syncResult.stats.numDeletes);
         Log.d(TAG, "Errors: " + syncResult.hasError());
+        getContext().sendBroadcast(new Intent(SyncConstants.ACTION_SYNC_FINISHED));
     }
 
     /**
@@ -160,7 +183,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Get blog data from the server, a pretty straight forward fetch all and replace approach for
      * now, but this is far from optimal and ideally needs to pull changes only but this
      * functionality doesn't yet look like it exists in the Ghost API.
-     * <p/>
+     *
      * TODO Hopefully this can be optimised at a later date, depends on the API
      */
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
@@ -185,9 +208,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 false);
         GhostClient client = new GhostClient(blog.url, accessToken);
 
-        // Content client for downloading images
-        Content content = client.createContent();
-
         // Sync users
         Users users = client.createUsers();
         int page = 1;
@@ -197,10 +217,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             for (User user : usersContainer.users) {
                 user.blog = blog;
                 saveUser(user, syncResult);
-                saveContent(blog, content, user.image,
-                        ContentProvider.createUri(User.class, user.getId()));
-                saveContent(blog, content, user.cover,
-                        ContentProvider.createUri(User.class, user.getId()));
+                saveContent(blog, user.image, ContentProvider.createUri(User.class, user.getId()));
+                saveContent(blog, user.cover, ContentProvider.createUri(User.class, user.getId()));
             }
             totalPages = usersContainer.meta.pagination.pages;
             page++;
@@ -214,8 +232,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             setting.blog = blog;
             saveSetting(setting, syncResult);
             if (setting.key.equals(Setting.Key.LOGO) || setting.key.equals(Setting.Key.COVER)) {
-                saveContent(blog, content, setting.value,
-                        ContentProvider.createUri(Setting.class, null));
+                saveContent(blog, setting.value, ContentProvider.createUri(Setting.class, null));
             }
         }
 
@@ -244,8 +261,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, content, post.image,
-                        ContentProvider.createUri(Post.class, post.getId()));
+                saveContent(blog, post.image, ContentProvider.createUri(Post.class, post.getId()));
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -258,15 +274,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, content, post.image,
-                        ContentProvider.createUri(Post.class, post.getId()));
+                saveContent(blog, post.image, ContentProvider.createUri(Post.class, post.getId()));
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
         }
 
         // Check for deleted posts and remove/flag
-        List<Post> dbPosts = new Select().from(Post.class).execute();
+        List<Post> dbPosts = new Select().from(Post.class).where("blog_id = ?", blog.getId())
+                .execute();
         for (Post post : dbPosts) {
             if (!remoteIds.contains(post.id)) {
                 if (post.updatedLocally) {
@@ -284,18 +300,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Save content (expects images)
      *
-     * @param content Content client
-     * @param path    Path on the server
-     * TODO move some of this stuff into constants
+     * @param blog
+     * @param path
+     * @param notificationUri
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
      */
-    private void saveContent(Blog blog, Content content, String path, Uri notificationUri) throws NoSuchAlgorithmException, IOException {
+    private void saveContent(Blog blog, String path, Uri notificationUri) throws NoSuchAlgorithmException, IOException {
         // Check that the path looks like something valid
         if (path == null || path.trim().isEmpty()) {
             return;
         }
 
-        // Clean up the path
-        path = ImageUtils.cleanPath(path);
+        // Make sure the path is a full URL
+        path = ImageUtils.getUrl(blog, path);
 
         // Generate a filename
         String filename = ImageUtils.getFilename(getContext(), blog, path);
@@ -312,13 +330,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             return;
         }
 
-        // Get the response stream
-        Response response = content.getContent(path);
-        InputStream inputStream = response.getBody().in();
+        // Connect
+        URL url = new URL(path);
+        URLConnection connection = url.openConnection();
+        connection.connect();
 
-        // Decode and scale the image
-        Log.d(TAG, "Saving file: " + filename);
-        ImageUtils.decodeScale(inputStream, filename, 2048, 2048);
+        // Save the image as a temporary file as IO errors on bitmap decode never throw an error
+        Log.d(TAG, "Saving temporary file: " + filename + ".tmp");
+        File file = new File(filename + ".tmp");
+        IOUtils.copy(connection.getInputStream(), new FileOutputStream(file));
+
+        // Decode the file
+        Log.d(TAG, "Decoding to file: " + filename);
+        ImageUtils.decodeScale(new FileInputStream(file), filename, 2048, 2048);
+        file.delete();
         if (notificationUri != null) {
             getContext().getContentResolver().notifyChange(notificationUri, null);
         }

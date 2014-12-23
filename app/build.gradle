@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    buildToolsVersion "21.1.2"
 
     defaultConfig {
         applicationId "me.philio.ghostadmin"
@@ -32,4 +32,5 @@ dependencies {
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
     compile 'com.jakewharton:butterknife:6.0.0'
     compile 'com.android.support:support-v4:21.0.3'
+    compile 'org.apache.commons:commons-io:1.3.2'
 }

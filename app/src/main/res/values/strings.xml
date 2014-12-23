@@ -18,6 +18,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <!-- Account warning dialog -->
+    <string name="dialog_account_title">Account data missing</string>
+    <string name="dialog_account_body">Data recovery has been started for your account, this may take a minute to complete. Please make sure you have network coverage.</string>
+
     <!-- Posts -->
     <string name="post_draft">Draft</string>
     <string name="post_page">Page</string>
