@@ -559,20 +559,19 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     }
 
     private void selectItem(int item) {
-        mCurrentSelectedItem = item;
-        if (mItemViews != null) {
-            for (int i = 0; i < mItemViews.length; i++) {
-                if (mItems.get(i) != ITEM_DIVIDER) {
-                    mItemViews[i].setSelected(mItems.get(i) == item);
-                    colorView(mItemViews[i], mItems.get(i) == item);
+        if (mCallbacks != null && mCallbacks.onNavigationDrawerItemSelected(item)) {
+            mCurrentSelectedItem = item;
+            if (mItemViews != null) {
+                for (int i = 0; i < mItemViews.length; i++) {
+                    if (mItems.get(i) != ITEM_DIVIDER) {
+                        mItemViews[i].setSelected(mItems.get(i) == item);
+                        colorView(mItemViews[i], mItems.get(i) == item);
+                    }
                 }
             }
         }
         if (mDrawerLayout != null) {
             mDrawerLayout.closeDrawer(mContainerView);
-        }
-        if (mCallbacks != null) {
-            mCallbacks.onNavigationDrawerItemSelected(item);
         }
     }
 
@@ -840,7 +839,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         /**
          * Called when an item in the navigation drawer is selected.
          */
-        void onNavigationDrawerItemSelected(int id);
+        public boolean onNavigationDrawerItemSelected(int id);
 
     }
 

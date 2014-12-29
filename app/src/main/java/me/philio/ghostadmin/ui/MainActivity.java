@@ -87,7 +87,7 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onNavigationDrawerItemSelected(int item) {
+    public boolean onNavigationDrawerItemSelected(int item) {
         Fragment fragment = null;
         switch (item) {
             case NavigationDrawerFragment.ITEM_POSTS:
@@ -97,13 +97,16 @@ public class MainActivity extends BaseActivity implements
             case NavigationDrawerFragment.ITEM_PAGES:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
                         PostsFragment.SHOW_PAGES | PostsFragment.SHOW_DRAFTS);
+                break;
         }
 
         if (fragment != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.container, fragment)
                     .commit();
+            return true;
         }
+        return false;
     }
 
     @Override
