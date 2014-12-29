@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="me.philio.ghostadmin.ui.MainActivity">
+    tools:context="me.philio.ghost.ui.MainActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -48,7 +48,7 @@
             android:src="@drawable/ic_action_content_create" />
     </RelativeLayout>
 
-    <me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <me.philio.ghost.ui.widget.ScrimInsetsScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/navigation_drawer_scrim"
         android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
@@ -60,9 +60,9 @@
 
         <fragment
             android:id="@+id/navigation_drawer"
-            android:name="me.philio.ghostadmin.ui.NavigationDrawerFragment"
+            android:name="me.philio.ghost.ui.NavigationDrawerFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:layout="@layout/fragment_navigation_drawer" />
-    </me.philio.ghostadmin.ui.widget.ScrimInsetsScrollView>
+    </me.philio.ghost.ui.widget.ScrimInsetsScrollView>
 </android.support.v4.widget.DrawerLayout>

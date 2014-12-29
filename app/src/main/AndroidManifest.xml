@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.philio.ghostadmin">
+    package="me.philio.ghost">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -19,7 +19,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
-        android:name="me.philio.ghostadmin.GhostApplication"
+        android:name="me.philio.ghost.GhostApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name">
@@ -33,12 +33,12 @@
         <meta-data
             android:name="AA_MODELS"
             android:value="
-                    me.philio.ghostadmin.model.Blog,
-                    me.philio.ghostadmin.model.Post,
-                    me.philio.ghostadmin.model.Setting,
-                    me.philio.ghostadmin.model.Tag,
-                    me.philio.ghostadmin.model.User,
-                    me.philio.ghostadmin.model.PostTag" />
+                    me.philio.ghost.model.Blog,
+                    me.philio.ghost.model.Post,
+                    me.philio.ghost.model.Setting,
+                    me.philio.ghost.model.Tag,
+                    me.philio.ghost.model.User,
+                    me.philio.ghost.model.PostTag" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="
@@ -46,7 +46,7 @@
 
         <!-- Activities -->
         <activity
-            android:name="me.philio.ghostadmin.ui.SplashActivity"
+            android:name="me.philio.ghost.ui.SplashActivity"
             android:theme="@style/Theme.Ghost.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -55,12 +55,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="me.philio.ghostadmin.ui.LoginActivity"
+            android:name="me.philio.ghost.ui.LoginActivity"
             android:label="@string/title_activity_login"
             android:theme="@style/Theme.Ghost.NoActionBar"
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
-            android:name="me.philio.ghostadmin.ui.MainActivity"
+            android:name="me.philio.ghost.ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer" />
 
@@ -73,7 +73,7 @@
 
         <!-- Account authenticator service -->
         <service
-            android:name="me.philio.ghostadmin.account.AuthenticatorService"
+            android:name="me.philio.ghost.account.AuthenticatorService"
             android:enabled="true"
             android:exported="false"
             android:label="@string/provider_sync_name">
@@ -88,7 +88,7 @@
 
         <!-- Sync adapter service -->
         <service
-            android:name=".sync.SyncService"
+            android:name="me.philio.ghost.sync.SyncService"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />

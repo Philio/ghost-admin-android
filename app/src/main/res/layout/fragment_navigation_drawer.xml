@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    tools:context="me.philio.ghostadmin.ui.NavigationDrawerFragment">
+    tools:context="me.philio.ghost.ui.NavigationDrawerFragment">
 
     <FrameLayout
         android:id="@+id/header"
@@ -24,7 +24,7 @@
             android:layout_height="match_parent"
             android:padding="@dimen/keyline_1">
 
-            <me.philio.ghostadmin.ui.widget.BezelImageView
+            <me.philio.ghost.ui.widget.BezelImageView
                 android:id="@+id/img_avatar"
                 android:layout_width="@dimen/navigation_drawer_avatar_size"
                 android:layout_height="@dimen/navigation_drawer_avatar_size"

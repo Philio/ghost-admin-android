@@ -3,4 +3,4 @@
     android:id="@+id/viewpager"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.philio.ghostadmin.ui.EditorFragment" />
+    tools:context="me.philio.ghost.ui.EditorFragment" />
