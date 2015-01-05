@@ -93,10 +93,18 @@ public class MainActivity extends BaseActivity implements
             case NavigationDrawerFragment.ITEM_POSTS:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
                         PostsFragment.SHOW_POSTS | PostsFragment.SHOW_DRAFTS);
+                getSupportActionBar().setTitle(R.string.title_posts);
                 break;
             case NavigationDrawerFragment.ITEM_PAGES:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
                         PostsFragment.SHOW_PAGES | PostsFragment.SHOW_DRAFTS);
+                getSupportActionBar().setTitle(R.string.title_pages);
+                break;
+            case NavigationDrawerFragment.ITEM_SETTINGS:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case NavigationDrawerFragment.ITEM_ABOUT:
+                startActivity(new Intent(this, AboutActivity.class));
                 break;
         }
 
@@ -106,6 +114,7 @@ public class MainActivity extends BaseActivity implements
                     .commit();
             return true;
         }
+
         return false;
     }
 

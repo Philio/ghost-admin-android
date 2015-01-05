@@ -133,7 +133,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Access tokens only last 60 minutes so we need to manage this and refresh it frequently. If
      * token has less than 30 minutes remaining it will be refreshed and as a last resort we can
      * use the email/password combination that was saved on login to re-authenticate from scratch.
-     * <p/>
+     *
      * TODO Review later
      */
     private void refreshAccessToken(Account account) throws AuthenticatorException,

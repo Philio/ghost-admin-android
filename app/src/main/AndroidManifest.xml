@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.philio.ghost">
+    package="me.philio.ghost" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -19,10 +19,12 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
-        android:name="me.philio.ghost.GhostApplication"
+        android:name=".GhostApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
-        android:label="@string/app_name">
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Ghost" >
+
         <!-- ActiveAndroid database settings -->
         <meta-data
             android:name="AA_DB_NAME"
@@ -32,22 +34,15 @@
             android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="
-                    me.philio.ghost.model.Blog,
-                    me.philio.ghost.model.Post,
-                    me.philio.ghost.model.Setting,
-                    me.philio.ghost.model.Tag,
-                    me.philio.ghost.model.User,
-                    me.philio.ghost.model.PostTag" />
+            android:value="                     me.philio.ghost.model.Blog,                     me.philio.ghost.model.Post,                     me.philio.ghost.model.Setting,                     me.philio.ghost.model.Tag,                     me.philio.ghost.model.User,                     me.philio.ghost.model.PostTag" />
         <meta-data
             android:name="AA_SERIALIZERS"
-            android:value="
-                    com.activeandroid.serializer.UUIDSerializer" />
+            android:value="                     com.activeandroid.serializer.UUIDSerializer" />
 
         <!-- Activities -->
         <activity
-            android:name="me.philio.ghost.ui.SplashActivity"
-            android:theme="@style/Theme.Ghost.Splash">
+            android:name=".ui.SplashActivity"
+            android:theme="@style/Theme.Ghost.Splash" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -55,14 +50,22 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="me.philio.ghost.ui.LoginActivity"
+            android:name=".ui.LoginActivity"
             android:label="@string/title_activity_login"
             android:theme="@style/Theme.Ghost.NoActionBar"
             android:windowSoftInputMode="adjustResize|stateVisible" />
         <activity
-            android:name="me.philio.ghost.ui.MainActivity"
+            android:name=".ui.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer" />
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.Ghost.Light.NoActionBar" />
+        <activity
+            android:name=".ui.AboutActivity"
+            android:label="@string/title_activity_about"
+            android:theme="@style/Theme.Ghost.Light.NoActionBar" />
 
         <!-- ActiveAndroid content provider -->
         <provider
@@ -73,10 +76,10 @@
 
         <!-- Account authenticator service -->
         <service
-            android:name="me.philio.ghost.account.AuthenticatorService"
+            android:name=".account.AuthenticatorService"
             android:enabled="true"
             android:exported="false"
-            android:label="@string/provider_sync_name">
+            android:label="@string/provider_sync_name" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -88,14 +91,17 @@
 
         <!-- Sync adapter service -->
         <service
-            android:name="me.philio.ghost.sync.SyncService"
-            android:exported="false">
+            android:name=".sync.SyncService"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>
+
             <meta-data
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
         </service>
+
     </application>
+
 </manifest>

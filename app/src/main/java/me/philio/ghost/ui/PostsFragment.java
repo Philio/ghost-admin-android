@@ -232,6 +232,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         mSwipeRefreshLayout.setOnRefreshListener(this);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.blue, R.color.green, R.color.red);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 

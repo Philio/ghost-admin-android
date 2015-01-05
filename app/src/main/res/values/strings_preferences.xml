@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefs_cat_general">General</string>
+    <string name="prefs_cat_accounts">Accounts</string>
+    <string name="prefs_cat_data_usage">Data usage</string>
+</resources>

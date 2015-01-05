@@ -33,13 +33,19 @@ public class SyncHelper {
      * @param authority The authority to sync
      */
     public static void requestSync(Account account, String authority) {
-        if (ContentResolver.isSyncActive(account, authority) ||
-                ContentResolver.isSyncPending(account, authority)) {
+        if (isSyncActivePending(account, authority)) {
             return;
         }
         ContentResolver.requestSync(account, authority, Bundle.EMPTY);
     }
 
+    /**
+     * Check if a sync is active or pending
+     *
+     * @param account   The account to check
+     * @param authority The authority to check
+     * @return
+     */
     public static boolean isSyncActivePending(Account account, String authority) {
         return ContentResolver.isSyncActive(account, authority) ||
                 ContentResolver.isSyncPending(account, authority);
