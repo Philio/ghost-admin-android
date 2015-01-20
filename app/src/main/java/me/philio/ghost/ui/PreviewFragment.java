@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,6 +75,8 @@ public class PreviewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setHasOptionsMenu(true);
+
         Bundle args = getArguments();
         if (args != null) {
             if (args.containsKey(ARG_HTML)) {
@@ -113,6 +118,16 @@ public class PreviewFragment extends Fragment {
 
         mWebView.loadData(html, "text/html", "UTF-8");
         Log.d("HTML", html);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_preview, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
 }

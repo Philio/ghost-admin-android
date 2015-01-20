@@ -11,6 +11,10 @@
     <string name="title_pages">Pages</string>
     <string name="title_preview">Preview</string>
 
+    <!-- Menu titles -->
+    <string name="menu_title_edit">Edit</string>
+    <string name="menu_title_delete">Delete</string>
+
     <!-- Name of the content provider in the sync menu -->
     <string name="provider_sync_name">Posts and settings</string>
 
