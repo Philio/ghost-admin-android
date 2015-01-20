@@ -35,5 +35,4 @@
             android:gravity="center"
             android:text="@string/post_empty_info" />
     </LinearLayout>
-
 </FrameLayout>

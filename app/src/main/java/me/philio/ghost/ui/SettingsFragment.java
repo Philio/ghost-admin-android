@@ -71,6 +71,7 @@ public class SettingsFragment extends PreferenceFragment {
     public void onResume() {
         super.onResume();
 
+        // Populate the account list
         PreferenceCategory catAccounts = (PreferenceCategory) findPreference("cat_accounts");
         if (catAccounts != null) {
             catAccounts.removeAll();

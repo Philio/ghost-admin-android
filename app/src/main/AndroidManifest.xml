@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="me.philio.ghost" >
+    package="me.philio.ghost">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -23,7 +23,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Ghost" >
+        android:theme="@style/Theme.Ghost">
 
         <!-- ActiveAndroid database settings -->
         <meta-data
@@ -42,7 +42,7 @@
         <!-- Activities -->
         <activity
             android:name=".ui.SplashActivity"
-            android:theme="@style/Theme.Ghost.Splash" >
+            android:theme="@style/Theme.Ghost.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -57,7 +57,8 @@
         <activity
             android:name=".ui.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer" />
+            android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -79,7 +80,7 @@
             android:name=".account.AuthenticatorService"
             android:enabled="true"
             android:exported="false"
-            android:label="@string/provider_sync_name" >
+            android:label="@string/provider_sync_name">
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -92,7 +93,7 @@
         <!-- Sync adapter service -->
         <service
             android:name=".sync.SyncService"
-            android:exported="false" >
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />
             </intent-filter>

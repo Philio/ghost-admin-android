@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2014 Phil Bayfield & Elsa Shen
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
  */
 package me.philio.ghost.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -43,7 +47,7 @@ public class EditorFragment extends Fragment {
     /**
      * Arguments
      */
-    private static final String ARG_POST_ID = "post_ID";
+    private static final String ARG_POST_ID = "post_id";
     private static final String ARG_MODE = "mode";
 
     /**
@@ -67,6 +71,7 @@ public class EditorFragment extends Fragment {
      * this fragment using the provided parameters.
      *
      * @param postId The id of the post to load
+     * @param mode   The default view mode
      * @return A new instance of fragment EditorFragment.
      */
     public static EditorFragment newInstance(long postId, int mode) {
@@ -83,7 +88,9 @@ public class EditorFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args != null) {
-            mPostId = args.getLong(ARG_POST_ID);
+            if (args.containsKey(ARG_POST_ID)) {
+                mPostId = args.getLong(ARG_POST_ID);
+            }
         }
     }
 
@@ -99,10 +106,52 @@ public class EditorFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        // If layout contains a ViewPager then init fragments within it
         if (mViewPager != null) {
+            mViewPager.setAdapter(new EditorAdapter(getChildFragmentManager()));
+            mViewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                    InputMethodManager inputMethodManager = (InputMethodManager) getActivity()
+                            .getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(mViewPager.getWindowToken(), 0);
+                }
 
+                @Override
+                public void onPageSelected(int position) {
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+                }
+            });
         }
+    }
+
+    /**
+     * A very simple adapter to drive the view pager
+     */
+    private class EditorAdapter extends FragmentPagerAdapter {
+
+        public EditorAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return MarkdownFragment.newInstance(mPostId);
+                case 1:
+                    return HtmlFragment.newInstance(mPostId);
+            }
+            return null;
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
     }
 
 }

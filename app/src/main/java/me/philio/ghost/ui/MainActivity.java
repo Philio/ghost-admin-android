@@ -21,18 +21,29 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import me.philio.ghost.R;
+import me.philio.ghost.model.Post;
 import me.philio.ghost.sync.SyncConstants;
 import me.philio.ghost.sync.SyncHelper;
 
 public class MainActivity extends BaseActivity implements
         NavigationDrawerFragment.NavigationDrawerCallbacks,
-        PostsFragment.OnFragmentInteractionListener {
+        FragmentManager.OnBackStackChangedListener, PostsFragment.OnFragmentInteractionListener {
 
     /**
      * Logging tag
@@ -50,21 +61,50 @@ public class MainActivity extends BaseActivity implements
     private SwipeRefreshLayout mSwipeRefreshLayout;
 
     /**
+     * A handler on the main thread
+     */
+    private Handler mHandler = new Handler();
+
+    /**
      * Broadcast receiver to get sync status
      */
     private SyncReceiver mReceiver = new SyncReceiver();
+
+    /**
+     * Page title
+     */
+    private String mTitle;
+
+    /**
+     * Views
+     */
+    @InjectView(R.id.btn_add)
+    protected ImageButton mAddBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.inject(this);
 
+        // Find navigation drawer fragment
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(R.id.navigation_drawer_scrim,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        // Listen for changes in the back stack
+        getSupportFragmentManager().addOnBackStackChangedListener(this);
+
+        // Reveal the add button after a short delay
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showAdd();
+            }
+        }, 250);
     }
 
     @Override
@@ -87,18 +127,32 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager().popBackStack();
+                }
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public boolean onNavigationDrawerItemSelected(int item) {
         Fragment fragment = null;
         switch (item) {
             case NavigationDrawerFragment.ITEM_POSTS:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
                         PostsFragment.SHOW_POSTS | PostsFragment.SHOW_DRAFTS);
-                getSupportActionBar().setTitle(R.string.title_posts);
+                mTitle = getString(R.string.title_posts);
+                getSupportActionBar().setTitle(mTitle);
                 break;
             case NavigationDrawerFragment.ITEM_PAGES:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
                         PostsFragment.SHOW_PAGES | PostsFragment.SHOW_DRAFTS);
-                getSupportActionBar().setTitle(R.string.title_pages);
+                mTitle = getString(R.string.title_pages);
+                getSupportActionBar().setTitle(mTitle);
                 break;
             case NavigationDrawerFragment.ITEM_SETTINGS:
                 startActivity(new Intent(this, SettingsActivity.class));
@@ -109,13 +163,40 @@ public class MainActivity extends BaseActivity implements
         }
 
         if (fragment != null) {
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager()
+                        .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            }
             getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                     .replace(R.id.container, fragment)
                     .commit();
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    public void onBackStackChanged() {
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            mNavigationDrawerFragment.setDrawerIndicatorEnabled(false);
+            hideAdd();
+        } else {
+            mNavigationDrawerFragment.setDrawerIndicatorEnabled(true);
+
+            // Make sure keyboard is hidden
+            InputMethodManager inputMethodManager = (InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.hideSoftInputFromWindow(findViewById(android.R.id.content)
+                    .getWindowToken(), 0);
+
+            // Restore page title
+            getSupportActionBar().setTitle(mTitle);
+
+            // Show create button
+            showAdd();
+        }
     }
 
     @Override
@@ -129,7 +210,7 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onSwipeRefreshDestoryed() {
+    public void onSwipeRefreshDestroyed() {
         mSwipeRefreshLayout = null;
     }
 
@@ -140,8 +221,52 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onListItemClick(long id) {
+    public void onListItemClick(Post post) {
+        getSupportActionBar().setTitle(R.string.title_preview);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
+                        android.R.anim.fade_in, android.R.anim.fade_out)
+                .replace(R.id.container, PreviewFragment.newInstance(post.html, post.blog.url))
+                .addToBackStack(null)
+                .commit();
+    }
 
+    private void showAdd() {
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.scale_zoom_in);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                mAddBtn.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        mAddBtn.startAnimation(animation);
+    }
+
+    private void hideAdd() {
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.scale_zoom_out);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mAddBtn.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+            }
+        });
+        mAddBtn.startAnimation(animation);
     }
 
     /**
@@ -151,7 +276,7 @@ public class MainActivity extends BaseActivity implements
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "Got action: " + intent.getAction());
+            Log.d(TAG, "SyncReceiver got action: " + intent.getAction());
 
             // If swipe refresh layout is null ignore
             if (mSwipeRefreshLayout == null) {

@@ -9,6 +9,7 @@
     <string name="title_activity_about">About</string>
     <string name="title_posts">Posts</string>
     <string name="title_pages">Pages</string>
+    <string name="title_preview">Preview</string>
 
     <!-- Name of the content provider in the sync menu -->
     <string name="provider_sync_name">Posts and settings</string>
@@ -63,6 +64,5 @@
     <string name="about_version">Version %s</string>
     <string name="about_copyright">Copyright %s Phil Bayfield</string>
     <string name="about_open_source"><![CDATA[This application is free and open source. Please visit the <a href="https://github.com/Philio/ghost-admin-android">Github project</a> to report bugs, get the code or contribute to the project.]]></string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

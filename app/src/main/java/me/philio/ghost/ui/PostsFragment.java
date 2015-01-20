@@ -20,6 +20,7 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -28,8 +29,12 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -146,6 +151,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setHasOptionsMenu(true);
+
         Bundle args = getArguments();
         if (args != null) {
             if (args.containsKey(ARG_ACCOUNT)) {
@@ -231,14 +238,26 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setColorSchemeResources(R.color.blue, R.color.green, R.color.red);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.fragment_posts, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onDestroyView() {
-        mListener.onSwipeRefreshDestoryed();
+        mListener.onSwipeRefreshDestroyed();
         super.onDestroyView();
     }
 
@@ -258,7 +277,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             // fragment is attached to one) that an item has been selected.
             Post post = new Post();
             post.loadFromCursor((Cursor) getListAdapter().getItem(position));
-            mListener.onListItemClick(post.getId());
+            mListener.onListItemClick(post);
         }
     }
 
@@ -285,7 +304,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Return loader
         return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, null), null,
-                builder.toString(), new String[]{Long.toString(mBlog.getId())}, "status ASC, published_at DESC");
+                builder.toString(), new String[]{Long.toString(mBlog.getId())},
+                "status ASC, published_at DESC");
     }
 
     @Override
@@ -312,11 +332,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         public void onSwipeRefreshCreated(SwipeRefreshLayout layout);
 
-        public void onSwipeRefreshDestoryed();
+        public void onSwipeRefreshDestroyed();
 
         public void onRefresh();
 
-        public void onListItemClick(long id);
+        public void onListItemClick(Post post);
 
     }
 

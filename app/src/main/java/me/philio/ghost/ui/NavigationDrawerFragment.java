@@ -22,6 +22,7 @@ import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -45,6 +46,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -516,6 +518,11 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                     return;
                 }
 
+                // Make sure keyboard is hidden
+                InputMethodManager inputMethodManager = (InputMethodManager) getActivity()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(mDrawerLayout.getWindowToken(), 0);
+
                 if (!mUserLearnedDrawer) {
                     // The user manually opened the drawer; store this flag to prevent auto-showing
                     // the navigation drawer automatically in the future.
@@ -552,6 +559,12 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
     public boolean isDrawerOpen() {
         return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
+    }
+
+    public void setDrawerIndicatorEnabled(boolean enabled) {
+        if (mDrawerToggle != null) {
+            mDrawerToggle.setDrawerIndicatorEnabled(enabled);
+        }
     }
 
     public Account getSelectedAccount() {

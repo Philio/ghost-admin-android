@@ -1,6 +1,28 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="me.philio.ghost.ui.MarkdownFragment">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/keyline_1"
+    tools:context="me.philio.ghost.ui.MarkdownFragment">
 
+    <EditText
+        android:id="@+id/edit_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textStyle="bold" />
 
-</FrameLayout>
+    <EditText
+        android:id="@+id/edit_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@+id/edit_title"
+        android:layout_marginTop="@dimen/keyline_1"
+        android:background="@android:color/transparent"
+        android:fadingEdge="vertical"
+        android:gravity="top"
+        android:inputType="textMultiLine|textCapSentences"
+        android:scrollbars="vertical"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+</RelativeLayout>

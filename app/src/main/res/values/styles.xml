@@ -8,6 +8,7 @@
         <item name="colorAccent">@color/blue_darker</item>
         <item name="colorControlNormal">@color/blue</item>
         <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <!-- Default theme with no ActionBar -->
@@ -23,46 +24,20 @@
         <item name="colorAccent">@color/blue_darker</item>
         <item name="colorControlNormal">@color/blue</item>
         <item name="android:buttonStyle">@style/Theme.Ghost.Button</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 
     <!-- Light theme with no ActionBar -->
     <style name="Theme.Ghost.Light.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="toolbarStyle">@style/Theme.Ghost.ToolbarStyle.Light.DarkActionBar</item>
-        <!-- Commenting out for now for consistency, review later -->
-        <!--
-        <item name="drawerArrowStyle">@style/Widget.Ghost.DrawerArrowToggle</item>
-        -->
     </style>
 
     <!-- Light theme with no ActionBar for use with nav drawer -->
     <style name="Theme.Ghost.Light.NoActionBar.NavigationDrawer" />
 
     <!-- Splash theme -->
-    <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.NoActionBar">
-        <!--
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        -->
-    </style>
-
-    <!-- Toolbar styles -->
-    <style name="Theme.Ghost.ToolbarStyle" parent="Widget.AppCompat.Toolbar" />
-
-    <style name="Theme.Ghost.ToolbarStyle.Light" />
-
-    <style name="Theme.Ghost.ToolbarStyle.Light.DarkActionBar">
-        <item name="titleTextAppearance">@style/TextAppearance.Widget.Ghost.Toolbar.Title</item>
-    </style>
-
-    <style name="TextAppearance.Widget.Ghost.Toolbar.Title" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
-        <item name="android:textColor">@android:color/white</item>
-    </style>
-
-    <style name="Widget.Ghost.DrawerArrowToggle" parent="Widget.AppCompat.DrawerArrowToggle">
-        <item name="color">@android:color/white</item>
-    </style>
+    <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.NoActionBar" />
 
     <!-- Default button style -->
     <style name="Theme.Ghost.Button" parent="@android:style/Widget.Button">
