@@ -18,6 +18,8 @@ package me.philio.ghost.ui;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.SearchManager;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.BaseColumns;
@@ -25,8 +27,10 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -116,10 +120,21 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     private Blog mBlog;
 
     /**
+     * Search term
+     */
+    private String mSearchTerm;
+
+    /**
      * Swipe to refresh layout
      */
     @InjectView(R.id.swipe_refresh)
     protected SwipeRefreshLayout mSwipeRefreshLayout;
+
+    /**
+     * Empty list info text
+     */
+    @InjectView(R.id.text_empty_info)
+    protected TextView mEmptyInfoText;
 
     /**
      * Create a new instance of the fragment
@@ -248,6 +263,52 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_posts, menu);
+
+        SearchManager searchManager = (SearchManager) getActivity()
+                .getSystemService(Context.SEARCH_SERVICE);
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity()
+                .getComponentName()));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                if (!s.isEmpty() && !s.equals(mSearchTerm)) {
+                    mSearchTerm = s;
+                    getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                }
+                return true;
+            }
+        });
+        MenuItemCompat.setOnActionExpandListener(searchItem,
+                new MenuItemCompat.OnActionExpandListener() {
+
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                // Change empty text to show search related message
+                mEmptyInfoText.setText(R.string.post_empty_search_info);
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                // Reset empty text
+                mEmptyInfoText.setText(R.string.post_empty_info);
+
+                // Reset list
+                if (mSearchTerm != null) {
+                    mSearchTerm = null;
+                    getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                }
+                return true;
+            }
+
+        });
     }
 
     @Override
@@ -278,6 +339,12 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             Post post = new Post();
             post.loadFromCursor((Cursor) getListAdapter().getItem(position));
             mListener.onListItemClick(post);
+
+            // Reset search
+            if (mSearchTerm != null) {
+                mSearchTerm = null;
+                getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+            }
         }
     }
 
@@ -300,6 +367,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             builder.append(" AND status LIKE '");
             builder.append(Post.Status.PUBLISHED);
             builder.append("'");
+        }
+        if (mSearchTerm != null && !mSearchTerm.isEmpty()) {
+            builder.append(String.format(
+                    " AND (title LIKE '%%%1$s%%' OR slug LIKE '%%%1$s%%' OR markdown LIKE '%%%1$s%%')",
+                    mSearchTerm));
         }
 
         // Return loader

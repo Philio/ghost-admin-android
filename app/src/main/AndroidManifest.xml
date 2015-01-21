@@ -21,7 +21,7 @@
     <application
         android:name=".GhostApplication"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.Ghost">
 
@@ -34,10 +34,12 @@
             android:value="1" />
         <meta-data
             android:name="AA_MODELS"
-            android:value="                     me.philio.ghost.model.Blog,                     me.philio.ghost.model.Post,                     me.philio.ghost.model.Setting,                     me.philio.ghost.model.Tag,                     me.philio.ghost.model.User,                     me.philio.ghost.model.PostTag" />
+            android:value="me.philio.ghost.model.Blog, me.philio.ghost.model.Post,
+                    me.philio.ghost.model.Setting, me.philio.ghost.model.Tag,
+                    me.philio.ghost.model.User, me.philio.ghost.model.PostTag" />
         <meta-data
             android:name="AA_SERIALIZERS"
-            android:value="                     com.activeandroid.serializer.UUIDSerializer" />
+            android:value="com.activeandroid.serializer.UUIDSerializer" />
 
         <!-- Activities -->
         <activity
@@ -57,8 +59,18 @@
         <activity
             android:name=".ui.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer"
-            android:windowSoftInputMode="adjustResize" />
+            android:theme="@style/Theme.Ghost.Light.NoActionBar.NavigationDrawer">
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable_posts" />
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.EditorActivity"
+            android:label="@string/title_activity_editor"
+            android:theme="@style/Theme.Ghost.Light.NoActionBar" />
         <activity
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
@@ -102,7 +114,5 @@
                 android:name="android.content.SyncAdapter"
                 android:resource="@xml/syncadapter" />
         </service>
-
     </application>
-
 </manifest>

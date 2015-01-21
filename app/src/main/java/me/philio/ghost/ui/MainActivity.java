@@ -99,12 +99,7 @@ public class MainActivity extends BaseActivity implements
         getSupportFragmentManager().addOnBackStackChangedListener(this);
 
         // Reveal the add button after a short delay
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                showAdd();
-            }
-        }, 250);
+        showAdd(FAB_INITIAL_REVEAL_DELAY);
     }
 
     @Override
@@ -134,6 +129,14 @@ public class MainActivity extends BaseActivity implements
                     getSupportFragmentManager().popBackStack();
                 }
                 break;
+            case R.id.edit:
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager()
+                            .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                }
+                Intent intent = new Intent(this, EditorActivity.class);
+                startActivity(intent);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -141,6 +144,7 @@ public class MainActivity extends BaseActivity implements
     @Override
     public boolean onNavigationDrawerItemSelected(int item) {
         Fragment fragment = null;
+        Intent intent = null;
         switch (item) {
             case NavigationDrawerFragment.ITEM_POSTS:
                 fragment = PostsFragment.newInstance(mNavigationDrawerFragment.getSelectedAccount(),
@@ -155,23 +159,41 @@ public class MainActivity extends BaseActivity implements
                 getSupportActionBar().setTitle(mTitle);
                 break;
             case NavigationDrawerFragment.ITEM_SETTINGS:
-                startActivity(new Intent(this, SettingsActivity.class));
+                intent = new Intent(this, SettingsActivity.class);
                 break;
             case NavigationDrawerFragment.ITEM_ABOUT:
-                startActivity(new Intent(this, AboutActivity.class));
+                intent = new Intent(this, AboutActivity.class);
                 break;
         }
 
+        // Launch the next fragment after a short delay to allow drawer to close
         if (fragment != null) {
-            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-                getSupportFragmentManager()
-                        .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            }
-            getSupportFragmentManager().beginTransaction()
-                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
-                    .replace(R.id.container, fragment)
-                    .commit();
+            final Fragment finalFragment = fragment;
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                        getSupportFragmentManager()
+                                .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    }
+                    getSupportFragmentManager().beginTransaction()
+                            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                            .replace(R.id.container, finalFragment)
+                            .commit();
+                }
+            }, NAV_DRAWER_DELAY);
             return true;
+        }
+
+        // Launch the next activity after a short delay to allow drawer to close
+        if (intent != null) {
+            final Intent finalIntent = intent;
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startActivity(finalIntent);
+                }
+            }, NAV_DRAWER_DELAY);
         }
 
         return false;
@@ -181,7 +203,7 @@ public class MainActivity extends BaseActivity implements
     public void onBackStackChanged() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             mNavigationDrawerFragment.setDrawerIndicatorEnabled(false);
-            hideAdd();
+            hideAdd(FAB_REVEAL_DELAY);
         } else {
             mNavigationDrawerFragment.setDrawerIndicatorEnabled(true);
 
@@ -195,7 +217,7 @@ public class MainActivity extends BaseActivity implements
             getSupportActionBar().setTitle(mTitle);
 
             // Show create button
-            showAdd();
+            showAdd(FAB_REVEAL_DELAY);
         }
     }
 
@@ -226,12 +248,12 @@ public class MainActivity extends BaseActivity implements
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
                         android.R.anim.fade_in, android.R.anim.fade_out)
-                .replace(R.id.container, PreviewFragment.newInstance(post.html, post.blog.url))
+                .replace(R.id.container, PreviewFragment.newInstance(post.html, post.blog.url, true))
                 .addToBackStack(null)
                 .commit();
     }
 
-    private void showAdd() {
+    private void showAdd(int delay) {
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.scale_zoom_in);
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -247,10 +269,11 @@ public class MainActivity extends BaseActivity implements
             public void onAnimationRepeat(Animation animation) {
             }
         });
+        animation.setStartOffset(delay);
         mAddBtn.startAnimation(animation);
     }
 
-    private void hideAdd() {
+    private void hideAdd(final int delay) {
         Animation animation = AnimationUtils.loadAnimation(this, R.anim.scale_zoom_out);
         animation.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -266,6 +289,7 @@ public class MainActivity extends BaseActivity implements
             public void onAnimationRepeat(Animation animation) {
             }
         });
+        animation.setStartOffset(delay);
         mAddBtn.startAnimation(animation);
     }
 

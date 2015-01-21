@@ -27,8 +27,9 @@ public class PreviewFragment extends Fragment {
     /**
      * Arguments
      */
-    private static final String ARG_HTML = "param1";
-    private static final String ARG_URL_PREFIX = "param2";
+    private static final String ARG_HTML = "html";
+    private static final String ARG_URL_PREFIX = "url_prefix";
+    private static final String ARG_SHOW_OPTIONS = "show_options";
 
     /**
      * HTML format
@@ -49,6 +50,11 @@ public class PreviewFragment extends Fragment {
     private String mUrlPrefix;
 
     /**
+     * Show options menu
+     */
+    private boolean mShowOptions;
+
+    /**
      * Views
      */
     @InjectView(R.id.webview)
@@ -62,11 +68,12 @@ public class PreviewFragment extends Fragment {
      * @param urlPrefix URL prefix to fix any incomplete URLs
      * @return A new instance of fragment PreviewFragment.
      */
-    public static PreviewFragment newInstance(String html, String urlPrefix) {
+    public static PreviewFragment newInstance(String html, String urlPrefix, boolean showOptions) {
         PreviewFragment fragment = new PreviewFragment();
         Bundle args = new Bundle();
         args.putString(ARG_HTML, html);
         args.putString(ARG_URL_PREFIX, urlPrefix);
+        args.putBoolean(ARG_SHOW_OPTIONS, showOptions);
         fragment.setArguments(args);
         return fragment;
     }
@@ -75,17 +82,20 @@ public class PreviewFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setHasOptionsMenu(true);
-
         Bundle args = getArguments();
         if (args != null) {
             if (args.containsKey(ARG_HTML)) {
-                mHtml = getArguments().getString(ARG_HTML);
+                mHtml = args.getString(ARG_HTML);
             }
             if (args.containsKey(ARG_URL_PREFIX)) {
-                mUrlPrefix = getArguments().getString(ARG_URL_PREFIX);
+                mUrlPrefix = args.getString(ARG_URL_PREFIX);
+            }
+            if (args.containsKey(ARG_SHOW_OPTIONS)) {
+                mShowOptions = args.getBoolean(ARG_SHOW_OPTIONS);
             }
         }
+
+        setHasOptionsMenu(mShowOptions);
     }
 
     @Override
@@ -123,11 +133,6 @@ public class PreviewFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_preview, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        return super.onOptionsItemSelected(item);
     }
 
 }

@@ -49,6 +49,17 @@ public abstract class BaseActivity extends ActionBarActivity {
     private static final String TAG = BaseActivity.class.getName();
 
     /**
+     * Navigation drawer delay
+     */
+    protected static final int NAV_DRAWER_DELAY = 250;
+
+    /**
+     * Delay before revealing the floating action button
+     */
+    protected static final int FAB_INITIAL_REVEAL_DELAY = 500;
+    protected static final int FAB_REVEAL_DELAY = 250;
+
+    /**
      * Broadcast receiver for network events
      */
     private NetworkStateReceiver mReceiver = new NetworkStateReceiver();

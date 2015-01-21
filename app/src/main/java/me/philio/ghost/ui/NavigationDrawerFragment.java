@@ -31,6 +31,7 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -115,6 +116,35 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     private static final String PREF_LAST_ACCOUNT = "navigation_drawer_account_name";
 
     /**
+     * Item ids
+     */
+    private static final int ITEM_DIVIDER = -1;
+    public static final int ITEM_POSTS = 0;
+    public static final int ITEM_PAGES = 1;
+    public static final int ITEM_SETTINGS = 2;
+    public static final int ITEM_ABOUT = 3;
+
+    /**
+     * Item icons
+     */
+    private static final int[] ICONS = new int[]{
+            R.drawable.ic_action_action_description,
+            R.drawable.ic_action_action_description,
+            R.drawable.ic_action_action_settings,
+            R.drawable.ic_action_action_help
+    };
+
+    /**
+     * Item titles
+     */
+    private static final int[] TITLES = new int[]{
+            R.string.navigation_drawer_posts,
+            R.string.navigation_drawer_pages,
+            R.string.navigation_drawer_settings,
+            R.string.navigation_drawer_about
+    };
+
+    /**
      * Loader ids
      */
     private static final int LOADER_BLOG_NAME = 0;
@@ -167,35 +197,6 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
      * Active account
      */
     private Account mSelectedAccount;
-
-    /**
-     * Item ids
-     */
-    private static final int ITEM_DIVIDER = -1;
-    public static final int ITEM_POSTS = 0;
-    public static final int ITEM_PAGES = 1;
-    public static final int ITEM_SETTINGS = 2;
-    public static final int ITEM_ABOUT = 3;
-
-    /**
-     * Item icons
-     */
-    private static final int[] ICONS = new int[]{
-            R.drawable.ic_action_action_description,
-            R.drawable.ic_action_action_description,
-            R.drawable.ic_action_action_settings,
-            R.drawable.ic_action_action_help
-    };
-
-    /**
-     * Item titles
-     */
-    private static final int[] TITLES = new int[]{
-            R.string.navigation_drawer_posts,
-            R.string.navigation_drawer_pages,
-            R.string.navigation_drawer_settings,
-            R.string.navigation_drawer_about
-    };
 
     /**
      * Items in the drawer
@@ -441,6 +442,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     public void run(AccountManagerFuture<Bundle> future) {
         try {
             Bundle result = future.getResult();
+            // TODO
         } catch (OperationCanceledException | IOException | AuthenticatorException e) {
             Log.e(TAG, "Add account operation failed: " + e.getMessage());
         }
