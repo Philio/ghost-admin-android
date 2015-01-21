@@ -8,7 +8,6 @@ import android.preference.PreferenceCategory;
 import android.support.v4.app.Fragment;
 
 import com.github.machinarius.preferencefragment.PreferenceFragment;
-import com.github.machinarius.preferencefragment.PreferenceManagerCompat;
 
 import me.philio.ghost.R;
 

@@ -23,9 +23,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +32,6 @@ import com.activeandroid.content.ContentProvider;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnEditorAction;
 import butterknife.OnTextChanged;
 import me.philio.ghost.R;
 import me.philio.ghost.model.Post;

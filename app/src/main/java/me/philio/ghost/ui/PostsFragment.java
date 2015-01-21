@@ -22,7 +22,6 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -38,7 +37,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
