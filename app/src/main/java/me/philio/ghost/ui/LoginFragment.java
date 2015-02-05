@@ -57,8 +57,7 @@ import retrofit.client.Response;
  * Use the {@link LoginFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LoginFragment extends Fragment implements View.OnClickListener,
-        View.OnFocusChangeListener, Callback<Token> {
+public class LoginFragment extends Fragment implements View.OnClickListener,  Callback<Token> {
 
     /**
      * Logging tag
@@ -96,10 +95,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
      */
     @InjectView(R.id.txt_blog_url)
     TextView mTextUrl;
-    @InjectView(R.id.layout_email_background)
-    View mEmailBackground;
-    @InjectView(R.id.layout_password_background)
-    View mPasswordBackground;
     @InjectView(R.id.edit_email)
     EditText mEditEmail;
     @InjectView(R.id.edit_password)
@@ -216,27 +211,6 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
                     Authentication authentication = mClient.createAuthentication();
                     authentication.getAccessToken(ApiConstants.GRANT_TYPE_PASSWORD,
                             ApiConstants.CLIENT_ID, mEmail, mPassword, this);
-                }
-                break;
-        }
-    }
-
-    @OnFocusChange({R.id.edit_email, R.id.edit_password})
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        switch (v.getId()) {
-            case R.id.edit_email:
-                if (hasFocus) {
-                    mEmailBackground.setBackgroundResource(R.color.grey_lighter);
-                } else {
-                    mEmailBackground.setBackgroundResource(R.color.grey);
-                }
-                break;
-            case R.id.edit_password:
-                if (hasFocus) {
-                    mPasswordBackground.setBackgroundResource(R.color.grey_lighter);
-                } else {
-                    mPasswordBackground.setBackgroundResource(R.color.grey);
                 }
                 break;
         }

@@ -27,6 +27,7 @@ import android.content.SyncResult;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 
 import com.activeandroid.ActiveAndroid;
 import com.activeandroid.content.ContentProvider;
@@ -74,10 +75,11 @@ import static me.philio.ghost.io.ApiConstants.CLIENT_ID;
 import static me.philio.ghost.io.ApiConstants.GRANT_TYPE_PASSWORD;
 import static me.philio.ghost.io.ApiConstants.GRANT_TYPE_REFRESH_TOKEN;
 import static me.philio.ghost.model.Post.Status;
+import static me.philio.ghost.model.Setting.Key.LOGO;
 
 /**
  * Sync adapter
- *
+ * <p/>
  * Created by phil on 04/12/2014.
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
@@ -91,6 +93,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Account manager
      */
     private AccountManager mAccountManager;
+
+    /**
+     * List of images to download
+     */
+    private List<Pair<String, Uri>> mImageQueue = new ArrayList<>();
 
     public SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -133,7 +140,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Access tokens only last 60 minutes so we need to manage this and refresh it frequently. If
      * token has less than 30 minutes remaining it will be refreshed and as a last resort we can
      * use the email/password combination that was saved on login to re-authenticate from scratch.
-     *
+     * <p/>
      * TODO Review later
      */
     private void refreshAccessToken(Account account) throws AuthenticatorException,
@@ -189,7 +196,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * Get blog data from the server, a pretty straight forward fetch all and replace approach for
      * now, but this is far from optimal and ideally needs to pull changes only but this
      * functionality doesn't yet look like it exists in the Ghost API.
-     *
+     * <p/>
      * TODO Hopefully this can be optimised at a later date, depends on the API
      */
     private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
@@ -237,8 +244,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         for (Setting setting : settingsContainer.settings) {
             setting.blog = blog;
             saveSetting(setting, syncResult);
-            if (setting.key.equals(Setting.Key.LOGO) || setting.key.equals(Setting.Key.COVER)) {
-                saveContent(blog, setting.value, ContentProvider.createUri(Setting.class, null));
+
+            // If setting contains an image queue it for download
+            switch (setting.key) {
+                case LOGO:
+                case COVER:
+                    if (setting.value != null && !setting.value.trim().isEmpty()) {
+                        Log.d(TAG, "Queuing image download: " + setting.value);
+                        mImageQueue.add(new Pair<>(setting.value,
+                                ContentProvider.createUri(Setting.class, null)));
+                    }
+                    break;
             }
         }
 
@@ -267,11 +283,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, post.image, ContentProvider.createUri(Post.class, post.getId()));
+                if (post.image != null && !post.image.trim().isEmpty()) {
+                    Log.d(TAG, "Queuing image download: " + post.image);
+                    mImageQueue.add(new Pair<>(post.image,
+                            ContentProvider.createUri(Post.class, post.getId())));
+                }
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
         }
+
+        // Sync pages
         page = 1;
         totalPages = 1;
         while (page <= totalPages) {
@@ -280,7 +302,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 remoteIds.add(post.id);
                 post.blog = blog;
                 savePost(post, syncResult);
-                saveContent(blog, post.image, ContentProvider.createUri(Post.class, post.getId()));
+                if (post.image != null && !post.image.trim().isEmpty()) {
+                    Log.d(TAG, "Queuing image download: " + post.image);
+                    mImageQueue.add(new Pair<>(post.image,
+                            ContentProvider.createUri(Post.class, post.getId())));
+                }
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -300,6 +326,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     syncResult.stats.numDeletes++;
                 }
             }
+        }
+
+        // Download images
+        for (Pair pair : mImageQueue) {
+            Log.d(TAG, "Starting image download: " + pair.first);
+            saveContent(blog, (String) pair.first, (Uri) pair.second);
         }
     }
 

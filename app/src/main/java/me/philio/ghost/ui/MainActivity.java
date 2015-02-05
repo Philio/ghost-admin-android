@@ -34,15 +34,18 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 
+import com.commonsware.cwac.anddown.AndDown;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import butterknife.OnClick;
 import me.philio.ghost.R;
 import me.philio.ghost.model.Post;
 import me.philio.ghost.sync.SyncConstants;
 import me.philio.ghost.sync.SyncHelper;
 
 public class MainActivity extends BaseActivity implements
-        NavigationDrawerFragment.NavigationDrawerCallbacks,
+        NavigationDrawerFragment.NavigationDrawerCallbacks, View.OnClickListener,
         FragmentManager.OnBackStackChangedListener, PostsFragment.OnFragmentInteractionListener {
 
     /**
@@ -71,9 +74,19 @@ public class MainActivity extends BaseActivity implements
     private SyncReceiver mReceiver = new SyncReceiver();
 
     /**
+     * Instance of the AndDown markdown parser
+     */
+    private AndDown mAndDown = new AndDown();
+
+    /**
      * Page title
      */
     private String mTitle;
+
+    /**
+     * Id of the post displayed in the preview
+     */
+    private long mPreviewId;
 
     /**
      * Views
@@ -135,6 +148,7 @@ public class MainActivity extends BaseActivity implements
                             .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 Intent intent = new Intent(this, EditorActivity.class);
+                intent.putExtra(EditorActivity.EXTRA_POST_ID, mPreviewId);
                 startActivity(intent);
                 break;
         }
@@ -199,6 +213,18 @@ public class MainActivity extends BaseActivity implements
         return false;
     }
 
+    @OnClick(R.id.btn_add)
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_add:
+                Intent intent = new Intent(this, EditorActivity.class);
+                intent.putExtra(EditorActivity.EXTRA_ACCOUNT, mNavigationDrawerFragment.getSelectedAccount());
+                startActivity(intent);
+                break;
+        }
+    }
+
     @Override
     public void onBackStackChanged() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -244,11 +270,14 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     public void onListItemClick(Post post) {
+        mPreviewId = post.getId();
+
         getSupportActionBar().setTitle(R.string.title_preview);
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
                         android.R.anim.fade_in, android.R.anim.fade_out)
-                .replace(R.id.container, PreviewFragment.newInstance(post.html, post.blog.url, true))
+                .replace(R.id.container, PreviewFragment.newInstance(post.markdown, post.blog.url,
+                        true))
                 .addToBackStack(null)
                 .commit();
     }

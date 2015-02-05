@@ -64,10 +64,10 @@ public class Post extends Model {
             onUniqueConflicts = Column.ConflictAction.REPLACE)
     public Blog blog;
 
-    @Column(name = "remote_id", notNull = true, uniqueGroups = "blog_post",
+    @Column(name = "remote_id", uniqueGroups = "blog_post",
             onUniqueConflicts = Column.ConflictAction.REPLACE)
     @SerializedName("id")
-    public int id;
+    public Integer id;
 
     @Column(name = "uuid")
     @SerializedName("uuid")

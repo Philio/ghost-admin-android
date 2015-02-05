@@ -4,4 +4,4 @@
     android:layout_height="1dp"
     android:layout_marginBottom="@dimen/navigation_drawer_divider_margin_bottom"
     android:layout_marginTop="@dimen/navigation_drawer_divider_margin_top"
-    android:background="@color/divider_background" />
+    android:background="@color/divider" />

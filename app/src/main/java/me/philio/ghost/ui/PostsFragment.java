@@ -210,15 +210,15 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.txt_subtitle:
                         TextView textView = (TextView) view;
                         if (post.status == Post.Status.DRAFT) {
-                            textView.setTextColor(getResources().getColor(R.color.red));
+                            textView.setTextColor(getResources().getColor(R.color.draft));
                             textView.setText(R.string.post_draft);
                             return true;
                         } else if (post.page) {
-                            textView.setTextColor(getResources().getColor(R.color.grey));
+                            textView.setTextColor(getResources().getColor(R.color.text_primary));
                             textView.setText(R.string.post_page);
                             return true;
                         } else {
-                            textView.setTextColor(getResources().getColor(R.color.grey));
+                            textView.setTextColor(getResources().getColor(R.color.text_primary));
                             textView.setText(getString(R.string.post_published_ago,
                                     DateUtils.format(getActivity(), post.publishedAt)));
                             return true;
@@ -254,13 +254,18 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.blue, R.color.green, R.color.red);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.primary, R.color.accent);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_posts, menu);
+
+        // TODO App was crashing here because getActivity returned null, needs investigation
+        if (getActivity() == null) {
+            return;
+        }
 
         SearchManager searchManager = (SearchManager) getActivity()
                 .getSystemService(Context.SEARCH_SERVICE);

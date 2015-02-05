@@ -2,9 +2,9 @@
 <resources>
 
     <!-- Titles -->
-    <string name="app_name">Ghost Admin</string>
+    <string name="app_name">Ghost Writer</string>
     <string name="ghost">Ghost</string>
-    <string name="admin">Admin</string>
+    <string name="writer">Writer</string>
     <string name="title_activity_editor">Editor</string>
     <string name="title_activity_settings">Settings</string>
     <string name="title_activity_about">About</string>
@@ -66,6 +66,10 @@
     <string name="post_empty_title">Nothing to see here!</string>
     <string name="post_empty_info">New user or new account? It might take a minute to sync your blog to your device, your posts will appear here as soon as they\'re ready.</string>
     <string name="post_empty_search_info">No posts found matching any of the words you searched for.</string>
+
+    <!-- Editor -->
+    <string name="editor_title_hint">Post title</string>
+    <string name="editor_markdown_hint">Markdown</string>
 
     <!-- About -->
     <string name="about_version">Version %s</string>

@@ -16,15 +16,14 @@
         <RelativeLayout
             android:id="@+id/layout_url_background"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/grey">
+            android:layout_height="wrap_content">
 
             <Spinner
                 android:id="@+id/spinner_scheme"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:entries="@array/url_schemes" />
+                android:entries="@array/url_schemes"/>
 
             <EditText
                 android:id="@+id/edit_url"
@@ -32,7 +31,7 @@
                 android:layout_height="wrap_content"
                 android:layout_toRightOf="@id/spinner_scheme"
                 android:hint="@string/prompt_blog_url"
-                android:inputType="textUri" />
+                android:inputType="textUri"/>
         </RelativeLayout>
 
         <Button
@@ -40,6 +39,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:text="@string/action_validate" />
+            android:text="@string/action_validate"/>
     </LinearLayout>
 </ScrollView>

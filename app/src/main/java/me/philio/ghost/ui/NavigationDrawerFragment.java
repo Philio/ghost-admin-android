@@ -799,31 +799,31 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
         // Get colours from theme
         Resources.Theme theme = getActivity().getTheme();
-        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimary,
-                R.attr.colorPrimaryDark});
-        int colorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
-        int colorPrimaryDark = getResources().getColor(typedArray.getResourceId(1, 0));
+        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{
+                android.R.attr.textColorPrimary, R.attr.colorAccent});
+        int textColorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
+        int colorAccent = getResources().getColor(typedArray.getResourceId(1, 0));
 
         // Colour the icon/title
         if (selected) {
             if (iconView != null) {
-                iconView.setColorFilter(colorPrimaryDark);
+                iconView.setColorFilter(colorAccent);
             }
             if (titleView != null) {
-                titleView.setTextColor(colorPrimaryDark);
+                titleView.setTextColor(colorAccent);
             }
             if (subtitleView != null) {
-                subtitleView.setTextColor(colorPrimaryDark);
+                subtitleView.setTextColor(colorAccent);
             }
         } else {
             if (iconView != null) {
-                iconView.setColorFilter(colorPrimary);
+                iconView.setColorFilter(textColorPrimary);
             }
             if (titleView != null) {
-                titleView.setTextColor(colorPrimary);
+                titleView.setTextColor(textColorPrimary);
             }
             if (subtitleView != null) {
-                subtitleView.setTextColor(colorPrimary);
+                subtitleView.setTextColor(textColorPrimary);
             }
         }
     }

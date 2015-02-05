@@ -2,7 +2,6 @@ package me.philio.ghost.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+
+import com.commonsware.cwac.anddown.AndDown;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -26,7 +27,7 @@ public class PreviewFragment extends Fragment {
     /**
      * Arguments
      */
-    private static final String ARG_HTML = "html";
+    private static final String ARG_MARKDOWN = "markdown";
     private static final String ARG_URL_PREFIX = "url_prefix";
     private static final String ARG_SHOW_OPTIONS = "show_options";
 
@@ -39,9 +40,14 @@ public class PreviewFragment extends Fragment {
             "</html>";
 
     /**
-     * HTML content
+     * Content padding for the webview
      */
-    private String mHtml;
+    private static final int CONTENT_PADDING = 8;
+
+    /**
+     * Markdown content
+     */
+    private String mMarkdown;
 
     /**
      * URL prefix
@@ -54,6 +60,11 @@ public class PreviewFragment extends Fragment {
     private boolean mShowOptions;
 
     /**
+     * Instance of the AndDown markdown parser
+     */
+    private AndDown mAndDown = new AndDown();
+
+    /**
      * Views
      */
     @InjectView(R.id.webview)
@@ -63,14 +74,14 @@ public class PreviewFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param html HTML to display in the web view
+     * @param markdown Markdown to display
      * @param urlPrefix URL prefix to fix any incomplete URLs
      * @return A new instance of fragment PreviewFragment.
      */
-    public static PreviewFragment newInstance(String html, String urlPrefix, boolean showOptions) {
+    public static PreviewFragment newInstance(String markdown, String urlPrefix, boolean showOptions) {
         PreviewFragment fragment = new PreviewFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_HTML, html);
+        args.putString(ARG_MARKDOWN, markdown);
         args.putString(ARG_URL_PREFIX, urlPrefix);
         args.putBoolean(ARG_SHOW_OPTIONS, showOptions);
         fragment.setArguments(args);
@@ -83,8 +94,8 @@ public class PreviewFragment extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            if (args.containsKey(ARG_HTML)) {
-                mHtml = args.getString(ARG_HTML);
+            if (args.containsKey(ARG_MARKDOWN)) {
+                mMarkdown = args.getString(ARG_MARKDOWN);
             }
             if (args.containsKey(ARG_URL_PREFIX)) {
                 mUrlPrefix = args.getString(ARG_URL_PREFIX);
@@ -118,20 +129,33 @@ public class PreviewFragment extends Fragment {
         });
         mWebView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
 
-        // Format HTML
-        String html = String.format(HTML_FORMAT, 8, mHtml);
-
-        // Add domain prefix for images and links that start with a /
-        html = html.replaceAll("<img(.*)src=\"/", "<img$1src=\"" + mUrlPrefix + "/");
-        html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mUrlPrefix + "/");
-
-        mWebView.loadData(html, "text/html", "UTF-8");
-        Log.d("HTML", html);
+        // Load HTML into webview
+        loadContent(mMarkdown);
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.fragment_preview, menu);
+    }
+
+    public void updateMarkdown(String markdown) {
+        loadContent(markdown);
+    }
+
+    private void loadContent(String markdown) {
+        // Convert to HTML
+        String html = mAndDown.markdownToHtml(markdown);
+
+        // Tweak HTML
+        html = String.format(HTML_FORMAT, CONTENT_PADDING, html);
+
+        // Add domain prefix for images and links that start with a /
+        html = html.replaceAll("<img(.*)src=\"/", "<img$1src=\"" + mUrlPrefix + "/");
+        html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mUrlPrefix + "/");
+
+        if (mWebView != null) {
+            mWebView.loadData(html, "text/html", "UTF-8");
+        }
     }
 
 }

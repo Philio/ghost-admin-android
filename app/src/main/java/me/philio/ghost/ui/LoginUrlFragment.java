@@ -53,7 +53,7 @@ import retrofit.client.Response;
  * create an instance of this fragment.
  */
 public class LoginUrlFragment extends Fragment implements View.OnClickListener,
-        View.OnFocusChangeListener, Callback<JsonObject> {
+        Callback<JsonObject> {
 
     /**
      * Logging tag
@@ -150,20 +150,6 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                     GhostClient client = new GhostClient(mBlogUrl);
                     Discovery discovery = client.createDiscovery();
                     discovery.test(this);
-                }
-                break;
-        }
-    }
-
-    @OnFocusChange(R.id.edit_url)
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-        switch (v.getId()) {
-            case R.id.edit_url:
-                if (hasFocus) {
-                    mUrlBackground.setBackgroundResource(R.color.grey_lighter);
-                } else {
-                    mUrlBackground.setBackgroundResource(R.color.grey);
                 }
                 break;
         }

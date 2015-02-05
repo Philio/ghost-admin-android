@@ -17,43 +17,29 @@
             android:id="@+id/txt_blog_url"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-        <RelativeLayout
-            android:id="@+id/layout_email_background"
+        <EditText
+            android:id="@+id/edit_email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:background="@color/grey">
+            android:hint="@string/prompt_email"
+            android:inputType="textEmailAddress"/>
 
-            <EditText
-                android:id="@+id/edit_email"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/prompt_email"
-                android:inputType="textEmailAddress" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/layout_password_background"
+        <EditText
+            android:id="@+id/edit_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:background="@color/grey">
-
-            <EditText
-                android:id="@+id/edit_password"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="@string/prompt_password"
-                android:inputType="textPassword" />
-        </RelativeLayout>
+            android:hint="@string/prompt_password"
+            android:inputType="textPassword"/>
 
         <Button
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/activity_vertical_margin"
-            android:text="@string/action_sign_in" />
+            android:text="@string/action_sign_in"/>
     </LinearLayout>
 </ScrollView>

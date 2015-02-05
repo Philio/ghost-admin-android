@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2015 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,48 @@
  */
 package me.philio.ghost.ui;
 
-import android.database.Cursor;
+import android.app.Activity;
 import android.os.Bundle;
-import android.provider.BaseColumns;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import com.activeandroid.content.ContentProvider;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnTextChanged;
 import me.philio.ghost.R;
-import me.philio.ghost.model.Post;
-
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link MarkdownFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MarkdownFragment extends Fragment {
 
     /**
      * Arguments
      */
-    private static final String ARG_POST_ID = "post_id";
+    private static final String ARG_TITLE = "title";
+    private static final String ARG_CONTENT = "content";
 
     /**
-     * Post id
+     * Listener
      */
-    private long mPostId;
+    private OnFragmentInteractionListener mListener;
 
     /**
-     * Post model
+     * Post title
      */
-    private Post mPost;
+    private String mTitle;
+
+    /**
+     * Post content
+     */
+    private String mContent;
 
     /**
      * Views
@@ -71,15 +70,28 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param postId The id of the post to load
+     * @param title   Post title
+     * @param content Post markdown content
      * @return A new instance of fragment MarkdownFragment.
      */
-    public static MarkdownFragment newInstance(long postId) {
+    public static MarkdownFragment newInstance(String title, String content) {
         MarkdownFragment fragment = new MarkdownFragment();
         Bundle args = new Bundle();
-        args.putLong(ARG_POST_ID, postId);
+        args.putString(ARG_TITLE, title);
+        args.putString(ARG_CONTENT, content);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
     }
 
     @Override
@@ -87,8 +99,11 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args != null) {
-            if (args.containsKey(ARG_POST_ID)) {
-                mPostId = args.getLong(ARG_POST_ID);
+            if (args.containsKey(ARG_TITLE)) {
+                mTitle = args.getString(ARG_TITLE);
+            }
+            if (args.containsKey(ARG_CONTENT)) {
+                mContent = args.getString(ARG_CONTENT);
             }
         }
     }
@@ -104,39 +119,54 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        // Load the post
-        getLoaderManager().initLoader(0, null, this);
-    }
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, mPostId), null,
-                BaseColumns._ID + " = ?", new String[]{Long.toString(mPostId)}, null);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data != null) {
-            if (mPost == null) {
-                data.moveToFirst();
-                mPost = new Post();
-                mPost.loadFromCursor(data);
-                mTitleEdit.setText(mPost.title);
-                mContentEdit.setText(mPost.markdown);
-            } else {
-                // TODO post was already loaded, content changed?
-            }
+        if (mTitle != null) {
+            mTitleEdit.setText(mTitle);
+        }
+        if (mContent != null) {
+            mContentEdit.setText(mContent);
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        // TODO need to handle loader reset?
+    public void onDetach() {
+        super.onDetach();
+
+        mListener = null;
+    }
+
+    @OnTextChanged(R.id.edit_title)
+    public void onTitleChanged(CharSequence s, int start, int before, int count) {
+        // Ignore if nothing has changed
+        if (start == 0 && before == 0 && count == 0) {
+            return;
+        }
+        mListener.onTitleChanged(s.toString());
     }
 
     @OnTextChanged(R.id.edit_content)
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-        String content = s.toString();
+    public void onContentChanged(CharSequence s, int start, int before, int count) {
+        // Ignore if nothing has changed
+        if (start == 0 && before == 0 && count == 0) {
+            return;
+        }
+        mListener.onContentChanged(s.toString());
+        Log.d("Start", "" + start);
+        Log.d("Before", "" + before);
+        Log.d("Count", "" + count);
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     */
+    public interface OnFragmentInteractionListener {
+
+        public void onTitleChanged(String title);
+
+        public void onContentChanged(String content);
+
     }
 
 }

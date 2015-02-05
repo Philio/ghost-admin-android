@@ -42,9 +42,9 @@
                 android:layout_weight="1"
                 android:gravity="left"
                 android:paddingLeft="3dp"
-                android:text="@string/admin"
+                android:text="@string/writer"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textColor="@color/blue"
+                android:textColor="@color/primary"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>

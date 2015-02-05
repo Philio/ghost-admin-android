@@ -9,8 +9,12 @@
         android:id="@+id/edit_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:hint="@string/editor_title_hint"
+        android:imeOptions="flagNoExtractUi"
+        android:maxLines="1"
+        android:singleLine="true"
         android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold" />
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/edit_content"
@@ -22,7 +26,9 @@
         android:background="@android:color/transparent"
         android:fadingEdge="vertical"
         android:gravity="top"
+        android:hint="@string/editor_markdown_hint"
+        android:imeOptions="flagNoExtractUi"
         android:inputType="textMultiLine|textCapSentences"
         android:scrollbars="vertical"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:textAppearance="?android:attr/textAppearanceSmall"/>
 </RelativeLayout>
