@@ -1,20 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Material theme colours -->
-    <color name="primary">#2196f3</color>
-    <color name="primary_dark">#1976d2</color>
-    <color name="accent">#4caf50</color>
-    <color name="accent_dark">#388e3c</color>
+    <color name="primary">@color/blue_500</color>
+    <color name="primary_dark">@color/blue_700</color>
+    <color name="accent">@color/green_500</color>
+    <color name="accent_dark">@color/green_700</color>
     <color name="text_primary">@color/abc_primary_text_material_light</color>
     <color name="text_secondary">@color/abc_secondary_text_material_light</color>
-    <color name="divider">#1f000000</color>
+    <color name="divider">#1F000000</color>
     <color name="window_background">@android:color/white</color>
+
+    <!-- Material pallet 300 -->
+    <color name="red_300">#E57373</color>
+    <color name="pink_300">#F06292</color>
+    <color name="purple_300">#BA68C8</color>
+    <color name="deep_purple_300">#9575CD</color>
+    <color name="indigo_300">#7986CB</color>
+    <color name="blue_300">#64B5F6</color>
+    <color name="light_blue_300">#4FC3F7</color>
+    <color name="cyan_300">#4DD0E1</color>
+    <color name="teal_300">#4DB6AC</color>
+    <color name="green_300">#81C784</color>
+    <color name="light_green_300">#AED581</color>
+    <color name="lime_300">#DCE775</color>
+    <color name="yellow_300">#FFF176</color>
+    <color name="amber_300">#FFD54F</color>
+    <color name="orange_300">#FFB74D</color>
+    <color name="deep_orange_300">#FF8A65</color>
+    <color name="brown_300">#A1887F</color>
+    <color name="grey_300">#E0E0E0</color>
+    <color name="blue_grey_300">#90A4AE</color>
+
+    <!-- Material pallet 500 -->
+    <color name="red_500">#F44336</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="green_500">#4CAF50</color>
+    <color name="yellow_500">#FFEB3B</color>
+
+    <!-- Material pallet 700 -->
+    <color name="blue_700">#1976D2</color>
+    <color name="green_700">#388E3C</color>
 
     <!-- Other colours -->
     <color name="inset_foreground">#3000</color>
     <color name="popup_background">#333</color>
-    <color name="list_selected">#eee</color>
-    <color name="list_pressed">#eee</color>
-    <color name="list_selected_pressed">#ddd</color>
-    <color name="draft">#e25440</color>
+    <color name="list_selected">#EEE</color>
+    <color name="list_pressed">#EEE</color>
+    <color name="list_selected_pressed">#DDD</color>
+    <color name="draft">#E25440</color>
 </resources>

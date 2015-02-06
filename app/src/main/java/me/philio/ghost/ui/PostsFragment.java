@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
@@ -62,7 +63,7 @@ import static me.philio.ghost.account.AccountConstants.KEY_EMAIL;
 
 /**
  * A fragment representing a list of Items.
- *
+ * <p/>
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
@@ -91,6 +92,15 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      * Loader ids
      */
     private static final int LOADER_LIST = 100;
+
+    /**
+     * Icon background colours
+     */
+    private static final int[] ICON_COLORS = {R.color.red_300, R.color.pink_300, R.color.purple_300,
+            R.color.deep_purple_300, R.color.indigo_300, R.color.blue_300, R.color.light_blue_300,
+            R.color.cyan_300, R.color.teal_300, R.color.green_300, R.color.light_green_300,
+            R.color.lime_300, R.color.yellow_300, R.color.amber_300, R.color.orange_300,
+            R.color.deep_orange_300, R.color.brown_300, R.color.grey_300, R.color.blue_grey_300};
 
     /**
      * Listener
@@ -179,7 +189,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         // Set up list adapater
         String[] from = new String[]{"image", "title", "published_at"};
         int[] to = new int[]{R.id.img_post, R.id.txt_title, R.id.txt_subtitle};
-        mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.item_post, null,  from, to, 0);
+        mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.item_post, null, from, to, 0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
             public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
@@ -203,6 +213,15 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                                 Log.e(TAG, "Error loading image");
                             }
                         } else {
+                            // Apply colour filter to the background based on the first character
+                            // in the post title
+                            char firstChar = post.title.charAt(0);
+                            int charValue = Character.getNumericValue(firstChar);
+                            int color = ICON_COLORS[charValue % ICON_COLORS.length];
+                            imageView.getBackground().setColorFilter(getResources().getColor(color),
+                                    PorterDuff.Mode.SRC_ATOP);
+
+                            // Make sure the image resource is correct (if view is recycled)
                             imageView.setImageResource(R.drawable.ic_action_action_description);
                         }
                         return true;
@@ -254,7 +273,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.primary, R.color.accent);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.red_500, R.color.blue_500,
+                R.color.green_500, R.color.yellow_500);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 
@@ -291,27 +311,27 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         MenuItemCompat.setOnActionExpandListener(searchItem,
                 new MenuItemCompat.OnActionExpandListener() {
 
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                // Change empty text to show search related message
-                mEmptyInfoText.setText(R.string.post_empty_search_info);
-                return true;
-            }
+                    @Override
+                    public boolean onMenuItemActionExpand(MenuItem item) {
+                        // Change empty text to show search related message
+                        mEmptyInfoText.setText(R.string.post_empty_search_info);
+                        return true;
+                    }
 
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                // Reset empty text
-                mEmptyInfoText.setText(R.string.post_empty_info);
+                    @Override
+                    public boolean onMenuItemActionCollapse(MenuItem item) {
+                        // Reset empty text
+                        mEmptyInfoText.setText(R.string.post_empty_info);
 
-                // Reset list
-                if (mSearchTerm != null) {
-                    mSearchTerm = null;
-                    getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
-                }
-                return true;
-            }
+                        // Reset list
+                        if (mSearchTerm != null) {
+                            mSearchTerm = null;
+                            getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                        }
+                        return true;
+                    }
 
-        });
+                });
     }
 
     @Override
