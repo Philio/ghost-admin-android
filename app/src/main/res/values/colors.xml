@@ -4,10 +4,10 @@
     <color name="primary">#2196f3</color>
     <color name="primary_dark">#1976d2</color>
     <color name="accent">#4caf50</color>
-    <color name="accent_dark">#339637</color>
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#727272</color>
-    <color name="divider">#b6b6b6</color>
+    <color name="accent_dark">#388e3c</color>
+    <color name="text_primary">@color/abc_primary_text_material_light</color>
+    <color name="text_secondary">@color/abc_secondary_text_material_light</color>
+    <color name="divider">#1f000000</color>
     <color name="window_background">@android:color/white</color>
 
     <!-- Other colours -->
