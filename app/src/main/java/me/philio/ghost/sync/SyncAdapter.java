@@ -45,6 +45,8 @@ import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import me.philio.ghost.account.AccountConstants;
 import me.philio.ghost.io.GhostClient;
@@ -288,6 +290,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     mImageQueue.add(new Pair<>(post.image,
                             ContentProvider.createUri(Post.class, post.getId())));
                 }
+                findImages(post);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -307,6 +310,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                     mImageQueue.add(new Pair<>(post.image,
                             ContentProvider.createUri(Post.class, post.getId())));
                 }
+                findImages(post);
             }
             totalPages = postsContainer.meta.pagination.pages;
             page++;
@@ -332,6 +336,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         for (Pair pair : mImageQueue) {
             Log.d(TAG, "Starting image download: " + pair.first);
             saveContent(blog, (String) pair.first, (Uri) pair.second);
+        }
+    }
+
+    /**
+     * Look within post markdown for images to download and cache for offline viewing
+     *
+     * @param post
+     */
+    private void findImages(Post post) {
+        Matcher matcher = Pattern.compile("!\\[.*\\]\\((.*)\\)").matcher(post.markdown);
+        while (matcher.find()) {
+            Log.d(TAG, "Queuing content image download: " + matcher.group(1));
+            mImageQueue.add(new Pair<>(matcher.group(1),
+                    ContentProvider.createUri(Post.class, post.getId())));
         }
     }
 

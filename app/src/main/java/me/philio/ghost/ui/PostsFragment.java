@@ -214,11 +214,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                             textView.setText(R.string.post_draft);
                             return true;
                         } else if (post.page) {
-                            textView.setTextColor(getResources().getColor(R.color.text_primary));
+                            textView.setTextColor(getResources().getColor(R.color.text_secondary));
                             textView.setText(R.string.post_page);
                             return true;
                         } else {
-                            textView.setTextColor(getResources().getColor(R.color.text_primary));
+                            textView.setTextColor(getResources().getColor(R.color.text_secondary));
                             textView.setText(getString(R.string.post_published_ago,
                                     DateUtils.format(getActivity(), post.publishedAt)));
                             return true;
