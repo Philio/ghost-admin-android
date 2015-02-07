@@ -16,6 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
+            android:elevation="2dp"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
@@ -41,7 +42,7 @@
             android:visibility="invisible" />
     </RelativeLayout>
 
-    <me.philio.ghost.ui.widget.ScrimInsetsScrollView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <me.philio.ghost.ui.widget.ScrimInsetsScrollView
         android:id="@+id/navigation_drawer_scrim"
         android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
