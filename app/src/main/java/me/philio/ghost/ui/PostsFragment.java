@@ -96,11 +96,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     /**
      * Icon background colours
      */
-    private static final int[] ICON_COLORS = {R.color.red_300, R.color.pink_300, R.color.purple_300,
-            R.color.deep_purple_300, R.color.indigo_300, R.color.blue_300, R.color.light_blue_300,
-            R.color.cyan_300, R.color.teal_300, R.color.green_300, R.color.light_green_300,
-            R.color.lime_300, R.color.yellow_300, R.color.amber_300, R.color.orange_300,
-            R.color.deep_orange_300, R.color.brown_300, R.color.grey_300, R.color.blue_grey_300};
+    private static final int[] ICON_COLORS = {R.color.red_300, R.color.purple_300, R.color.blue_300,
+            R.color.green_300, R.color.orange_300, R.color.blue_grey_300};
 
     /**
      * Listener
@@ -274,7 +271,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
         mSwipeRefreshLayout.setColorSchemeResources(R.color.red_500, R.color.blue_500,
-                R.color.green_500, R.color.yellow_500);
+                R.color.green_500);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 
