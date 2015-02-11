@@ -21,7 +21,10 @@
     <dimen name="navigation_drawer_divider_margin_bottom">8dp</dimen>
 
     <!-- Floating action button sizes -->
-    <dimen name="floating_action_button">56dp</dimen>
-    <dimen name="floating_action_button_small">40dp</dimen>
+    <dimen name="floating_action_button_width">56dp</dimen>
+    <dimen name="floating_action_button_height">56dp</dimen>
+    <!-- Gives the view some extra size on pre-lollipop devices for the shadow -->
+    <dimen name="floating_action_button_with_shadow_width">58dp</dimen>
+    <dimen name="floating_action_button_with_shadow_height">60dp</dimen>
 
 </resources>

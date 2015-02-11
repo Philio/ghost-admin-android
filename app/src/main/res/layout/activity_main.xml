@@ -28,8 +28,8 @@
 
         <ImageButton
             android:id="@+id/btn_add"
-            android:layout_width="@dimen/floating_action_button"
-            android:layout_height="@dimen/floating_action_button"
+            android:layout_width="@dimen/floating_action_button_with_shadow_width"
+            android:layout_height="@dimen/floating_action_button_with_shadow_height"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"

@@ -145,7 +145,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      * Create a new instance of the fragment
      *
      * @param show Posts to show
-     * @return
+     * @return A new instance of the fragment
      */
     public static PostsFragment newInstance(Account account, int show) {
         PostsFragment fragment = new PostsFragment();
@@ -226,7 +226,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.txt_subtitle:
                         TextView textView = (TextView) view;
                         if (post.status == Post.Status.DRAFT) {
-                            textView.setTextColor(getResources().getColor(R.color.draft));
+                            textView.setTextColor(getResources().getColor(R.color.red_500));
                             textView.setText(R.string.post_draft);
                             return true;
                         } else if (post.page) {

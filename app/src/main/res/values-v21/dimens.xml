@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cancels out the extra size given to the view pre-lollipop to add shadow -->
+    <dimen name="floating_action_button_with_shadow_width">@dimen/floating_action_button_width</dimen>
+    <dimen name="floating_action_button_with_shadow_height">@dimen/floating_action_button_height</dimen>
+</resources>

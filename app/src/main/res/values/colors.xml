@@ -10,23 +10,21 @@
     <color name="divider">#1F000000</color>
     <color name="window_background">@android:color/white</color>
 
-    <!-- Material pallet 300 -->
+    <!-- Material colours -->
+    <color name="blue_700">#1976D2</color>
+    <color name="blue_500">#2196F3</color>
+    <color name="blue_300">#64B5F6</color>
+    <color name="green_700">#388E3C</color>
+    <color name="green_500">#4CAF50</color>
+    <color name="green_300">#81C784</color>
+    <color name="red_500">#F44336</color>
     <color name="red_300">#E57373</color>
     <color name="purple_300">#BA68C8</color>
-    <color name="blue_300">#64B5F6</color>
-    <color name="green_300">#81C784</color>
     <color name="orange_300">#FFB74D</color>
     <color name="blue_grey_300">#90A4AE</color>
+    <color name="grey_700">#616161</color>
     <color name="grey_300">#E0E0E0</color>
-
-    <!-- Material pallet 500 -->
-    <color name="red_500">#F44336</color>
-    <color name="blue_500">#2196F3</color>
-    <color name="green_500">#4CAF50</color>
-
-    <!-- Material pallet 700 -->
-    <color name="blue_700">#1976D2</color>
-    <color name="green_700">#388E3C</color>
+    <color name="grey_200">#EEEEEE</color>
 
     <!-- Other colours -->
     <color name="inset_foreground">#3000</color>
@@ -34,5 +32,5 @@
     <color name="list_selected">#EEE</color>
     <color name="list_pressed">#EEE</color>
     <color name="list_selected_pressed">#DDD</color>
-    <color name="draft">#E25440</color>
+    <color name="shadow_end">#1000</color>
 </resources>
