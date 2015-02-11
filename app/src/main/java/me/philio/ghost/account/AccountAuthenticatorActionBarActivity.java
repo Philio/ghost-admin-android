@@ -34,7 +34,7 @@ import me.philio.ghost.ui.BaseActivity;
  * This result will be sent as the result of the request when the activity finishes. If this
  * is never set or if it is set to null then error {@link android.accounts.AccountManager#ERROR_CODE_CANCELED}
  * will be called on the response.
- *
+ * <p/>
  * Modified to extend the ActionBarActivity to enable ActionBar with AppCompat library in older
  * versions of Android, support fragments and declared abstract as should not be instantiated
  * directly

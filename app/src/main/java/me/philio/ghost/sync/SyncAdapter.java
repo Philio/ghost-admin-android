@@ -77,7 +77,6 @@ import static me.philio.ghost.io.ApiConstants.CLIENT_ID;
 import static me.philio.ghost.io.ApiConstants.GRANT_TYPE_PASSWORD;
 import static me.philio.ghost.io.ApiConstants.GRANT_TYPE_REFRESH_TOKEN;
 import static me.philio.ghost.model.Post.Status;
-import static me.philio.ghost.model.Setting.Key.LOGO;
 
 /**
  * Sync adapter
@@ -518,8 +517,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 Log.d(TAG, "Won't update locally changed records");
                 if (dbPost.updatedAt != post.updatedAt) {
                     Log.d(TAG, "Record is conflicted, changed locally and remotely");
-                    dbPost.remoteConflicted = true;
-                    dbPost.save();
+                    if (!dbPost.remoteConflicted) {
+                        dbPost.remoteConflicted = true;
+                        dbPost.save();
+                        syncResult.stats.numUpdates++;
+                    }
                 }
                 return;
             }

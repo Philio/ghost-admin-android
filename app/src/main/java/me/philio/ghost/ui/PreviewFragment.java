@@ -74,7 +74,7 @@ public class PreviewFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param markdown Markdown to display
+     * @param markdown  Markdown to display
      * @param urlPrefix URL prefix to fix any incomplete URLs
      * @return A new instance of fragment PreviewFragment.
      */

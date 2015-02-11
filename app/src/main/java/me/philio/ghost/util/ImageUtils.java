@@ -32,7 +32,7 @@ import me.philio.ghost.model.Blog;
 
 /**
  * Utils for handling image downloads/saving/scaling
- *
+ * <p/>
  * Created by phil on 10/12/2014.
  */
 public class ImageUtils {

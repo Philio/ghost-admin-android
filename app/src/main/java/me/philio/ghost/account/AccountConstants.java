@@ -17,7 +17,7 @@ package me.philio.ghost.account;
 
 /**
  * Account related constants
- *
+ * <p/>
  * Created by phil on 01/12/2014.
  */
 public class AccountConstants {

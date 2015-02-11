@@ -28,7 +28,7 @@ import me.philio.ghost.ui.LoginActivity;
 
 /**
  * Account authenticator for adding a ghost account to the android device
- *
+ * <p/>
  * Created by phil on 15/09/2014.
  */
 public class Authenticator extends AbstractAccountAuthenticator {

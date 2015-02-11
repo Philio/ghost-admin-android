@@ -1,10 +1,11 @@
 <resources>
     <!-- Strings related to login -->
-    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_login">Add your account</string>
+    <string name="login_into">Sign in to your Ghost(Pro) or hosted blog</string>
     <string name="prompt_blog_url">Blog URL</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_validate">Validate</string>
+    <string name="action_next">Next</string>
     <string name="action_sign_in">Sign in</string>
     <string-array name="url_schemes">
         <item>http://</item>

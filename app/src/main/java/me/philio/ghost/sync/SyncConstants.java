@@ -17,7 +17,7 @@ package me.philio.ghost.sync;
 
 /**
  * Sync related constants
- *
+ * <p/>
  * Created by phil on 22/12/2014.
  */
 public class SyncConstants {

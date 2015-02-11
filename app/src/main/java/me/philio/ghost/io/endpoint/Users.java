@@ -25,7 +25,7 @@ import retrofit.http.Query;
 
 /**
  * Ghost API users endpoint
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 public interface Users {

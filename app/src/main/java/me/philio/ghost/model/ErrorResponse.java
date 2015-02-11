@@ -21,7 +21,7 @@ import java.util.List;
 
 /**
  * A container for errors from a request
- *
+ * <p/>
  * Created by phil on 01/12/2014.
  */
 public class ErrorResponse {

@@ -23,7 +23,7 @@ import com.activeandroid.annotation.Table;
 
 /**
  * A link table for posts and tags
- *
+ * <p/>
  * Created by phil on 04/12/2014.
  */
 @Table(name = "posts_tags", id = BaseColumns._ID)

@@ -23,7 +23,7 @@ import me.philio.ghost.io.endpoint.Posts;
 
 /**
  * A container for response of a {@link Posts} request
- *
+ * <p/>
  * Created by phil on 26/11/2014.
  */
 public class PostsContainer {

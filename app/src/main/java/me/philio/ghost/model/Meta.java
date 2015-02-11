@@ -19,7 +19,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Response meta data
- *
+ * <p/>
  * Created by phil on 26/11/2014.
  */
 public class Meta {

@@ -23,7 +23,7 @@ import com.activeandroid.annotation.Table;
 
 /**
  * A local database table to keep track of which android account data belongs to
- *
+ * <p/>
  * Created by phil on 08/12/2014.
  */
 @Table(name = "blogs", id = BaseColumns._ID)

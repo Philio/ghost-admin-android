@@ -23,7 +23,7 @@ import me.philio.ghost.io.endpoint.Tags;
 
 /**
  * A container for response of a {@link Tags} request
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 public class TagsContainer {

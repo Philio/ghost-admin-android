@@ -21,7 +21,7 @@ import android.os.Bundle;
 
 /**
  * Helper methods for sync
- *
+ * <p/>
  * Created by phil on 15/12/2014.
  */
 public class SyncHelper {

@@ -19,7 +19,7 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * An error from the API
- *
+ * <p/>
  * Created by phil on 01/12/2014.
  */
 public class Error {

@@ -16,17 +16,21 @@
 package me.philio.ghost.ui;
 
 import android.app.Activity;
+import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.net.HttpURLConnection;
@@ -35,6 +39,7 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import butterknife.OnFocusChange;
+import butterknife.OnTextChanged;
 import me.philio.ghost.R;
 import me.philio.ghost.io.ApiConstants;
 import me.philio.ghost.io.GhostClient;
@@ -57,7 +62,8 @@ import retrofit.client.Response;
  * Use the {@link LoginFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LoginFragment extends Fragment implements View.OnClickListener,  Callback<Token> {
+public class LoginFragment extends Fragment implements View.OnClickListener,
+        View.OnFocusChangeListener, Callback<Token> {
 
     /**
      * Logging tag
@@ -93,14 +99,24 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
     /**
      * Views
      */
-    @InjectView(R.id.txt_blog_url)
-    TextView mTextUrl;
+    @InjectView(R.id.toolbar)
+    Toolbar mToolbar;
+    @InjectView(R.id.progressbar)
+    ProgressBar mProgressBar;
     @InjectView(R.id.edit_email)
     EditText mEditEmail;
+    @InjectView(R.id.txt_email_hint)
+    TextView mTxtEmailHint;
+    @InjectView(R.id.txt_email_error)
+    TextView mTxtEmailError;
     @InjectView(R.id.edit_password)
     EditText mEditPassword;
-    @InjectView(R.id.btn_login)
-    Button mBtnLogin;
+    @InjectView(R.id.txt_password_hint)
+    TextView mTxtPasswordHint;
+    @InjectView(R.id.txt_password_error)
+    TextView mTxtPasswordError;
+    @InjectView(R.id.txt_next)
+    TextView mTxtNext;
 
     /**
      * Use this factory method to create a new instance of
@@ -115,6 +131,17 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
         args.putString(ARG_BLOG_URL, blogUrl);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
     }
 
     @Override
@@ -135,26 +162,32 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        // Note inflater bug with v21, using activity layout inflater
-        View view = getActivity().getLayoutInflater()
-                .inflate(R.layout.fragment_login, container, false);
+        View view = inflater.inflate(R.layout.fragment_login, container, false);
         ButterKnife.inject(this, view);
         return view;
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        mTextUrl.setText(mBlogUrl);
+        // Set title
+        mToolbar.setTitle(mBlogUrl);
+
+        // Fix lack of textAllCaps prior to ICS
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            mTxtNext.setText(getString(R.string.action_next).toUpperCase());
+        }
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+    public void onResume() {
+        super.onResume();
+
+        // Make sure hints are visible after config changes/restored state
+        if (mEditEmail.getText().length() > 0) {
+            mTxtEmailHint.setVisibility(View.VISIBLE);
+        }
+        if (mEditPassword.getText().length() > 0) {
+            mTxtPasswordHint.setVisibility(View.VISIBLE);
         }
     }
 
@@ -164,11 +197,16 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
         mListener = null;
     }
 
-    @OnClick(R.id.btn_login)
+    @OnClick(R.id.txt_next)
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.btn_login:
+            case R.id.txt_next:
+                // Hide keyboard
+                InputMethodManager inputMethodManager = (InputMethodManager) getActivity()
+                        .getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
                 // Make sure email is lower case
                 mEditEmail.setText(mEditEmail.getText().toString().trim().toLowerCase());
 
@@ -177,31 +215,31 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
 
                 // Validate email address
                 if (mEditEmail.getText().toString().isEmpty()) {
-                    mEditEmail.setError(getString(R.string.error_field_required));
+                    setError(mTxtEmailError, getString(R.string.error_field_required));
                     valid = false;
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(mEditEmail.getText().toString()).matches()) {
-                    mEditEmail.setError(getString(R.string.error_invalid_email));
+                    setError(mTxtEmailError, getString(R.string.error_invalid_email));
                     valid = false;
                 } else if (AccountUtils.accountExists(getActivity(), mBlogUrl, mEditEmail.getText().toString())) {
-                    mEditEmail.setError(getString(R.string.error_email_exists));
+                    setError(mTxtEmailError, getString(R.string.error_email_exists));
                     valid = false;
                 } else {
-                    mEditEmail.setError(null);
+                    setError(mTxtEmailError, null);
                 }
 
                 //Validate password
                 if (mEditPassword.getText().toString().trim().isEmpty()) {
-                    mEditPassword.setError(getString(R.string.error_field_required));
+                    setError(mTxtPasswordError, getString(R.string.error_field_required));
                     valid = false;
                 } else {
-                    mEditPassword.setError(null);
+                    setError(mTxtPasswordError, null);
                 }
 
                 // If valid request access token
                 if (valid) {
                     // Disable button to avoid multiple clicks, show progress bar
-                    mBtnLogin.setEnabled(false);
-                    ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(true);
+                    mTxtNext.setEnabled(false);
+                    mProgressBar.setVisibility(View.VISIBLE);
 
                     // Get credentials for later
                     mEmail = mEditEmail.getText().toString();
@@ -216,6 +254,45 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
         }
     }
 
+    @OnFocusChange({R.id.edit_email, R.id.edit_password})
+    @Override
+    public void onFocusChange(View v, boolean hasFocus) {
+        switch (v.getId()) {
+            case R.id.edit_email:
+                if (hasFocus) {
+                    mTxtEmailHint.setVisibility(View.VISIBLE);
+                    mEditEmail.setHint(null);
+                } else if (mEditEmail.getText().length() == 0) {
+                    mTxtEmailHint.setVisibility(View.INVISIBLE);
+                    mEditEmail.setHint(R.string.prompt_email);
+                }
+                break;
+            case R.id.edit_password:
+                if (hasFocus) {
+                    mTxtPasswordHint.setVisibility(View.VISIBLE);
+                    mEditPassword.setHint(null);
+                } else if (mEditPassword.getText().length() == 0) {
+                    mTxtPasswordHint.setVisibility(View.INVISIBLE);
+                    mEditPassword.setHint(R.string.prompt_password);
+                }
+                break;
+        }
+    }
+
+    @OnTextChanged(R.id.edit_email)
+    public void onEmailTextChanged(CharSequence s, int start, int before, int count) {
+        if ((before != 0 || count != 0) && mTxtEmailError.getVisibility() == View.VISIBLE) {
+            setError(mTxtEmailError, null);
+        }
+    }
+
+    @OnTextChanged(R.id.edit_password)
+    public void onPasswordTextChanged(CharSequence s, int start, int before, int count) {
+        if ((before != 0 || count != 0) && mTxtPasswordError.getVisibility() == View.VISIBLE) {
+            setError(mTxtPasswordError, null);
+        }
+    }
+
     @Override
     public void success(final Token token, Response response) {
         Log.d(TAG, "Authentication successful");
@@ -227,7 +304,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
             @Override
             public void success(UsersContainer usersContainer, Response response) {
                 // Hide progress bar
-                ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
+                mProgressBar.setVisibility(View.INVISIBLE);
 
                 // Notify activity of successful login
                 mListener.onSuccess(mEmail, mPassword, token, usersContainer.users.get(0));
@@ -236,11 +313,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
             @Override
             public void failure(RetrofitError error) {
                 // Show error
-                mEditEmail.setError(getString(R.string.error_profile));
+                setError(mTxtEmailError, getString(R.string.error_profile));
 
                 // Enable button and hide progress bar
-                mBtnLogin.setEnabled(true);
-                ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
+                mTxtNext.setEnabled(true);
+                mProgressBar.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -266,19 +343,33 @@ public class LoginFragment extends Fragment implements View.OnClickListener,  Ca
         }
         switch (status) {
             case HttpURLConnection.HTTP_NOT_FOUND:
-                mEditEmail.setError(errorMsg != null ? errorMsg : getString(R.string.error_incorrect_email));
+                setError(mTxtEmailError, errorMsg != null ? errorMsg : getString(R.string.error_incorrect_email));
                 break;
             case HttpURLConnection.HTTP_FORBIDDEN:
-                mEditEmail.setError(errorMsg != null ? errorMsg : getString(R.string.error_incorrect_email));
+                setError(mTxtEmailError, errorMsg != null ? errorMsg : getString(R.string.error_incorrect_email));
                 break;
             case HttpURLConnection.HTTP_UNAUTHORIZED:
-                mEditPassword.setError(errorMsg != null ? errorMsg : getString(R.string.error_invalid_password));
+                setError(mTxtPasswordError, errorMsg != null ? errorMsg : getString(R.string.error_invalid_password));
                 break;
         }
 
         // Enable button and hide progress bar
-        mBtnLogin.setEnabled(true);
-        ((LoginActivity) getActivity()).setToolbarProgressBarVisibility(false);
+        mTxtNext.setEnabled(true);
+        mProgressBar.setVisibility(View.INVISIBLE);
+    }
+
+    /**
+     * Set error text
+     *
+     * @param message
+     */
+    private void setError(TextView textView, String message) {
+        textView.setText(message);
+        if (message != null) {
+            textView.setVisibility(View.VISIBLE);
+        } else {
+            textView.setVisibility(View.GONE);
+        }
     }
 
     /**

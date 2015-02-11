@@ -22,7 +22,7 @@ import me.philio.ghost.model.User;
 
 /**
  * Utils for simplifying some common database operations
- *
+ * <p/>
  * Created by phil on 18/12/2014.
  */
 public class DatabaseUtils {

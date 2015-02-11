@@ -28,7 +28,7 @@ import java.util.UUID;
 
 /**
  * Post model
- *
+ * <p/>
  * Created by phil on 26/11/2014.
  */
 @Table(name = "posts", id = BaseColumns._ID)

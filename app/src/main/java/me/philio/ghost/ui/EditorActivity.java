@@ -15,7 +15,6 @@ import android.support.v4.view.ViewPager;
 import android.view.MenuItem;
 
 import com.activeandroid.content.ContentProvider;
-import com.commonsware.cwac.anddown.AndDown;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;

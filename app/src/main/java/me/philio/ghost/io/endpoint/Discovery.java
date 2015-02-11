@@ -22,7 +22,7 @@ import retrofit.http.GET;
 
 /**
  * Not actually an endpoint, just a GET to the API root path to validate a ghost blog url
- *
+ * <p/>
  * Created by phil on 25/11/2014.
  */
 public interface Discovery {

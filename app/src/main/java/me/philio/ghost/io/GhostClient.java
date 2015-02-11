@@ -35,7 +35,7 @@ import retrofit.converter.GsonConverter;
 
 /**
  * Ghost API client
- *
+ * <p/>
  * Created by phil on 24/11/2014.
  */
 public class GhostClient {

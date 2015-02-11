@@ -23,7 +23,7 @@ import me.philio.ghost.io.endpoint.Settings;
 
 /**
  * A container for response of a {@link Settings} request
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 public class SettingsContainer {

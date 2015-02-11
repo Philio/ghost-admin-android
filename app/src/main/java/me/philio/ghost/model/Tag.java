@@ -27,7 +27,7 @@ import java.util.UUID;
 
 /**
  * Tag model
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 @Table(name = "tags", id = BaseColumns._ID)

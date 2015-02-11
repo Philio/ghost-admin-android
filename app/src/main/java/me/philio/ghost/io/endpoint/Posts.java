@@ -28,7 +28,7 @@ import retrofit.http.Query;
 
 /**
  * Ghost API posts endpoint
- *
+ * <p/>
  * Created by phil on 25/11/2014.
  */
 public interface Posts {

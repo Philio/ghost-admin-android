@@ -17,6 +17,7 @@
     <color name="green_300">#81C784</color>
     <color name="orange_300">#FFB74D</color>
     <color name="blue_grey_300">#90A4AE</color>
+    <color name="grey_300">#E0E0E0</color>
 
     <!-- Material pallet 500 -->
     <color name="red_500">#F44336</color>

@@ -22,7 +22,7 @@ import android.os.IBinder;
 /**
  * A simple service to provide an instance of the {@link Authenticator} to the Android account
  * system
- *
+ * <p/>
  * Created by phil on 15/09/2014.
  */
 public class AuthenticatorService extends Service {

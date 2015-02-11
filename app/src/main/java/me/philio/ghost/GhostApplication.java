@@ -15,13 +15,67 @@
  */
 package me.philio.ghost;
 
+import android.database.ContentObserver;
+import android.net.Uri;
+import android.os.Handler;
+import android.util.Log;
+
 import com.activeandroid.app.Application;
 
 /**
  * Application, nothing here at the moment, leaving for future requirements
- *
+ * <p/>
  * Created by phil on 27/11/2014.
  */
 public class GhostApplication extends Application {
+
+    /**
+     * Logging tag
+     */
+    private static final String TAG = GhostApplication.class.getName();
+
+    private Handler mHandler = new Handler();
+
+    private GhostObserver mObserver;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        // TODO Temporary code for debugging any content issues, sync loops, etc
+        mObserver = new GhostObserver(mHandler);
+        Uri uri = Uri.parse("content://" + getString(R.string.content_authority) + "/");
+        getContentResolver().registerContentObserver(uri, true, mObserver);
+    }
+
+    @Override
+    public void onTerminate() {
+        getContentResolver().unregisterContentObserver(mObserver);
+
+        super.onTerminate();
+    }
+
+    class GhostObserver extends ContentObserver {
+
+        /**
+         * Creates a content observer.
+         *
+         * @param handler The handler to run {@link #onChange} on, or null if none.
+         */
+        public GhostObserver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            onChange(selfChange, null);
+        }
+
+        @Override
+        public void onChange(boolean selfChange, Uri uri) {
+            Log.d(TAG, "Content changed: " + uri);
+        }
+
+    }
 
 }

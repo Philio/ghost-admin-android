@@ -193,7 +193,7 @@ public class MainActivity extends BaseActivity implements
                     getSupportFragmentManager().beginTransaction()
                             .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                             .replace(R.id.container, finalFragment)
-                            .commit();
+                            .commitAllowingStateLoss();
                 }
             }, NAV_DRAWER_DELAY);
             return true;

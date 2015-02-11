@@ -27,7 +27,7 @@ import java.util.UUID;
 
 /**
  * Setting model (doesn't work with themes as value is more complex)
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 @Table(name = "settings", id = BaseColumns._ID)

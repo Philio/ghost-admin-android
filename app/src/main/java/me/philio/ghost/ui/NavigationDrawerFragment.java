@@ -621,7 +621,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
         // If no accounts found bump to the splash screen
         if (currentAcccounts.size() == 0) {
-            Intent intent  = new Intent(getActivity(), SplashActivity.class);
+            Intent intent = new Intent(getActivity(), SplashActivity.class);
             startActivity(intent);
             getActivity().finish();
             return;

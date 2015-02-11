@@ -23,7 +23,7 @@ import retrofit.http.POST;
 
 /**
  * Ghost API authentication endpoint
- *
+ * <p/>
  * Created by phil on 24/11/2014.
  */
 public interface Authentication {

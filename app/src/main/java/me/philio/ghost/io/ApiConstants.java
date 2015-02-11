@@ -17,7 +17,7 @@ package me.philio.ghost.io;
 
 /**
  * Various constants related to the Ghost API
- *
+ * <p/>
  * Created by phil on 01/12/2014.
  */
 public class ApiConstants {

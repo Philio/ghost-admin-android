@@ -27,7 +27,7 @@ import java.util.UUID;
 
 /**
  * User model
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 @Table(name = "users", id = BaseColumns._ID)

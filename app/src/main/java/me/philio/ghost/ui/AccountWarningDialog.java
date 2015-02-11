@@ -26,7 +26,7 @@ import me.philio.ghost.R;
 
 /**
  * A (@link DialogFragment} to warn the user that their account has missing data
- *
+ * <p/>
  * Created by phil on 22/12/2014.
  */
 public class AccountWarningDialog extends DialogFragment {

@@ -21,7 +21,7 @@ import android.os.IBinder;
 
 /**
  * Service for the sync adapter
- *
+ * <p/>
  * Created by phil on 04/12/2014.
  */
 public class SyncService extends Service {

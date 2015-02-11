@@ -138,7 +138,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     /**
      * Empty list info text
      */
-    @InjectView(R.id.text_empty_info)
+    @InjectView(R.id.txt_empty_info)
     protected TextView mEmptyInfoText;
 
     /**
@@ -258,8 +258,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = getActivity().getLayoutInflater()
-                .inflate(R.layout.fragment_posts, container, false);
+        // Inflate the layout for this fragment
+        View view = inflater.inflate(R.layout.fragment_posts, container, false);
         ButterKnife.inject(this, view);
         return view;
     }

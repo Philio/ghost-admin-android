@@ -64,19 +64,13 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
                     .add(R.id.container, LoginUrlFragment.newInstance())
                     .commit();
         }
-
-        // Make sure back is shown if back stack exists
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                getSupportFragmentManager().popBackStack();
-                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                onBackPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -86,7 +80,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     public void onBackPressed() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
-            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             return;
         }
         super.onBackPressed();
@@ -104,7 +97,6 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
                 .replace(R.id.container, LoginFragment.newInstance(blogUrl))
                 .addToBackStack(null)
                 .commit();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override

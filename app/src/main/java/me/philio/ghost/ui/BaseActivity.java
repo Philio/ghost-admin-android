@@ -38,7 +38,7 @@ import me.philio.ghost.R;
 
 /**
  * Base activity for generic functionality shared across activities
- *
+ * <p/>
  * Created by phil on 15/12/2014.
  */
 public abstract class BaseActivity extends ActionBarActivity {
@@ -205,8 +205,8 @@ public abstract class BaseActivity extends ActionBarActivity {
             setActionBarHeight();
         }
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            ValueAnimator anim = ValueAnimator.ofInt(0, mActionBarHeight);
-            anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            ValueAnimator animator = ValueAnimator.ofInt(0, mActionBarHeight);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @TargetApi(11)
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
@@ -216,8 +216,8 @@ public abstract class BaseActivity extends ActionBarActivity {
                     mAlerts.setLayoutParams(layoutParams);
                 }
             });
-            anim.setDuration(750);
-            anim.start();
+            animator.setDuration(750);
+            animator.start();
         } else {
             ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
             layoutParams.height = mActionBarHeight;

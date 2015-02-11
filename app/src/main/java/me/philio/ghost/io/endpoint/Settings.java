@@ -26,7 +26,7 @@ import retrofit.http.Query;
 
 /**
  * Ghost API settings endpoint
- *
+ * <p/>
  * Created by phil on 03/12/2014.
  */
 public interface Settings {
