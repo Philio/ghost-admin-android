@@ -319,11 +319,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         List<Post> dbPosts = new Select().from(Post.class).where("blog_id = ?", blog.getId())
                 .execute();
         for (Post post : dbPosts) {
-            if (!remoteIds.contains(post.id)) {
+            if (post.id != null && !remoteIds.contains(post.id)) {
+                Log.d(TAG, "Remotely deleted post found");
                 if (post.updatedLocally) {
-                    post.remoteDeleted = true;
-                    post.save();
-                    syncResult.stats.numUpdates++;
+                    Log.d(TAG, "Deleted post has local changes");
+                    if (!post.remoteDeleted) {
+                        post.remoteDeleted = true;
+                        post.save();
+                        syncResult.stats.numUpdates++;
+                    }
                 } else {
                     post.delete();
                     syncResult.stats.numDeletes++;
