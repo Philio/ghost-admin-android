@@ -40,14 +40,16 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingLeft="32dp"
-            android:paddingRight="32dp"
+            android:paddingLeft="28dp"
+            android:paddingRight="28dp"
             android:paddingTop="@dimen/activity_vertical_margin">
 
             <TextView
                 android:id="@+id/txt_email_hint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
                 android:text="@string/prompt_email"
                 android:textColor="?attr/colorAccent"
                 android:textSize="12sp"
@@ -72,6 +74,7 @@
                 android:gravity="center_vertical"
                 android:lines="1"
                 android:maxLines="1"
+                android:paddingLeft="4dp"
                 android:textColor="@color/red_500"
                 android:textSize="12sp"
                 android:visibility="gone" />
@@ -81,6 +84,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/keyline_1"
+                android:paddingLeft="4dp"
+                android:paddingRight="4dp"
                 android:text="@string/prompt_password"
                 android:textColor="?attr/colorAccent"
                 android:textSize="12sp"
@@ -105,6 +110,7 @@
                 android:gravity="center_vertical"
                 android:lines="1"
                 android:maxLines="1"
+                android:paddingLeft="4dp"
                 android:textColor="@color/red_500"
                 android:textSize="12sp"
                 android:visibility="gone" />
