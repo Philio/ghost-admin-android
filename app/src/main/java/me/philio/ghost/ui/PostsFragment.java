@@ -214,6 +214,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                             // in the post title
                             char firstChar = post.title.charAt(0);
                             int charValue = Character.getNumericValue(firstChar);
+                            charValue = charValue > 0 ? charValue : 0;
                             int color = ICON_COLORS[charValue % ICON_COLORS.length];
                             imageView.getBackground().setColorFilter(getResources().getColor(color),
                                     PorterDuff.Mode.SRC_ATOP);

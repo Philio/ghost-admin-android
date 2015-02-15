@@ -130,7 +130,9 @@ public class PreviewFragment extends Fragment {
         mWebView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
 
         // Load HTML into webview
-        loadContent(mMarkdown);
+        if (mMarkdown != null) {
+            loadContent(mMarkdown);
+        }
     }
 
     @Override
@@ -138,8 +140,16 @@ public class PreviewFragment extends Fragment {
         inflater.inflate(R.menu.fragment_preview, menu);
     }
 
-    public void updateMarkdown(String markdown) {
-        loadContent(markdown);
+    public void updatePreview(String markdown, String urlPrefix, boolean showOptions) {
+        mMarkdown = markdown;
+        mUrlPrefix = urlPrefix;
+        mShowOptions = showOptions;
+
+        if (mMarkdown != null) {
+            loadContent(mMarkdown);
+        }
+
+        setHasOptionsMenu(showOptions);
     }
 
     private void loadContent(String markdown) {

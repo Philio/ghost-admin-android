@@ -15,33 +15,53 @@
  */
 package me.philio.ghost.ui;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.BaseColumns;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.activeandroid.content.ContentProvider;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.OnTextChanged;
 import me.philio.ghost.R;
+import me.philio.ghost.account.AccountConstants;
+import me.philio.ghost.model.Blog;
+import me.philio.ghost.model.Post;
+import me.philio.ghost.model.User;
 
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link MarkdownFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MarkdownFragment extends Fragment {
+public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, TextWatcher {
 
     /**
      * Arguments
      */
-    private static final String ARG_TITLE = "title";
-    private static final String ARG_CONTENT = "content";
+    private static final String ARG_ACCOUNT = "account";
+    private static final String ARG_POST_ID = "post_id";
+
+    /**
+     * Loader ids
+     */
+    private static final int LOADER_POST = 100;
+    private static final int LOADER_BLOG = 101;
+    private static final int LOADER_USER = 102;
 
     /**
      * Listener
@@ -49,36 +69,45 @@ public class MarkdownFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     /**
-     * Post title
+     * Account manager instance
      */
-    private String mTitle;
+    private AccountManager mAccountManager;
 
     /**
-     * Post content
+     * Account of the current blog
      */
-    private String mContent;
+    private Account mAccount;
+
+    /**
+     * Id of the post to edit
+     */
+    private long mPostId;
+
+    /**
+     * Post
+     */
+    private Post mPost;
 
     /**
      * Views
      */
     @InjectView(R.id.edit_title)
-    protected EditText mTitleEdit;
+    protected EditText mEditTitle;
     @InjectView(R.id.edit_content)
-    protected EditText mContentEdit;
+    protected EditText mEditContent;
 
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param title   Post title
-     * @param content Post markdown content
+     * @param postId Id of the post to edit
      * @return A new instance of fragment MarkdownFragment.
      */
-    public static MarkdownFragment newInstance(String title, String content) {
+    public static MarkdownFragment newInstance(Account account, long postId) {
         MarkdownFragment fragment = new MarkdownFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_TITLE, title);
-        args.putString(ARG_CONTENT, content);
+        args.putParcelable(ARG_ACCOUNT, account);
+        args.putLong(ARG_POST_ID, postId);
         fragment.setArguments(args);
         return fragment;
     }
@@ -99,13 +128,16 @@ public class MarkdownFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args != null) {
-            if (args.containsKey(ARG_TITLE)) {
-                mTitle = args.getString(ARG_TITLE);
+            if (args.containsKey(ARG_ACCOUNT)) {
+                mAccount = args.getParcelable(ARG_ACCOUNT);
             }
-            if (args.containsKey(ARG_CONTENT)) {
-                mContent = args.getString(ARG_CONTENT);
+            if (args.containsKey(ARG_POST_ID)) {
+                mPostId = args.getLong(ARG_POST_ID);
             }
         }
+
+        // Get account manager
+        mAccountManager = AccountManager.get(getActivity());
     }
 
     @Override
@@ -118,12 +150,14 @@ public class MarkdownFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        if (mTitle != null) {
-            mTitleEdit.setText(mTitle);
-        }
-        if (mContent != null) {
-            mContentEdit.setText(mContent);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // If post id was provided, load the record
+        if (mPostId > 0) {
+            getLoaderManager().initLoader(LOADER_POST, null, this);
+        } else if (mAccount != null) {
+            getLoaderManager().initLoader(LOADER_BLOG, null, this);
         }
     }
 
@@ -134,25 +168,110 @@ public class MarkdownFragment extends Fragment {
         mListener = null;
     }
 
-    @OnTextChanged(R.id.edit_title)
-    public void onTitleChanged(CharSequence s, int start, int before, int count) {
-        // Ignore if nothing has changed
-        if (start == 0 && before == 0 && count == 0) {
-            return;
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        switch (id) {
+            case LOADER_POST:
+                return new CursorLoader(getActivity(),
+                        ContentProvider.createUri(Post.class, mPostId), null,
+                        BaseColumns._ID + " = ?", new String[]{Long.toString(mPostId)}, null);
+            case LOADER_BLOG:
+                String blogUrl = mAccountManager
+                        .getUserData(mAccount, AccountConstants.KEY_BLOG_URL);
+                String blogEmail = mAccountManager
+                        .getUserData(mAccount, AccountConstants.KEY_EMAIL);
+                return new CursorLoader(getActivity(), ContentProvider.createUri(Blog.class, null),
+                        null, "url = ? AND email = ?", new String[]{blogUrl, blogEmail}, null);
+            case LOADER_USER:
+                String userEmail = mAccountManager
+                        .getUserData(mAccount, AccountConstants.KEY_EMAIL);
+                return new CursorLoader(getActivity(), ContentProvider.createUri(User.class, null),
+                        null, "blog_id = ? AND email = ?",
+                        new String[]{Long.toString(mPost.blog.getId()), userEmail}, null);
         }
-        mListener.onTitleChanged(s.toString());
+        return null;
     }
 
-    @OnTextChanged(R.id.edit_content)
-    public void onContentChanged(CharSequence s, int start, int before, int count) {
-        // Ignore if nothing has changed
-        if (start == 0 && before == 0 && count == 0) {
-            return;
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        switch (loader.getId()) {
+            case LOADER_POST:
+                if (mPost == null) {
+                    // Set up post model
+                    cursor.moveToFirst();
+                    mPost = new Post();
+                    mPost.loadFromCursor(cursor);
+
+                    // Enable the UI
+                    enableUi();
+                }
+                break;
+            case LOADER_BLOG:
+                if (mPost == null) {
+                    // Create a new post
+                    cursor.moveToFirst();
+                    Blog blog = new Blog();
+                    blog.loadFromCursor(cursor);
+                    mPost = new Post();
+                    mPost.blog = blog;
+                    mPost.status = Post.Status.DRAFT;
+                    mPost.markdown = "";
+
+                    // Load the user
+                    getLoaderManager().initLoader(LOADER_USER, null, this);
+                }
+                break;
+            case LOADER_USER:
+                if (mPost != null) {
+                    // Add user to post
+                    cursor.moveToFirst();
+                    User user = new User();
+                    user.loadFromCursor(cursor);
+                    mPost.author = user.id;
+
+                    // Enable the UI
+                    enableUi();
+                }
+                break;
         }
-        mListener.onContentChanged(s.toString());
-        Log.d("Start", "" + start);
-        Log.d("Before", "" + before);
-        Log.d("Count", "" + count);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
+
+    /**
+     * Enable the UI
+     */
+    private void enableUi() {
+        if (mPost.title != null) {
+            mEditTitle.setText(mPost.title);
+        }
+        if (mPost.markdown != null) {
+            mEditContent.setText(mPost.markdown);
+        }
+        mEditTitle.setEnabled(true);
+        mEditContent.setEnabled(true);
+        mEditTitle.addTextChangedListener(this);
+        mEditContent.addTextChangedListener(this);
+        mListener.onPostChanged(mPost);
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        mPost.title = mEditTitle.getText().toString();
+        mPost.markdown = mEditContent.getText().toString();
+        mPost.save();
+        mListener.onPostChanged(mPost);
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
     }
 
     /**
@@ -163,9 +282,7 @@ public class MarkdownFragment extends Fragment {
      */
     public interface OnFragmentInteractionListener {
 
-        public void onTitleChanged(String title);
-
-        public void onContentChanged(String content);
+        public void onPostChanged(Post post);
 
     }
 

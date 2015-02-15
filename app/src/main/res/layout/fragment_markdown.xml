@@ -12,6 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="12dp"
         android:layout_marginRight="12dp"
+        android:enabled="false"
         android:hint="@string/editor_title_hint"
         android:imeOptions="flagNoExtractUi"
         android:maxLines="1"
@@ -19,7 +20,7 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textStyle="bold" />
 
-    <EditText
+    <me.philio.ghost.ui.widget.MarkdownEditText
         android:id="@+id/edit_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -27,8 +28,9 @@
         android:layout_below="@+id/edit_title"
         android:layout_marginLeft="@dimen/keyline_1"
         android:layout_marginRight="@dimen/keyline_1"
-        android:layout_marginTop="@dimen/keyline_1"
+        android:layout_marginTop="8dp"
         android:background="@android:color/transparent"
+        android:enabled="false"
         android:fadingEdge="vertical"
         android:gravity="top"
         android:hint="@string/editor_markdown_hint"
