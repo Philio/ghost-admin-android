@@ -311,6 +311,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
                     @Override
                     public boolean onMenuItemActionExpand(MenuItem item) {
+                        mListener.onSearchExpanded(true);
+
                         // Change empty text to show search related message
                         mEmptyInfoText.setText(R.string.post_empty_search_info);
                         return true;
@@ -318,6 +320,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
                     @Override
                     public boolean onMenuItemActionCollapse(MenuItem item) {
+                        mListener.onSearchExpanded(false);
+
                         // Reset empty text
                         mEmptyInfoText.setText(R.string.post_empty_info);
 
@@ -430,6 +434,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         public void onRefresh();
 
         public void onListItemClick(Post post);
+
+        public void onSearchExpanded(boolean expanded);
 
     }
 

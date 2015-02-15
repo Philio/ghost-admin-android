@@ -58,6 +58,7 @@ public abstract class BaseActivity extends ActionBarActivity {
      */
     protected static final int FAB_INITIAL_REVEAL_DELAY = 500;
     protected static final int FAB_REVEAL_DELAY = 250;
+    protected static final int FAB_SOFT_KEYBOARD_DELAY = 500;
 
     /**
      * Broadcast receiver for network events
@@ -70,16 +71,6 @@ public abstract class BaseActivity extends ActionBarActivity {
     private boolean mNetworkConnected;
 
     /**
-     * A runnable that will be run when network connectivity is restored
-     */
-    private Runnable mNetworkConnectedRunnable;
-
-    /**
-     * A runnable that will be run when network connectivity is lost
-     */
-    private Runnable mNetworkDisconnectedRunnable;
-
-    /**
      * ActionBar height, used to calculate the number of pixels for network status alert
      */
     private int mActionBarHeight;
@@ -90,13 +81,6 @@ public abstract class BaseActivity extends ActionBarActivity {
     @InjectView(R.id.toolbar)
     @Optional
     protected Toolbar mToolbar;
-
-    /**
-     * Progress bar (on toolbar)
-     */
-    @InjectView(R.id.progressbar)
-    @Optional
-    protected ProgressBar mProgressBar;
 
     /**
      * Layout for showing network alerts
@@ -154,47 +138,7 @@ public abstract class BaseActivity extends ActionBarActivity {
             unregisterReceiver(mReceiver);
         }
 
-        // Remove references to runnables
-        mNetworkConnectedRunnable = null;
-        mNetworkDisconnectedRunnable = null;
-
         super.onStop();
-    }
-
-    /**
-     * Check if network is connected
-     */
-    protected boolean isConnected() {
-        return mNetworkConnected;
-    }
-
-    /**
-     * Set a runnable to be run when network connectivity is restored
-     *
-     * @param runnable
-     */
-    protected void setNetworkConnectedRunnable(Runnable runnable) {
-        mNetworkConnectedRunnable = runnable;
-    }
-
-    /**
-     * Set a runnable to be run when network connectivity is lost
-     *
-     * @param runnable
-     */
-    protected void setNetworkDisconnectedRunnable(Runnable runnable) {
-        mNetworkDisconnectedRunnable = runnable;
-    }
-
-    /**
-     * Emulate the old ActionBar progress bar functionality
-     *
-     * @param visible Progress bar visibility
-     */
-    public void setToolbarProgressBarVisibility(boolean visible) {
-        if (mProgressBar != null) {
-            mProgressBar.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
-        }
     }
 
     /**
@@ -280,17 +224,9 @@ public abstract class BaseActivity extends ActionBarActivity {
                 if (mNetworkConnected) {
                     showNetworkError();
                     mNetworkConnected = false;
-                    if (mNetworkConnectedRunnable != null) {
-                        mNetworkConnectedRunnable.run();
-                        mNetworkConnectedRunnable = null;
-                    }
                 } else {
                     hideNetworkError();
                     mNetworkConnected = true;
-                    if (mNetworkDisconnectedRunnable != null) {
-                        mNetworkDisconnectedRunnable.run();
-                        mNetworkDisconnectedRunnable = null;
-                    }
                 }
             }
         }
