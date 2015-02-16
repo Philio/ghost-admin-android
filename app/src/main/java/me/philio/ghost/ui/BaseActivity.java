@@ -58,7 +58,7 @@ public abstract class BaseActivity extends ActionBarActivity {
      */
     protected static final int FAB_INITIAL_REVEAL_DELAY = 500;
     protected static final int FAB_REVEAL_DELAY = 250;
-    protected static final int FAB_SOFT_KEYBOARD_DELAY = 500;
+    protected static final int FAB_SOFT_KEYBOARD_DELAY = 400;
 
     /**
      * Broadcast receiver for network events

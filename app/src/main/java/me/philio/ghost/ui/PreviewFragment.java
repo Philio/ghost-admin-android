@@ -2,6 +2,7 @@ package me.philio.ghost.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -164,7 +165,7 @@ public class PreviewFragment extends Fragment {
         html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mUrlPrefix + "/");
 
         if (mWebView != null) {
-            mWebView.loadData(html, "text/html", "UTF-8");
+            mWebView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);
         }
     }
 

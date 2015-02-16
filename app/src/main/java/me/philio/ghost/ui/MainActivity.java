@@ -282,7 +282,7 @@ public class MainActivity extends BaseActivity implements
         if (expanded) {
             hideAdd(FAB_SOFT_KEYBOARD_DELAY);
         } else {
-            showAdd(FAB_REVEAL_DELAY);
+            showAdd(FAB_SOFT_KEYBOARD_DELAY);
         }
     }
 
