@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package me.philio.ghost.ui;
 
 import android.animation.ValueAnimator;
@@ -29,7 +30,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;

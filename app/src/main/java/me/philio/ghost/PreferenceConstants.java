@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-package me.philio.ghost.model;
-
-import android.provider.BaseColumns;
-
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+package me.philio.ghost;
 
 /**
- * A local database table to keep track of which android account data belongs to
- * <p/>
- * Created by phil on 08/12/2014.
+ * Preference constants
  */
-@Table(name = "blogs", id = BaseColumns._ID)
-public class Blog extends Model {
+public class PreferenceConstants {
 
-    @Column(name = "url", uniqueGroups = {"account"})
-    public String url;
+    public static final String EDITING_MODE_KEY = "pref_editing_mode";
+    public static final int EDITING_MODE_RICH = 0;
+    public static final int EDITING_MODE_PLAIN = 1;
+    public static final int EDITING_MODE_DEFAULT = EDITING_MODE_RICH;
 
-    @Column(name = "email", uniqueGroups = {"account"})
-    public String email;
+    public static final String SYNC_DRAFTS = "pref_sync_drafts";
+
+    public static final String SYNC_PUBLISHED = "pref_sync_published";
 
 }

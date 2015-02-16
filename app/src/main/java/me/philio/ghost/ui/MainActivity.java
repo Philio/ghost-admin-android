@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package me.philio.ghost.ui;
 
 import android.content.BroadcastReceiver;
@@ -33,8 +34,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
-
-import com.commonsware.cwac.anddown.AndDown;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;

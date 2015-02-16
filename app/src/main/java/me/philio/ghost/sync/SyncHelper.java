@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package me.philio.ghost.sync;
 
 import android.accounts.Account;
 import android.content.ContentResolver;
 import android.os.Bundle;
-
-import me.philio.ghost.R;
 
 /**
  * Helper methods for sync

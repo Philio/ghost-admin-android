@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014 Phil Bayfield
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package me.philio.ghost.ui.widget;
 
 import android.annotation.TargetApi;
@@ -87,9 +103,9 @@ public class MarkdownEditText extends EditText {
     /**
      * Apply formatting to a line of text
      *
-     * @param line Line of text to format
+     * @param line  Line of text to format
      * @param start Start point
-     * @param end End point
+     * @param end   End point
      */
     private void formatLine(String line, int start, int end) {
         formatHeadings(line, start, end);
@@ -100,9 +116,9 @@ public class MarkdownEditText extends EditText {
     /**
      * Format headings
      *
-     * @param line Line of text to format
+     * @param line  Line of text to format
      * @param start Start point
-     * @param end End point
+     * @param end   End point
      */
     private void formatHeadings(String line, int start, int end) {
         if (line.startsWith(H6)) {
@@ -129,9 +145,9 @@ public class MarkdownEditText extends EditText {
     /**
      * Format italic text
      *
-     * @param line Line of text to format
+     * @param line  Line of text to format
      * @param start Start point
-     * @param end End point
+     * @param end   End point
      */
     private void formatItalic(String line, int start, int end) {
         addStyle(Typeface.ITALIC, "*", line, start, end);
@@ -141,9 +157,9 @@ public class MarkdownEditText extends EditText {
     /**
      * Format bold text
      *
-     * @param line Line of text to format
+     * @param line  Line of text to format
      * @param start Start point
-     * @param end End point
+     * @param end   End point
      */
     private void formatBold(String line, int start, int end) {
         addStyle(Typeface.BOLD, "**", line, start, end);
@@ -153,11 +169,11 @@ public class MarkdownEditText extends EditText {
     /**
      * Add a style between markers found in line
      *
-     * @param style Text style to apply
+     * @param style  Text style to apply
      * @param marker
-     * @param line Line of text to format
-     * @param start Start point
-     * @param end End point
+     * @param line   Line of text to format
+     * @param start  Start point
+     * @param end    End point
      */
     private void addStyle(int style, String marker, String line, int start, int end) {
         if (line.contains(marker)) {
@@ -197,8 +213,8 @@ public class MarkdownEditText extends EditText {
      * Add a {@link RelativeSizeSpan} between the start and end points
      *
      * @param proportion Proportion to change the size
-     * @param start Start point
-     * @param end End point
+     * @param start      Start point
+     * @param end        End point
      */
     private void addRelativeSizeSpan(float proportion, int start, int end) {
         getEditableText().setSpan(new RelativeSizeSpan(proportion), start, end,
@@ -210,7 +226,7 @@ public class MarkdownEditText extends EditText {
      *
      * @param style Text style to apply (bold, italic, bold/italic)
      * @param start Start point
-     * @param end End point
+     * @param end   End point
      */
     private void addStyleSpan(int style, int start, int end) {
         getEditableText().setSpan(new StyleSpan(style), start, end,
