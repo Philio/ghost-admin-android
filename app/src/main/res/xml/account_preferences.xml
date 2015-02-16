@@ -2,5 +2,25 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:key="cat_sync"
-        android:title="@string/prefs_cat_data_usage" />
+        android:title="@string/prefs_cat_data_usage">
+        <CheckBoxPreference
+            android:key="pref_account_sync"
+            android:title="@string/prefs_account_sync" />
+        <ListPreference
+            android:defaultValue="-1"
+            android:dependency="pref_account_sync"
+            android:entries="@array/prefs_account_sync_when_entries"
+            android:entryValues="@array/prefs_account_sync_when_values"
+            android:key="pref_account_sync_drafts"
+            android:summary="%s"
+            android:title="@string/prefs_sync_drafts" />
+        <ListPreference
+            android:defaultValue="-1"
+            android:dependency="pref_account_sync"
+            android:entries="@array/prefs_account_sync_when_entries"
+            android:entryValues="@array/prefs_account_sync_when_values"
+            android:key="pref_account_sync_published"
+            android:summary="%s"
+            android:title="@string/prefs_sync_published" />
+    </PreferenceCategory>
 </PreferenceScreen>

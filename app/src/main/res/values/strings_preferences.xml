@@ -1,6 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Global settings -->
     <string name="prefs_cat_general">General</string>
     <string name="prefs_cat_accounts">Accounts</string>
     <string name="prefs_cat_data_usage">Data usage</string>
+
+    <string name="prefs_editing_mode">Editing mode</string>
+    <string-array name="prefs_editing_mode_entries">
+        <item>Rich text</item>
+        <item>Plain text</item>
+    </string-array>
+    <string-array name="prefs_editing_mode_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string name="prefs_sync_drafts">Sync changes to drafts</string>
+    <string name="prefs_sync_published">Sync changes to published articles</string>
+    <string-array name="prefs_sync_when_entries">
+        <item>Immediately</item>
+        <item>When exiting editor</item>
+        <item>Manually</item>
+    </string-array>
+    <string-array name="prefs_sync_when_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <!-- Account specific settings -->
+    <string name="prefs_account_sync">Sync posts and settings</string>
+    <string-array name="prefs_account_sync_when_entries">
+        <item>Use global setting</item>
+        <item>Immediately</item>
+        <item>When exiting editor</item>
+        <item>Manually</item>
+    </string-array>
+    <string-array name="prefs_account_sync_when_values">
+        <item>-1</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
 </resources>

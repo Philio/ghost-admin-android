@@ -13,17 +13,19 @@ public class SettingsActivity extends BaseActivity {
         setContentView(R.layout.activity_settings);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        // Add the settings fragment
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.container, SettingsFragment.newInstance(null))
-                .commit();
+        // Add the main settings fragment if missing
+        if (getSupportFragmentManager().findFragmentById(R.id.container) == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.container, SettingsFragment.newInstance(null))
+                    .commit();
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                finish();
+                onBackPressed();
                 return true;
         }
         return super.onOptionsItemSelected(item);

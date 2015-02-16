@@ -2,7 +2,33 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
         android:key="cat_general"
-        android:title="@string/prefs_cat_general" />
+        android:title="@string/prefs_cat_general">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/prefs_editing_mode_entries"
+            android:entryValues="@array/prefs_editing_mode_values"
+            android:key="pref_editing_mode"
+            android:summary="%s"
+            android:title="@string/prefs_editing_mode" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="cat_general"
+        android:title="@string/prefs_cat_data_usage">
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/prefs_sync_when_entries"
+            android:entryValues="@array/prefs_sync_when_values"
+            android:key="pref_sync_drafts"
+            android:summary="%s"
+            android:title="@string/prefs_sync_drafts" />
+        <ListPreference
+            android:defaultValue="2"
+            android:entries="@array/prefs_sync_when_entries"
+            android:entryValues="@array/prefs_sync_when_values"
+            android:key="pref_sync_published"
+            android:summary="%s"
+            android:title="@string/prefs_sync_published" />
+    </PreferenceCategory>
     <PreferenceCategory
         android:key="cat_accounts"
         android:title="@string/prefs_cat_accounts" />

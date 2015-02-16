@@ -280,7 +280,7 @@ public class MainActivity extends BaseActivity implements
     @Override
     public void onSearchExpanded(boolean expanded) {
         if (expanded) {
-            hideAdd(FAB_SOFT_KEYBOARD_DELAY);
+            mAddBtn.setVisibility(View.GONE);
         } else {
             showAdd(FAB_SOFT_KEYBOARD_DELAY);
         }

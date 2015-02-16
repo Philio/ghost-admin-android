@@ -134,7 +134,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         }
 
         // Enable sync for the account
-        ContentResolver.setSyncAutomatically(account, getString(R.string.content_authority), true);
+        SyncHelper.enableSync(account, getString(R.string.content_authority));
         SyncHelper.requestSync(account, getString(R.string.content_authority));
 
         // Set response intent

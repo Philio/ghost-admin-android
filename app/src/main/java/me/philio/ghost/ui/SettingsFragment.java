@@ -3,6 +3,8 @@ package me.philio.ghost.ui;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.support.v4.app.Fragment;
@@ -10,11 +12,12 @@ import android.support.v4.app.Fragment;
 import com.github.machinarius.preferencefragment.PreferenceFragment;
 
 import me.philio.ghost.R;
+import me.philio.ghost.sync.SyncHelper;
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SettingsFragment extends PreferenceFragment {
+public class SettingsFragment extends PreferenceFragment implements Preference.OnPreferenceChangeListener {
 
     /**
      * Arguments
@@ -61,6 +64,7 @@ public class SettingsFragment extends PreferenceFragment {
 
         if (mAccount != null) {
             addPreferencesFromResource(R.xml.account_preferences);
+            setupAccountPreferences();
         } else {
             addPreferencesFromResource(R.xml.preferences);
         }
@@ -94,6 +98,53 @@ public class SettingsFragment extends PreferenceFragment {
                 catAccounts.addPreference(preference);
             }
         }
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        if (preference instanceof ListPreference) {
+            ((ListPreference) preference).setValue((String) newValue);
+        }
+        mAccountManager.setUserData(mAccount, preference.getKey(), (String) newValue);
+        return false;
+    }
+
+    /**
+     * Set up the account preferences, load the saved value for the selected account and add the
+     * save listener to ensure changes are saved to account rather than shared prefs
+     */
+    private void setupAccountPreferences() {
+        // Sync
+        final CheckBoxPreference sync = (CheckBoxPreference) findPreference("pref_account_sync");
+        sync.setChecked(SyncHelper.isSyncEnabled(mAccount, getString(R.string.content_authority)));
+        sync.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                sync.setChecked((boolean) newValue);
+                if ((boolean) newValue) {
+                    SyncHelper.enableSync(mAccount, getString(R.string.content_authority));
+                } else {
+                    SyncHelper.disableSync(mAccount, getString(R.string.content_authority));
+                }
+                return false;
+            }
+        });
+
+        // Sync drafts setting
+        ListPreference syncDrafts = (ListPreference) findPreference("pref_account_sync_drafts");
+        String syncDraftsValue = mAccountManager.getUserData(mAccount, "pref_account_sync_drafts");
+        if (syncDraftsValue != null) {
+            syncDrafts.setValue(syncDraftsValue);
+        }
+        syncDrafts.setOnPreferenceChangeListener(this);
+
+        // Sync published articles setting
+        ListPreference syncPublished = (ListPreference) findPreference("pref_account_sync_published");
+        String syncPublishedValue = mAccountManager.getUserData(mAccount, "pref_account_sync_published");
+        if (syncPublishedValue != null) {
+            syncPublished.setValue(syncPublishedValue);
+        }
+        syncPublished.setOnPreferenceChangeListener(this);
     }
 
 }

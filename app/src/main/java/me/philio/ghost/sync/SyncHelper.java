@@ -19,12 +19,44 @@ import android.accounts.Account;
 import android.content.ContentResolver;
 import android.os.Bundle;
 
+import me.philio.ghost.R;
+
 /**
  * Helper methods for sync
  * <p/>
  * Created by phil on 15/12/2014.
  */
 public class SyncHelper {
+
+    /**
+     * Enable sync of an account for an authority
+     *
+     * @param account   The account to enable
+     * @param authority The authority to enable
+     */
+    public static void enableSync(Account account, String authority) {
+        ContentResolver.setSyncAutomatically(account, authority, true);
+    }
+
+    /**
+     * Disable sync of an account for an authority
+     *
+     * @param account   The account to disable
+     * @param authority The authority to disable
+     */
+    public static void disableSync(Account account, String authority) {
+        ContentResolver.setSyncAutomatically(account, authority, false);
+    }
+
+    /**
+     * Check if sync of an account for an authority is enabled
+     *
+     * @param account   The account to check
+     * @param authority The authority to check
+     */
+    public static boolean isSyncEnabled(Account account, String authority) {
+        return ContentResolver.getSyncAutomatically(account, authority);
+    }
 
     /**
      * Request sync, checks that sync is not already running or pending
