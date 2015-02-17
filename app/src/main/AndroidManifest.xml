@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-    package="me.philio.ghost"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="me.philio.ghost">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -71,16 +70,31 @@
         <activity
             android:name=".ui.EditorActivity"
             android:label="@string/title_activity_editor"
+            android:parentActivityName=".ui.MainActivity"
             android:theme="@style/Theme.Ghost.NoActionBar"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
+            android:windowSoftInputMode="adjustResize|stateHidden">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MainActivity" />
+        </activity>
         <activity
             android:name=".ui.SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:theme="@style/Theme.Ghost.NoActionBar" />
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Ghost.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MainActivity" />
+        </activity>
         <activity
             android:name=".ui.AboutActivity"
             android:label="@string/title_activity_about"
-            android:theme="@style/Theme.Ghost.NoActionBar" />
+            android:parentActivityName=".ui.MainActivity"
+            android:theme="@style/Theme.Ghost.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.MainActivity" />
+        </activity>
 
         <!-- ActiveAndroid content provider -->
         <provider

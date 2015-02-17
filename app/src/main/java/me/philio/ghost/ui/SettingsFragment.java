@@ -24,6 +24,7 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -110,25 +111,28 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Configure toolbar as actionbar
-        ActionBarActivity activity = (ActionBarActivity) getActivity();
-        if (activity != null) {
-            activity.setSupportActionBar(mToolbar);
-            activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        // Set title
-        // For some reason this gets changed back if called earlier
+        // Setup Toolbar
+        mToolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
         if (mAccount != null) {
             mToolbar.setTitle(mAccount.name);
         } else {
             mToolbar.setTitle(R.string.title_activity_settings);
         }
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getFragmentManager().getBackStackEntryCount() > 0) {
+                    getFragmentManager().popBackStack();
+                } else {
+                    NavUtils.navigateUpFromSameTask(getActivity());
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
         // Populate the account list
         PreferenceCategory catAccounts = (PreferenceCategory) findPreference("cat_accounts");
