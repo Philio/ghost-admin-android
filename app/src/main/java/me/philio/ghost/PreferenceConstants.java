@@ -21,13 +21,13 @@ package me.philio.ghost;
  */
 public class PreferenceConstants {
 
-    public static final String EDITING_MODE_KEY = "pref_editing_mode";
+    public static final String KEY_EDITING_MODE = "pref_editing_mode";
     public static final int EDITING_MODE_RICH = 0;
     public static final int EDITING_MODE_PLAIN = 1;
     public static final int EDITING_MODE_DEFAULT = EDITING_MODE_RICH;
 
-    public static final String SYNC_DRAFTS = "pref_sync_drafts";
+    public static final String KEY_SYNC_DRAFTS = "pref_sync_drafts";
 
-    public static final String SYNC_PUBLISHED = "pref_sync_published";
+    public static final String KEY_SYNC_PUBLISHED = "pref_sync_published";
 
 }

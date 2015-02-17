@@ -18,13 +18,17 @@ package me.philio.ghost.ui.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
+import android.preference.PreferenceManager;
 import android.text.Spanned;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.EditText;
+
+import me.philio.ghost.PreferenceConstants;
 
 /**
  * A markdown aware {@link EditText} that formats the text based on markdown syntax
@@ -56,29 +60,57 @@ public class MarkdownEditText extends EditText {
     private static final float H5_SIZE = 1f;
     private static final float H6_SIZE = 0.8f;
 
+    /**
+     * Flag to allow rich text formatting
+     */
+    private boolean mRichTextEnabled = true;
+
     public MarkdownEditText(Context context) {
         super(context);
+        checkPreferences();
     }
 
     public MarkdownEditText(Context context, AttributeSet attrs) {
         super(context, attrs);
+        checkPreferences();
     }
 
     public MarkdownEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        checkPreferences();
     }
 
     @TargetApi(21)
     public MarkdownEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        checkPreferences();
+    }
+
+    /**
+     * Check preferences related to editing
+     */
+    private void checkPreferences() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        int mode = Integer.parseInt(preferences.getString(PreferenceConstants.KEY_EDITING_MODE,
+                Integer.toString(PreferenceConstants.EDITING_MODE_DEFAULT)));
+        switch (mode) {
+            case PreferenceConstants.EDITING_MODE_RICH:
+                mRichTextEnabled = true;
+                break;
+            case PreferenceConstants.EDITING_MODE_PLAIN:
+                mRichTextEnabled = false;
+                break;
+        }
     }
 
     @Override
     protected void onTextChanged(CharSequence text, int start, int lengthBefore, int lengthAfter) {
-        // TODO no need to reformat the whole document, optimise this later
-        Log.d(TAG, "Formatting markdown");
-        removeSpans(0, getEditableText().length());
-        formatAll();
+        if (mRichTextEnabled) {
+            // TODO no need to reformat the whole document, optimise this later
+            Log.d(TAG, "Formatting markdown");
+            removeSpans(0, getEditableText().length());
+            formatAll();
+        }
     }
 
     /**
