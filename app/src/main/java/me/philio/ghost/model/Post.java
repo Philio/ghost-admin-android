@@ -158,6 +158,18 @@ public class Post extends Model {
     public transient boolean updatedLocally;
 
     /**
+     * The local revision number that has been synced to the server
+     */
+    @Column(name = "local_revision")
+    public transient int localRevision;
+
+    /**
+     * The local revision edit number that has been synced to the server
+     */
+    @Column(name = "local_revision_edit")
+    public transient int localRevisionEdit;
+
+    /**
      * A flag to indicate if local changes should be synced
      */
     @Column(name = "sync_local_changes")

@@ -42,4 +42,16 @@ public class PostDraft extends Model {
     @Column(name = "markdown")
     public String markdown;
 
+    /**
+     * The revision number (every session where the document is modified constitutes a revision)
+     */
+    @Column(name = "revision")
+    public int revision;
+
+    /**
+     * The revision edit number (every time a document is saved within a session constitutes an edit)
+     */
+    @Column(name = "revision_edit")
+    public int revisionEdit;
+
 }
