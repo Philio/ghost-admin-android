@@ -1,12 +1,12 @@
-Ghost Admin for Android
-=======================
+Ghost Writer for Android
+========================
 
 # About
 
-An open source offline editor and admin tool for the [Ghost](https://ghost.org/) blogging software.
+An open source offline editor for the [Ghost](https://ghost.org/) blogging software.
 
 This app is under development and is expected to be released to
-[Google Play](https://play.google.com/) in the coming weeks.
+[Google Play](https://play.google.com/) soon.
 
 Contributions to the project are welcome, please contact me to discuss if you're interested.
 
@@ -17,14 +17,24 @@ This is a high level view of the main features and current progress and is very 
 * Implement Ghost API [COMPLETE]
 * Login to multiple blogs [COMPLETE]
 * Sync data to the device for offline usage [COMPLETE]
-* Sync changes from the device to the server [NOT STARTED]
+* Sync changes from the device to the server [IN PROGRESS]
 * Navigation and account switching [COMPLETE]
 * Display list of posts and pages on a blog [COMPLETE]
-* Markdown editor [IN PROGRESS]
-* HTML viewer [IN PROGRESS]
+* Markdown rich text editor [COMPLETE]
+* HTML viewer [COMPLETE]
 * Image upload [NOT STARTED]
-* App settings [NOT STARTED]
+* App settings [COMPLETE]
 * Tablet layouts [NOT STARTED]
+
+# Third party libraries
+
+- [Retrofit](http://square.github.io/retrofit/)
+- [Picasso](http://square.github.io/picasso/)
+- [ActiveAndroid](http://www.activeandroid.com/) (Custom build with modified sync to network setting)
+- [Butter Knife](http://jakewharton.github.io/butterknife/)
+- [Commons IO](http://commons.apache.org/proper/commons-io/)
+- [PreferenceFragment-Compat](https://github.com/Machinarius/PreferenceFragment-Compat)
+- [CWAC AndDown](https://github.com/commonsguy/cwac-anddown)
 
 # License
 
