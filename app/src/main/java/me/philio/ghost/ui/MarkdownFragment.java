@@ -354,11 +354,6 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        // Save the draft
-        mDraft.title = mEditTitle.getText().toString();
-        mDraft.markdown = mEditMarkdown.getText().toString();
-        mDraft.save();
-
         // Track changes to the post
         boolean postUpdated = false;
 
@@ -377,6 +372,11 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
         } else if (postUpdated) {
             mPost.save();
         }
+
+        // Save the draft
+        mDraft.title = mEditTitle.getText().toString();
+        mDraft.markdown = mEditMarkdown.getText().toString();
+        mDraft.save();
 
         // Notify activity that the post has changed
         mListener.onPostChanged(mPost, mDraft);

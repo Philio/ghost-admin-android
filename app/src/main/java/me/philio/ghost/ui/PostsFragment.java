@@ -462,50 +462,36 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     mBlog.loadFromCursor(cursor);
                 }
 
-                // Init drafts loader
-                if (getLoaderManager().getLoader(LOADER_DRAFTS) == null) {
-                    getLoaderManager().initLoader(LOADER_DRAFTS, null, this);
-                }
+                // Init other loaders
+                getLoaderManager().initLoader(LOADER_DRAFTS, null, this);
+                getLoaderManager().initLoader(LOADER_CONFLICTS, null, this);
+                getLoaderManager().initLoader(LOADER_POSTS, null, this);
                 break;
             case LOADER_DRAFTS:
-                boolean draftsChanged = mDrafts.size() > 0;
                 mDrafts.clear();
                 if (cursor.getCount() > 0) {
-                    cursor.move(-1);
-                    while (cursor.moveToNext()) {
+                    cursor.moveToFirst();
+                    while (!cursor.isAfterLast()) {
                         PostDraft postDraft = new PostDraft();
                         postDraft.loadFromCursor(cursor);
                         mDrafts.put(postDraft.post, postDraft);
+                        cursor.moveToNext();
                     }
                 }
-                if (draftsChanged) {
-                    mAdapter.notifyDataSetChanged();
-                }
-
-                // Init conflicts loader
-                if (getLoaderManager().getLoader(LOADER_CONFLICTS) == null) {
-                    getLoaderManager().initLoader(LOADER_CONFLICTS, null, this);
-                }
+                mAdapter.notifyDataSetChanged();
                 break;
             case LOADER_CONFLICTS:
-                boolean conflictsChanged = mConflicts.size() > 0;
                 mConflicts.clear();
                 if (cursor.getCount() > 0) {
-                    cursor.move(-1);
-                    while (cursor.moveToNext()) {
+                    cursor.moveToFirst();
+                    while (!cursor.isAfterLast()) {
                         PostConflict postConflict = new PostConflict();
                         postConflict.loadFromCursor(cursor);
                         mConflicts.put(postConflict.post, postConflict);
+                        cursor.moveToNext();
                     }
                 }
-                if (conflictsChanged) {
-                    mAdapter.notifyDataSetChanged();
-                }
-
-                // Init posts loader
-                if (getLoaderManager().getLoader(LOADER_POSTS) == null) {
-                    getLoaderManager().initLoader(LOADER_POSTS, null, this);
-                }
+                mAdapter.notifyDataSetChanged();
                 break;
             case LOADER_POSTS:
                 mAdapter.swapCursor(cursor);
