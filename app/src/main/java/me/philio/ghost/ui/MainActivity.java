@@ -40,6 +40,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import me.philio.ghost.R;
 import me.philio.ghost.model.Post;
+import me.philio.ghost.model.PostDraft;
 import me.philio.ghost.sync.SyncConstants;
 import me.philio.ghost.sync.SyncHelper;
 
@@ -142,6 +143,8 @@ public class MainActivity extends BaseActivity implements
                             .popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 Intent intent = new Intent(this, EditorActivity.class);
+                intent.putExtra(EditorActivity.EXTRA_ACCOUNT,
+                        mNavigationDrawerFragment.getSelectedAccount());
                 intent.putExtra(EditorActivity.EXTRA_POST_ID, mPreviewId);
                 startActivity(intent);
                 break;
@@ -263,15 +266,15 @@ public class MainActivity extends BaseActivity implements
     }
 
     @Override
-    public void onListItemClick(Post post) {
+    public void onListItemClick(Post post, PostDraft postDraft) {
         mPreviewId = post.getId();
 
         getSupportActionBar().setTitle(R.string.title_preview);
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
                         android.R.anim.fade_in, android.R.anim.fade_out)
-                .replace(R.id.container, PreviewFragment.newInstance(post.markdown, post.blog.url,
-                        true))
+                .replace(R.id.container, PreviewFragment.newInstance(postDraft == null ?
+                        post.markdown : postDraft.markdown, post.blog.url, true))
                 .addToBackStack(null)
                 .commit();
     }

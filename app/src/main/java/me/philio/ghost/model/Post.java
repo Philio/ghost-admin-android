@@ -63,7 +63,7 @@ public class Post extends Model {
 
     @Column(name = "blog_id", notNull = true, uniqueGroups = "blog_post",
             onUniqueConflicts = Column.ConflictAction.REPLACE)
-    public Blog blog;
+    public transient Blog blog;
 
     @Column(name = "remote_id", uniqueGroups = "blog_post",
             onUniqueConflicts = Column.ConflictAction.REPLACE)
@@ -155,18 +155,24 @@ public class Post extends Model {
      * A flag to indicate that the record has local updates
      */
     @Column(name = "updated_locally")
-    public boolean updatedLocally;
+    public transient boolean updatedLocally;
+
+    /**
+     * A flag to indicate if local changes should be synced
+     */
+    @Column(name = "sync_local_changes")
+    public transient boolean syncLocalChanges;
 
     /**
      * A flag to indicate that the record was updated locally and remotely and is conflicted
      */
     @Column(name = "remote_conflicted")
-    public boolean remoteConflicted;
+    public transient boolean remoteConflicted;
 
     /**
      * A flag to indicate that the record was updated locally and deleted remotely
      */
     @Column(name = "remote_deleted")
-    public boolean remoteDeleted;
+    public transient boolean remoteDeleted;
 
 }

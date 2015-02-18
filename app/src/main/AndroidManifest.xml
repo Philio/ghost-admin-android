@@ -36,7 +36,8 @@
             android:name="AA_MODELS"
             android:value="me.philio.ghost.model.Blog, me.philio.ghost.model.Post,
                     me.philio.ghost.model.Setting, me.philio.ghost.model.Tag,
-                    me.philio.ghost.model.User, me.philio.ghost.model.PostTag" />
+                    me.philio.ghost.model.User, me.philio.ghost.model.PostTag,
+                    me.philio.ghost.model.PostConflict, me.philio.ghost.model.PostDraft" />
         <meta-data
             android:name="AA_SERIALIZERS"
             android:value="com.activeandroid.serializer.UUIDSerializer" />

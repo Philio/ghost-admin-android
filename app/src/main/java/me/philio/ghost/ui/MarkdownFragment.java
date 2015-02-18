@@ -18,8 +18,10 @@ package me.philio.ghost.ui;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -41,7 +43,17 @@ import me.philio.ghost.R;
 import me.philio.ghost.account.AccountConstants;
 import me.philio.ghost.model.Blog;
 import me.philio.ghost.model.Post;
+import me.philio.ghost.model.PostDraft;
 import me.philio.ghost.model.User;
+
+import static me.philio.ghost.PreferenceConstants.KEY_ACCOUNT_SYNC_DRAFTS;
+import static me.philio.ghost.PreferenceConstants.KEY_ACCOUNT_SYNC_PUBLISHED;
+import static me.philio.ghost.PreferenceConstants.KEY_SYNC_DRAFTS;
+import static me.philio.ghost.PreferenceConstants.KEY_SYNC_PUBLISHED;
+import static me.philio.ghost.PreferenceConstants.SYNC_DRAFT_DEFAULT;
+import static me.philio.ghost.PreferenceConstants.SYNC_IMMEDIATELY;
+import static me.philio.ghost.PreferenceConstants.SYNC_PUBLISHED_DEFAULT;
+import static me.philio.ghost.PreferenceConstants.SYNC_USE_GLOBAL;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -60,8 +72,9 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
      * Loader ids
      */
     private static final int LOADER_POST = 100;
-    private static final int LOADER_BLOG = 101;
-    private static final int LOADER_USER = 102;
+    private static final int LOADER_POST_DRAFT = 101;
+    private static final int LOADER_BLOG = 102;
+    private static final int LOADER_USER = 103;
 
     /**
      * Listener
@@ -84,9 +97,24 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
     private long mPostId;
 
     /**
+     * Sync strategy for drafts
+     */
+    private int mDraftSyncStrategy = SYNC_DRAFT_DEFAULT;
+
+    /**
+     * Sync strategy for published articles
+     */
+    private int mPublishedSyncStrategy = SYNC_PUBLISHED_DEFAULT;
+
+    /**
      * Post
      */
     private Post mPost;
+
+    /**
+     * Post draft
+     */
+    private PostDraft mDraft;
 
     /**
      * Views
@@ -138,6 +166,29 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
         // Get account manager
         mAccountManager = AccountManager.get(getActivity());
+
+        // Populate preferences
+        SharedPreferences sharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mDraftSyncStrategy = Integer.parseInt(
+                sharedPreferences.getString(KEY_SYNC_DRAFTS, Integer.toString(SYNC_DRAFT_DEFAULT)));
+        mPublishedSyncStrategy = Integer.parseInt(
+                sharedPreferences.getString(KEY_SYNC_PUBLISHED,
+                        Integer.toString(SYNC_PUBLISHED_DEFAULT)));
+
+        // Override preferences with account preferences where applicable
+        String draftAccountSyncStrategy = mAccountManager
+                .getUserData(mAccount, KEY_ACCOUNT_SYNC_DRAFTS);
+        if (draftAccountSyncStrategy != null &&
+                Integer.parseInt(draftAccountSyncStrategy) != SYNC_USE_GLOBAL) {
+            mDraftSyncStrategy = Integer.parseInt(draftAccountSyncStrategy);
+        }
+        String publishedAccountSyncStrategy = mAccountManager
+                .getUserData(mAccount, KEY_ACCOUNT_SYNC_PUBLISHED);
+        if (publishedAccountSyncStrategy != null &&
+                Integer.parseInt(publishedAccountSyncStrategy) != SYNC_USE_GLOBAL) {
+            mPublishedSyncStrategy = Integer.parseInt(publishedAccountSyncStrategy);
+        }
     }
 
     @Override
@@ -175,6 +226,10 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
                 return new CursorLoader(getActivity(),
                         ContentProvider.createUri(Post.class, mPostId), null,
                         BaseColumns._ID + " = ?", new String[]{Long.toString(mPostId)}, null);
+            case LOADER_POST_DRAFT:
+                return new CursorLoader(getActivity(),
+                        ContentProvider.createUri(PostDraft.class, null), null, "post_id = ?",
+                        new String[]{Long.toString(mPostId)}, null);
             case LOADER_BLOG:
                 String blogUrl = mAccountManager
                         .getUserData(mAccount, AccountConstants.KEY_BLOG_URL);
@@ -202,23 +257,50 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
                     mPost = new Post();
                     mPost.loadFromCursor(cursor);
 
+                    // Load the draft
+                    if (getLoaderManager().getLoader(LOADER_POST_DRAFT) == null) {
+                        getLoaderManager().initLoader(LOADER_POST_DRAFT, null, this);
+                    }
+                }
+                break;
+            case LOADER_POST_DRAFT:
+                if (mDraft == null) {
+                    // Set up the draft model
+                    mDraft = new PostDraft();
+                    if (cursor.getCount() == 1) {
+                        cursor.moveToFirst();
+                        mDraft.loadFromCursor(cursor);
+                    } else {
+                        mDraft.blog = mPost.blog;
+                        mDraft.post = mPost;
+                        mDraft.title = mPost.title;
+                        mDraft.markdown = mPost.markdown;
+                    }
+
                     // Enable the UI
                     enableUi();
                 }
-                break;
             case LOADER_BLOG:
                 if (mPost == null) {
-                    // Create a new post
+                    // Load blog
                     cursor.moveToFirst();
                     Blog blog = new Blog();
                     blog.loadFromCursor(cursor);
+
+                    // Create a new post
                     mPost = new Post();
                     mPost.blog = blog;
                     mPost.status = Post.Status.DRAFT;
-                    mPost.markdown = "";
+
+                    // Create a new post draft
+                    mDraft = new PostDraft();
+                    mDraft.blog = blog;
+                    mDraft.post = mPost;
 
                     // Load the user
-                    getLoaderManager().initLoader(LOADER_USER, null, this);
+                    if (getLoaderManager().getLoader(LOADER_USER) == null) {
+                        getLoaderManager().initLoader(LOADER_USER, null, this);
+                    }
                 }
                 break;
             case LOADER_USER:
@@ -245,17 +327,17 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
      * Enable the UI
      */
     private void enableUi() {
-        if (mPost.title != null) {
-            mEditTitle.setText(mPost.title);
+        if (mDraft.title != null) {
+            mEditTitle.setText(mDraft.title);
         }
-        if (mPost.markdown != null) {
-            mEditContent.setText(mPost.markdown);
+        if (mDraft.markdown != null) {
+            mEditContent.setText(mDraft.markdown);
         }
         mEditTitle.setEnabled(true);
         mEditContent.setEnabled(true);
         mEditTitle.addTextChangedListener(this);
         mEditContent.addTextChangedListener(this);
-        mListener.onPostChanged(mPost);
+        mListener.onPostChanged(mPost, mDraft);
     }
 
     @Override
@@ -264,10 +346,32 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        mPost.title = mEditTitle.getText().toString();
-        mPost.markdown = mEditContent.getText().toString();
-        mPost.save();
-        mListener.onPostChanged(mPost);
+        // Save the draft
+        mDraft.title = mEditTitle.getText().toString();
+        mDraft.markdown = mEditContent.getText().toString();
+        mDraft.save();
+
+        // Track changes to the post
+        boolean postUpdated = false;
+
+        // Flag the post as having local updates
+        if (!mPost.updatedLocally) {
+            mPost.updatedLocally = true;
+            postUpdated = true;
+        }
+
+        // Flag the post to be synced based on sync strategy
+        if ((mPost.status == Post.Status.DRAFT && mDraftSyncStrategy == SYNC_IMMEDIATELY) ||
+                (mPost.status == Post.Status.PUBLISHED &&
+                        mPublishedSyncStrategy == SYNC_IMMEDIATELY)) {
+            mPost.syncLocalChanges = true;
+            mPost.save(true);
+        } else if (postUpdated) {
+            mPost.save();
+        }
+
+        // Notify activity that the post has changed
+        mListener.onPostChanged(mPost, mDraft);
     }
 
     @Override
@@ -282,7 +386,7 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
      */
     public interface OnFragmentInteractionListener {
 
-        public void onPostChanged(Post post);
+        public void onPostChanged(Post post, PostDraft draft);
 
     }
 

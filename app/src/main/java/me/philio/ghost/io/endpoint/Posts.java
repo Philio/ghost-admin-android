@@ -101,6 +101,16 @@ public interface Posts {
             Callback<PostsContainer> callback);
 
     /**
+     * Add a new post, blocks and executes on same thread
+     *
+     * @param postsContainer The post
+     * @return Posts that were added
+     */
+    @POST("/posts?include=tags")
+    public PostsContainer blockingAddPost(
+            @Body PostsContainer postsContainer);
+
+    /**
      * Update an existing post
      *
      * @param id             The id of the post
@@ -112,6 +122,18 @@ public interface Posts {
             @Path("id") int id,
             @Body PostsContainer postsContainer,
             Callback<PostsContainer> callback);
+
+    /**
+     * Update an existing post, blocks and executes on same thread
+     *
+     * @param id             The id of the post
+     * @param postsContainer The post
+     * @return Post that was updated
+     */
+    @PUT("/posts/{id}?include=tags")
+    public PostsContainer blockingUpdatePost(
+            @Path("id") int id,
+            @Body PostsContainer postsContainer);
 
     /**
      * Delete a post

@@ -48,19 +48,20 @@ import com.squareup.picasso.Picasso;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghost.R;
+import me.philio.ghost.account.AccountConstants;
 import me.philio.ghost.model.Blog;
 import me.philio.ghost.model.Post;
+import me.philio.ghost.model.PostConflict;
+import me.philio.ghost.model.PostDraft;
 import me.philio.ghost.ui.widget.BezelImageView;
-import me.philio.ghost.util.DatabaseUtils;
 import me.philio.ghost.util.DateUtils;
 import me.philio.ghost.util.ImageUtils;
-
-import static me.philio.ghost.account.AccountConstants.KEY_BLOG_URL;
-import static me.philio.ghost.account.AccountConstants.KEY_EMAIL;
 
 /**
  * A fragment representing a list of Items.
@@ -92,7 +93,10 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     /**
      * Loader ids
      */
-    private static final int LOADER_LIST = 100;
+    private static final int LOADER_BLOG = 100;
+    private static final int LOADER_DRAFTS = 101;
+    private static final int LOADER_CONFLICTS = 102;
+    private static final int LOADER_POSTS = 103;
 
     /**
      * Icon background colours
@@ -104,6 +108,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      * Listener
      */
     private OnFragmentInteractionListener mListener;
+
+    /**
+     * Account manager instance
+     */
+    private AccountManager mAccountManager;
 
     /**
      * Active user account
@@ -124,6 +133,16 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      * Blog associated with the account
      */
     private Blog mBlog;
+
+    /**
+     * Drafts
+     */
+    private Map<Post, PostDraft> mDrafts = new HashMap<>();
+
+    /**
+     * Conflicts
+     */
+    private Map<Post, PostConflict> mConflicts = new HashMap<>();
 
     /**
      * Search term
@@ -184,6 +203,9 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             }
         }
 
+        // Get account manager
+        mAccountManager = AccountManager.get(getActivity());
+
         // Set up list adapater
         String[] from = new String[]{"image", "title", "published_at"};
         int[] to = new int[]{R.id.img_post, R.id.txt_title, R.id.txt_subtitle};
@@ -194,8 +216,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                 Post post = new Post();
                 post.loadFromCursor(cursor);
                 switch (view.getId()) {
-                    // If post image exists replace placeholder
                     case R.id.img_post:
+                        // If post image exists replace placeholder
                         BezelImageView imageView = (BezelImageView) view;
                         if (post.image != null) {
                             try {
@@ -213,7 +235,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         } else {
                             // Apply colour filter to the background based on the first character
                             // in the post title
-                            char firstChar = post.title.charAt(0);
+                            char firstChar = post.title != null ? post.title.charAt(0) : 0;
                             int charValue = Character.getNumericValue(firstChar);
                             charValue = charValue > 0 ? charValue : 0;
                             int color = ICON_COLORS[charValue % ICON_COLORS.length];
@@ -224,20 +246,28 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                             imageView.setImageResource(R.drawable.ic_action_action_description);
                         }
                         return true;
-                    // Format the subtitle like on the web admin
+                    case R.id.txt_title:
+                        // Display the latest draft title if post has local changes
+                        if (mDrafts.containsKey(post)) {
+                            TextView title = (TextView) view;
+                            title.setText(mDrafts.get(post).title);
+                            return true;
+                        }
+                        break;
                     case R.id.txt_subtitle:
-                        TextView textView = (TextView) view;
+                        // Format the subtitle like on the web admin
+                        TextView subTitle = (TextView) view;
                         if (post.status == Post.Status.DRAFT) {
-                            textView.setTextColor(getResources().getColor(R.color.red_500));
-                            textView.setText(R.string.post_draft);
+                            subTitle.setTextColor(getResources().getColor(R.color.red_500));
+                            subTitle.setText(R.string.post_draft);
                             return true;
                         } else if (post.page) {
-                            textView.setTextColor(getResources().getColor(R.color.text_secondary));
-                            textView.setText(R.string.post_page);
+                            subTitle.setTextColor(getResources().getColor(R.color.text_secondary));
+                            subTitle.setText(R.string.post_page);
                             return true;
                         } else {
-                            textView.setTextColor(getResources().getColor(R.color.text_secondary));
-                            textView.setText(getString(R.string.post_published_ago,
+                            subTitle.setTextColor(getResources().getColor(R.color.text_secondary));
+                            subTitle.setText(getString(R.string.post_published_ago,
                                     DateUtils.format(getActivity(), post.publishedAt)));
                             return true;
                         }
@@ -247,14 +277,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         });
         setListAdapter(mAdapter);
 
-        // Get current blog
-        AccountManager accountManager = AccountManager.get(getActivity());
-        String blogUrl = accountManager.getUserData(mAccount, KEY_BLOG_URL);
-        String email = accountManager.getUserData(mAccount, KEY_EMAIL);
-        mBlog = DatabaseUtils.getBlog(blogUrl, email);
-
         // Load posts
-        getLoaderManager().initLoader(LOADER_LIST, null, this);
+        getLoaderManager().initLoader(LOADER_BLOG, null, this);
     }
 
     @Override
@@ -272,8 +296,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
-        mSwipeRefreshLayout.setColorSchemeResources(R.color.red_500, R.color.blue_500,
-                R.color.green_500);
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.blue_500,
+                R.color.green_500, R.color.red_500);
         mListener.onSwipeRefreshCreated(mSwipeRefreshLayout);
     }
 
@@ -302,7 +326,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             public boolean onQueryTextChange(String s) {
                 if (!s.isEmpty() && !s.equals(mSearchTerm)) {
                     mSearchTerm = s;
-                    getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                    getLoaderManager().restartLoader(LOADER_POSTS, null, PostsFragment.this);
                 }
                 return true;
             }
@@ -329,7 +353,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         // Reset list
                         if (mSearchTerm != null) {
                             mSearchTerm = null;
-                            getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                            getLoaderManager().restartLoader(LOADER_POSTS, null, PostsFragment.this);
                         }
                         return true;
                     }
@@ -364,51 +388,129 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             // fragment is attached to one) that an item has been selected.
             Post post = new Post();
             post.loadFromCursor((Cursor) getListAdapter().getItem(position));
-            mListener.onListItemClick(post);
+            mListener.onListItemClick(post, mDrafts.get(post));
 
             // Reset search
             if (mSearchTerm != null) {
                 mSearchTerm = null;
-                getLoaderManager().restartLoader(LOADER_LIST, null, PostsFragment.this);
+                getLoaderManager().restartLoader(LOADER_POSTS, null, PostsFragment.this);
             }
         }
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // Work out which records to show
-        boolean loadPosts = (mShow & SHOW_POSTS) > 0;
-        boolean loadPages = (mShow & SHOW_PAGES) > 0;
-        boolean loadDrafts = (mShow & SHOW_DRAFTS) > 0;
+        switch (id) {
+            case LOADER_BLOG:
+                // Load the blog for the current account
+                String blogUrl = mAccountManager
+                        .getUserData(mAccount, AccountConstants.KEY_BLOG_URL);
+                String blogEmail = mAccountManager
+                        .getUserData(mAccount, AccountConstants.KEY_EMAIL);
+                return new CursorLoader(getActivity(), ContentProvider.createUri(Blog.class, null),
+                        null, "url = ? AND email = ?", new String[]{blogUrl, blogEmail}, null);
+            case LOADER_DRAFTS:
+                // Load all drafts for the current blog
+                return new CursorLoader(getActivity(),
+                        ContentProvider.createUri(PostDraft.class, null), null, "blog_id = ?",
+                        new String[]{mBlog.getId().toString()}, null);
+            case LOADER_CONFLICTS:
+                // Load all conflicts for the current blog
+                return new CursorLoader(getActivity(),
+                        ContentProvider.createUri(PostConflict.class, null), null, "blog_id = ?",
+                        new String[]{mBlog.getId().toString()}, null);
+            case LOADER_POSTS:
+                // Work out which records to show
+                boolean loadPosts = (mShow & SHOW_POSTS) > 0;
+                boolean loadPages = (mShow & SHOW_PAGES) > 0;
+                boolean loadDrafts = (mShow & SHOW_DRAFTS) > 0;
 
-        // Build the where query
-        StringBuilder builder = new StringBuilder();
-        builder.append("blog_id = ?");
-        if (loadPosts && !loadPages) {
-            builder.append(" AND page = 0");
-        } else if (loadPages && !loadPosts) {
-            builder.append(" AND page = 1");
-        }
-        if (!loadDrafts) {
-            builder.append(" AND status LIKE '");
-            builder.append(Post.Status.PUBLISHED);
-            builder.append("'");
-        }
-        if (mSearchTerm != null && !mSearchTerm.isEmpty()) {
-            builder.append(String.format(
-                    " AND (title LIKE '%%%1$s%%' OR slug LIKE '%%%1$s%%' OR markdown LIKE '%%%1$s%%')",
-                    mSearchTerm));
-        }
+                // Build the where query
+                StringBuilder builder = new StringBuilder();
+                builder.append("blog_id = ?");
+                if (loadPosts && !loadPages) {
+                    builder.append(" AND page = 0");
+                } else if (loadPages && !loadPosts) {
+                    builder.append(" AND page = 1");
+                }
+                if (!loadDrafts) {
+                    builder.append(" AND status LIKE '");
+                    builder.append(Post.Status.PUBLISHED);
+                    builder.append("'");
+                }
+                if (mSearchTerm != null && !mSearchTerm.isEmpty()) {
+                    builder.append(String.format(
+                            " AND (title LIKE '%%%1$s%%' OR slug LIKE '%%%1$s%%' OR markdown LIKE '%%%1$s%%')",
+                            mSearchTerm));
+                }
 
-        // Return loader
-        return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, null), null,
-                builder.toString(), new String[]{Long.toString(mBlog.getId())},
-                "status ASC, published_at DESC");
+                // Return loader
+                return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, null),
+                        null, builder.toString(), new String[]{mBlog.getId().toString()},
+                        "status ASC, published_at DESC, created_at DESC");
+        }
+        return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mAdapter.swapCursor(cursor);
+        switch (loader.getId()) {
+            case LOADER_BLOG:
+                if (cursor.getCount() == 1) {
+                    cursor.moveToFirst();
+                    mBlog = new Blog();
+                    mBlog.loadFromCursor(cursor);
+                }
+
+                // Init drafts loader
+                if (getLoaderManager().getLoader(LOADER_DRAFTS) == null) {
+                    getLoaderManager().initLoader(LOADER_DRAFTS, null, this);
+                }
+                break;
+            case LOADER_DRAFTS:
+                boolean draftsChanged = mDrafts.size() > 0;
+                mDrafts.clear();
+                if (cursor.getCount() > 0) {
+                    cursor.move(-1);
+                    while (cursor.moveToNext()) {
+                        PostDraft postDraft = new PostDraft();
+                        postDraft.loadFromCursor(cursor);
+                        mDrafts.put(postDraft.post, postDraft);
+                    }
+                }
+                if (draftsChanged) {
+                    mAdapter.notifyDataSetChanged();
+                }
+
+                // Init conflicts loader
+                if (getLoaderManager().getLoader(LOADER_CONFLICTS) == null) {
+                    getLoaderManager().initLoader(LOADER_CONFLICTS, null, this);
+                }
+                break;
+            case LOADER_CONFLICTS:
+                boolean conflictsChanged = mConflicts.size() > 0;
+                mConflicts.clear();
+                if (cursor.getCount() > 0) {
+                    cursor.move(-1);
+                    while (cursor.moveToNext()) {
+                        PostConflict postConflict = new PostConflict();
+                        postConflict.loadFromCursor(cursor);
+                        mConflicts.put(postConflict.post, postConflict);
+                    }
+                }
+                if (conflictsChanged) {
+                    mAdapter.notifyDataSetChanged();
+                }
+
+                // Init posts loader
+                if (getLoaderManager().getLoader(LOADER_POSTS) == null) {
+                    getLoaderManager().initLoader(LOADER_POSTS, null, this);
+                }
+                break;
+            case LOADER_POSTS:
+                mAdapter.swapCursor(cursor);
+                break;
+        }
     }
 
     @Override
@@ -434,7 +536,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         public void onRefresh();
 
-        public void onListItemClick(Post post);
+        public void onListItemClick(Post post, PostDraft postDraft);
 
         public void onSearchExpanded(boolean expanded);
 

@@ -70,6 +70,7 @@
     <!-- Editor -->
     <string name="editor_title_hint">Post title</string>
     <string name="editor_markdown_hint">Markdown</string>
+    <string name="editor_default_title">(Untitled)</string>
 
     <!-- About -->
     <string name="about_version">Version %s</string>

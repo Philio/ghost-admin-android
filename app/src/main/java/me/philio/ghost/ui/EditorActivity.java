@@ -30,6 +30,7 @@ import butterknife.InjectView;
 import butterknife.Optional;
 import me.philio.ghost.R;
 import me.philio.ghost.model.Post;
+import me.philio.ghost.model.PostDraft;
 
 public class EditorActivity extends BaseActivity implements
         MarkdownFragment.OnFragmentInteractionListener {
@@ -106,8 +107,8 @@ public class EditorActivity extends BaseActivity implements
     }
 
     @Override
-    public void onPostChanged(Post post) {
-        mPreviewFragment.updatePreview(post.markdown, post.blog.url, false);
+    public void onPostChanged(Post post, PostDraft draft) {
+        mPreviewFragment.updatePreview(draft.markdown, post.blog.url, false);
     }
 
     /**

@@ -185,7 +185,7 @@ public class GhostClient {
      * @return posts client
      */
     public Posts createPosts() {
-        return create(Posts.class);
+        return create(Posts.class, RestAdapter.LogLevel.FULL);
     }
 
     /**
@@ -194,7 +194,7 @@ public class GhostClient {
      * @return settings client
      */
     public Settings createSettings() {
-        return create(Settings.class);
+        return create(Settings.class, RestAdapter.LogLevel.BASIC);
     }
 
     /**
@@ -203,7 +203,7 @@ public class GhostClient {
      * @return tags client
      */
     public Tags createTags() {
-        return create(Tags.class);
+        return create(Tags.class, RestAdapter.LogLevel.BASIC);
     }
 
     /**
@@ -212,7 +212,7 @@ public class GhostClient {
      * @return users client
      */
     public Users createUsers() {
-        return create(Users.class);
+        return create(Users.class, RestAdapter.LogLevel.BASIC);
     }
 
     /**
@@ -222,10 +222,10 @@ public class GhostClient {
      * @param <T>
      * @return
      */
-    private <T> T create(Class<T> endpoint) {
+    private <T> T create(Class<T> endpoint, RestAdapter.LogLevel logLevel) {
         RestAdapter builder = new RestAdapter.Builder()
                 .setEndpoint(mBlogUrl + BASE_PATH)
-                .setLogLevel(RestAdapter.LogLevel.BASIC)
+                .setLogLevel(logLevel)
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade request) {
@@ -238,6 +238,7 @@ public class GhostClient {
                 .setConverter(
                         new GsonConverter(new GsonBuilder()
                                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+                                .addSerializationExclusionStrategy(new ModelFieldsExclusionStrategy())
                                 .create()))
                 .build();
         return builder.create(endpoint);

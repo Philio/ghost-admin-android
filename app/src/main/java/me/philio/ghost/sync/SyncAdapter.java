@@ -58,6 +58,7 @@ import me.philio.ghost.io.endpoint.Tags;
 import me.philio.ghost.io.endpoint.Users;
 import me.philio.ghost.model.Blog;
 import me.philio.ghost.model.Post;
+import me.philio.ghost.model.PostConflict;
 import me.philio.ghost.model.PostTag;
 import me.philio.ghost.model.PostsContainer;
 import me.philio.ghost.model.Setting;
@@ -97,6 +98,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private AccountManager mAccountManager;
 
     /**
+     * Ghost REST client
+     */
+    private GhostClient mClient;
+
+    /**
      * List of images to download
      */
     private List<Pair<String, Uri>> mImageQueue = new ArrayList<>();
@@ -116,11 +122,29 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         getContext().sendBroadcast(intent);
 
         try {
+            // Get user data
+            String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+            String email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
+
+            // Setup client
+            mClient = new GhostClient(blogUrl);
+
             // Refresh the access token
             refreshAccessToken(account);
 
+            // Set access token
+            String accessToken = mAccountManager.blockingGetAuthToken(account, TOKEN_TYPE_ACCESS,
+                    false);
+            mClient.setAccessToken(accessToken);
+
+            // Load the blog record
+            Blog blog = getBlog(blogUrl, email);
+
+            // Sync local changes
+            syncLocal(account, blog, syncResult);
+
             // Sync remote changes
-            syncRemote(account, syncResult);
+            syncRemote(account, blog, syncResult);
         } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError |
                 NoSuchAlgorithmException e) {
             Log.e(TAG, "Sync error: " + e.getMessage());
@@ -155,14 +179,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             return;
         }
 
-        // Get blog url and refresh token
-        String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
+        // Get refresh token
         String refreshToken = mAccountManager.blockingGetAuthToken(account, TOKEN_TYPE_REFRESH,
                 false);
 
         // Get authentication client
-        GhostClient client = new GhostClient(blogUrl);
-        Authentication authentication = client.createAuthentication();
+        Authentication authentication = mClient.createAuthentication();
         try {
             // Request a new access token
             Token token = authentication
@@ -195,36 +217,73 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     /**
+     * Sync local changes back to the server
+     *
+     * @param account    The account to sync
+     * @param blog       The blog associated with the account
+     * @param syncResult Sync result
+     */
+    private void syncLocal(Account account, Blog blog, SyncResult syncResult) {
+        List<Post> updatedPosts = new Select()
+                .from(Post.class)
+                .where("blog_id = ? AND updated_locally = ? AND sync_local_changes = ? AND remote_conflicted = ? AND remote_deleted = ?",
+                        blog.getId(), true, true, false, false)
+                .execute();
+
+        // If nothing to update, return
+        if (updatedPosts.size() == 0) {
+            return;
+        }
+
+        // Sync changes
+        Posts posts = mClient.createPosts();
+        /*
+        for (Post post : updatedPosts) {
+            Log.d(TAG, "Syncing post");
+
+            // Create post container
+            PostsContainer postsContainer = new PostsContainer();
+            postsContainer.posts = new ArrayList<>();
+            postsContainer.posts.add(post);
+
+            // Send request
+            PostsContainer responseContainer;
+            if (post.id == null) {
+                responseContainer = posts.blockingAddPost(postsContainer);
+            } else {
+                responseContainer = posts.blockingUpdatePost(post.id, postsContainer);
+            }
+            Post remotePost = responseContainer.posts.get(0);
+
+            // Update local version
+            if (post.id == null) {
+                post.id = remotePost.id;
+            }
+            post.updatedLocally = false;
+            post.syncLocalChanges = false;
+            post.save();
+
+            // Overwrite local copy with remote
+            remotePost.blog = blog;
+            savePost(remotePost, syncResult);
+        }
+        */
+    }
+
+    /**
      * Get blog data from the server, a pretty straight forward fetch all and replace approach for
      * now, but this is far from optimal and ideally needs to pull changes only but this
      * functionality doesn't yet look like it exists in the Ghost API.
-     * <p/>
      * TODO Hopefully this can be optimised at a later date, depends on the API
+     *
+     * @param account    The account to sync
+     * @param blog       The blog associated with the account
+     * @param syncResult Sync result
      */
-    private void syncRemote(Account account, SyncResult syncResult) throws AuthenticatorException,
+    private void syncRemote(Account account, Blog blog, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
-        // Get user data
-        String blogUrl = mAccountManager.getUserData(account, AccountConstants.KEY_BLOG_URL);
-        String email = mAccountManager.getUserData(account, AccountConstants.KEY_EMAIL);
-
-        // Load the blog record
-        Blog blog = DatabaseUtils.getBlog(blogUrl, email);
-
-        // If record is missing, recreate it
-        if (blog == null) {
-            blog = new Blog();
-            blog.url = blogUrl;
-            blog.email = email;
-            blog.save();
-        }
-
-        // Get access token and instantiate the client
-        String accessToken = mAccountManager.blockingGetAuthToken(account, TOKEN_TYPE_ACCESS,
-                false);
-        GhostClient client = new GhostClient(blog.url, accessToken);
-
-        // Sync users
-        Users users = client.createUsers();
+         // Sync users
+        Users users = mClient.createUsers();
         int page = 1;
         int totalPages = 1;
         while (page <= totalPages) {
@@ -232,15 +291,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             for (User user : usersContainer.users) {
                 user.blog = blog;
                 saveUser(user, syncResult);
-                saveContent(blog, user.image, ContentProvider.createUri(User.class, user.getId()));
-                saveContent(blog, user.cover, ContentProvider.createUri(User.class, user.getId()));
+                saveContent(blog, user.image, ContentProvider.createUri(User.class, user.getId()), syncResult);
+                saveContent(blog, user.cover, ContentProvider.createUri(User.class, user.getId()), syncResult);
             }
             totalPages = usersContainer.meta.pagination.pages;
             page++;
         }
 
         // Sync settings (no pagination)
-        Settings settings = client.createSettings();
+        Settings settings = mClient.createSettings();
         SettingsContainer settingsContainer = settings.blockingGetSettings(Setting.Type.BLOG,
                 1);
         for (Setting setting : settingsContainer.settings) {
@@ -261,7 +320,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         // Sync tags
-        Tags tags = client.createTags();
+        Tags tags = mClient.createTags();
         page = 1;
         totalPages = 1;
         while (page <= totalPages) {
@@ -275,7 +334,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         // Sync posts
-        Posts posts = client.createPosts();
+        Posts posts = mClient.createPosts();
         page = 1;
         totalPages = 1;
         List<Integer> remoteIds = new ArrayList<>();
@@ -339,8 +398,29 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Download images
         for (Pair pair : mImageQueue) {
             Log.d(TAG, "Starting image download: " + pair.first);
-            saveContent(blog, (String) pair.first, (Uri) pair.second);
+            saveContent(blog, (String) pair.first, (Uri) pair.second, syncResult);
         }
+    }
+
+    /**
+     * Load or create the blog record
+     *
+     * @param blogUrl URL of the blog
+     * @param email   Email of the user
+     */
+    private Blog getBlog(String blogUrl, String email) {
+        // Load the blog record
+        Blog blog = DatabaseUtils.getBlog(blogUrl, email);
+
+        // If record is missing, recreate it
+        if (blog == null) {
+            blog = new Blog();
+            blog.url = blogUrl;
+            blog.email = email;
+            blog.save();
+        }
+
+        return blog;
     }
 
     /**
@@ -366,7 +446,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    private void saveContent(Blog blog, String path, Uri notificationUri) throws NoSuchAlgorithmException, IOException {
+    private void saveContent(Blog blog, String path, Uri notificationUri, SyncResult syncResult)
+            throws NoSuchAlgorithmException, IOException {
         // Check that the path looks like something valid
         if (path == null || path.trim().isEmpty()) {
             return;
@@ -404,6 +485,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         Log.d(TAG, "Decoding to file: " + filename);
         ImageUtils.decodeScale(new FileInputStream(file), filename, 2048, 2048);
         file.delete();
+        syncResult.stats.numInserts++;
         if (notificationUri != null) {
             getContext().getContentResolver().notifyChange(notificationUri, null);
         }
@@ -523,16 +605,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 if (dbPost.updatedAt != post.updatedAt) {
                     Log.d(TAG, "Record is conflicted, changed locally and remotely");
                     if (!dbPost.remoteConflicted) {
+                        // Mark the post as conflicted
                         dbPost.remoteConflicted = true;
                         dbPost.save();
                         syncResult.stats.numUpdates++;
+
+                        // Save conflict data for manual resolution
+                        PostConflict postConflict = new PostConflict();
+                        postConflict.blog = dbPost.blog;
+                        postConflict.post = dbPost;
+                        postConflict.title = post.title;
+                        postConflict.markdown = post.markdown;
+                        postConflict.updatedAt = post.updatedAt;
+                        postConflict.updatedBy = post.updatedBy;
+                        postConflict.save();
+                        syncResult.stats.numInserts++;
                     }
                 }
                 return;
             }
 
             // Check if post was actually updated
-            if (post.updatedAt.compareTo(dbPost.updatedAt) <= 0) {
+            if (dbPost.updatedAt != null && post.updatedAt.compareTo(dbPost.updatedAt) <= 0) {
                 Log.d(TAG, "Post is unchanged");
                 return;
             }
