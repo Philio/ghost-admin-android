@@ -21,7 +21,7 @@
         android:textStyle="bold" />
 
     <me.philio.ghost.ui.widget.MarkdownEditText
-        android:id="@+id/edit_content"
+        android:id="@+id/edit_markdown"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"

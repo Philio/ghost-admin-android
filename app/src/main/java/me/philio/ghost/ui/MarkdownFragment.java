@@ -121,8 +121,8 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
      */
     @InjectView(R.id.edit_title)
     protected EditText mEditTitle;
-    @InjectView(R.id.edit_content)
-    protected EditText mEditContent;
+    @InjectView(R.id.edit_markdown)
+    protected EditText mEditMarkdown;
 
     /**
      * Use this factory method to create a new instance of
@@ -331,12 +331,20 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
             mEditTitle.setText(mDraft.title);
         }
         if (mDraft.markdown != null) {
-            mEditContent.setText(mDraft.markdown);
+            mEditMarkdown.setText(mDraft.markdown);
         }
         mEditTitle.setEnabled(true);
-        mEditContent.setEnabled(true);
+        mEditMarkdown.setEnabled(true);
         mEditTitle.addTextChangedListener(this);
-        mEditContent.addTextChangedListener(this);
+        mEditMarkdown.addTextChangedListener(this);
+        mEditMarkdown.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus && mEditTitle.getText().toString().isEmpty()) {
+                    mEditTitle.setText(R.string.editor_default_title);
+                }
+            }
+        });
         mListener.onPostChanged(mPost, mDraft);
     }
 
@@ -348,7 +356,7 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         // Save the draft
         mDraft.title = mEditTitle.getText().toString();
-        mDraft.markdown = mEditContent.getText().toString();
+        mDraft.markdown = mEditMarkdown.getText().toString();
         mDraft.save();
 
         // Track changes to the post
