@@ -235,7 +235,13 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         } else {
                             // Apply colour filter to the background based on the first character
                             // in the post title
-                            char firstChar = post.title != null ? post.title.charAt(0) : 0;
+                            char firstChar;
+                            if (mDrafts.containsKey(post)) {
+                                firstChar = mDrafts.get(post).title != null ?
+                                        mDrafts.get(post).title.charAt(0) : 0;
+                            } else {
+                                firstChar = post.title != null ? post.title.charAt(0) : 0;
+                            }
                             int charValue = Character.getNumericValue(firstChar);
                             charValue = charValue > 0 ? charValue : 0;
                             int color = ICON_COLORS[charValue % ICON_COLORS.length];

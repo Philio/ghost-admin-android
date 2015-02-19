@@ -152,12 +152,6 @@ public class Post extends Model {
     // TODO fields - what is this?
 
     /**
-     * A flag to indicate that the record has local updates
-     */
-    @Column(name = "updated_locally")
-    public transient boolean updatedLocally;
-
-    /**
      * The local revision number that has been synced to the server
      */
     @Column(name = "local_revision")

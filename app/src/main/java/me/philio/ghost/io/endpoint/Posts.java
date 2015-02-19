@@ -79,6 +79,15 @@ public interface Posts {
             Callback<PostsContainer> callback);
 
     /**
+     * Get a post with id
+     *
+     * @param id The id of the post
+     */
+    @GET("/posts/{id}?include=tags")
+    public PostsContainer blockingGetPost(
+            @Path("id") int id);
+
+    /**
      * Get a post with slug
      *
      * @param slug     The post slug

@@ -168,7 +168,7 @@ public class GhostClient {
     public Authentication createAuthentication() {
         return new RestAdapter.Builder()
                 .setEndpoint(mBlogUrl + BASE_PATH + "/authentication")
-                .setLogLevel(RestAdapter.LogLevel.FULL)
+                .setLogLevel(RestAdapter.LogLevel.BASIC)
                 .setRequestInterceptor(new RequestInterceptor() {
                     @Override
                     public void intercept(RequestFacade request) {
@@ -185,7 +185,7 @@ public class GhostClient {
      * @return posts client
      */
     public Posts createPosts() {
-        return create(Posts.class, RestAdapter.LogLevel.FULL);
+        return create(Posts.class, RestAdapter.LogLevel.BASIC);
     }
 
     /**

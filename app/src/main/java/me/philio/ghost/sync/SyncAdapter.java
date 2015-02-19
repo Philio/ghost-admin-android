@@ -59,6 +59,7 @@ import me.philio.ghost.io.endpoint.Users;
 import me.philio.ghost.model.Blog;
 import me.philio.ghost.model.Post;
 import me.philio.ghost.model.PostConflict;
+import me.philio.ghost.model.PostDraft;
 import me.philio.ghost.model.PostTag;
 import me.philio.ghost.model.PostsContainer;
 import me.philio.ghost.model.Setting;
@@ -226,8 +227,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private void syncLocal(Account account, Blog blog, SyncResult syncResult) {
         List<Post> updatedPosts = new Select()
                 .from(Post.class)
-                .where("blog_id = ? AND updated_locally = ? AND sync_local_changes = ? AND remote_conflicted = ? AND remote_deleted = ?",
-                        blog.getId(), true, true, false, false)
+                .where("blog_id = ? AND sync_local_changes = ? AND remote_conflicted = ? AND remote_deleted = ?",
+                        blog.getId(), true, false, false)
                 .execute();
 
         // If nothing to update, return
@@ -237,9 +238,27 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Sync changes
         Posts posts = mClient.createPosts();
-        /*
         for (Post post : updatedPosts) {
             Log.d(TAG, "Syncing post");
+
+            // If editing an existing post get version from server
+            if (post.id != null) {
+                PostsContainer postsContainer = posts.blockingGetPost(post.id);
+                Post remotePost = postsContainer.posts.get(0);
+                if (!remotePost.updatedAt.equals(post.updatedAt)) {
+                    // Post edited remotely, create conflict
+                    createConflict(post, remotePost);
+                    continue;
+                }
+            }
+
+            // Load draft and update post
+            PostDraft postDraft = new Select()
+                    .from(PostDraft.class)
+                    .where("post_id = ?", post.getId())
+                    .executeSingle();
+            post.title = postDraft.title;
+            post.markdown = postDraft.markdown;
 
             // Create post container
             PostsContainer postsContainer = new PostsContainer();
@@ -255,19 +274,37 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             }
             Post remotePost = responseContainer.posts.get(0);
 
-            // Update local version
+            // Update local version from remote response
             if (post.id == null) {
                 post.id = remotePost.id;
             }
-            post.updatedLocally = false;
-            post.syncLocalChanges = false;
-            post.save();
+            post.uuid = remotePost.uuid;
+            post.title = remotePost.title;
+            post.slug = remotePost.slug;
+            post.markdown = remotePost.markdown;
+            post.html = remotePost.html;
+            post.image = remotePost.image;
+            post.featured = remotePost.featured;
+            post.page = remotePost.page;
+            post.status = remotePost.status;
+            post.language = remotePost.language;
+            post.metaTitle = remotePost.metaTitle;
+            post.metaDescription = remotePost.metaDescription;
+            post.createdAt = remotePost.createdAt;
+            post.createdBy = remotePost.createdBy;
+            post.updatedAt = remotePost.updatedAt;
+            post.updatedBy = remotePost.updatedBy;
+            post.publishedAt = remotePost.publishedAt;
+            post.publishedBy = remotePost.publishedBy;
+            post.author = remotePost.author;
 
-            // Overwrite local copy with remote
-            remotePost.blog = blog;
-            savePost(remotePost, syncResult);
+            // Update synced local revision
+            post.localRevision = postDraft.revision;
+            post.localRevisionEdit = postDraft.revisionEdit;
+            post.syncLocalChanges = false;
+
+            post.save();
         }
-        */
     }
 
     /**
@@ -282,7 +319,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     private void syncRemote(Account account, Blog blog, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
-         // Sync users
+        // Clear the image queue
+        mImageQueue.clear();
+
+        // Sync users
         Users users = mClient.createUsers();
         int page = 1;
         int totalPages = 1;
@@ -381,7 +421,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         for (Post post : dbPosts) {
             if (post.id != null && !remoteIds.contains(post.id)) {
                 Log.d(TAG, "Remotely deleted post found");
-                if (post.updatedLocally) {
+
+                // Check latest draft for local changes
+                boolean localChanges = false;
+                PostDraft postDraft = new Select()
+                        .from(PostDraft.class)
+                        .where("post_id = ?", post.getId())
+                        .executeSingle();
+                if (postDraft != null && (post.localRevision != postDraft.revision ||
+                        post.localRevisionEdit != postDraft.revisionEdit)) {
+                    Log.d(TAG, "A newer draft exists");
+                    localChanges = true;
+                }
+
+                // Mark the post as deleted remotely, or just delete it
+                if (localChanges) {
                     Log.d(TAG, "Deleted post has local changes");
                     if (!post.remoteDeleted) {
                         post.remoteDeleted = true;
@@ -396,8 +450,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         }
 
         // Download images
+        int queuePosition = 0;
         for (Pair pair : mImageQueue) {
-            Log.d(TAG, "Starting image download: " + pair.first);
+            queuePosition++;
+            Log.d(TAG, String.format("Starting image download (%d/%d): %s", queuePosition,
+                    mImageQueue.size(), pair.first));
             saveContent(blog, (String) pair.first, (Uri) pair.second, syncResult);
         }
     }
@@ -467,7 +524,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Check if the file exists
         if (ImageUtils.fileExists(filename)) {
-            Log.d(TAG, "File exists skipping");
+            Log.d(TAG, "File exists, skipping");
             return;
         }
 
@@ -599,29 +656,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Check to see if record needs saving
         if (dbPost != null) {
-            // If local updates exist, skip but check for conflicts
-            if (dbPost.updatedLocally) {
-                Log.d(TAG, "Won't update locally changed records");
-                if (dbPost.updatedAt != post.updatedAt) {
-                    Log.d(TAG, "Record is conflicted, changed locally and remotely");
-                    if (!dbPost.remoteConflicted) {
-                        // Mark the post as conflicted
-                        dbPost.remoteConflicted = true;
-                        dbPost.save();
-                        syncResult.stats.numUpdates++;
+            // Check latest draft for local changes
+            boolean localChanges = false;
+            PostDraft postDraft = new Select()
+                    .from(PostDraft.class)
+                    .where("post_id = ?", post.getId())
+                    .executeSingle();
+            if (postDraft != null && (dbPost.localRevision != postDraft.revision ||
+                    dbPost.localRevisionEdit != postDraft.revisionEdit)) {
+                Log.d(TAG, "A newer draft exists");
+                localChanges = true;
+            }
 
-                        // Save conflict data for manual resolution
-                        PostConflict postConflict = new PostConflict();
-                        postConflict.blog = dbPost.blog;
-                        postConflict.post = dbPost;
-                        postConflict.title = post.title;
-                        postConflict.markdown = post.markdown;
-                        postConflict.updatedAt = post.updatedAt;
-                        postConflict.updatedBy = post.updatedBy;
-                        postConflict.save();
-                        syncResult.stats.numInserts++;
-                    }
+            // If local updates exist, skip but check for conflicts
+            if (localChanges && !dbPost.updatedAt.equals(post.updatedAt)) {
+                Log.d(TAG, "Record is conflicted, changed locally and remotely");
+                if (!dbPost.remoteConflicted) {
+                    // Mark the post as conflicted
+                    dbPost.remoteConflicted = true;
+                    dbPost.save();
+                    syncResult.stats.numUpdates++;
                 }
+                createConflict(dbPost, post);
                 return;
             }
 
@@ -635,18 +691,42 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Save the record
         ActiveAndroid.beginTransaction();
         try {
+            Post savedPost;
+
             // Save the post
-            post.save();
             if (dbPost == null) {
+                post.save();
                 syncResult.stats.numInserts++;
+                savedPost = post;
             } else {
+                dbPost.uuid = post.uuid;
+                dbPost.title = post.title;
+                dbPost.slug = post.slug;
+                dbPost.markdown = post.markdown;
+                dbPost.html = post.html;
+                dbPost.image = post.image;
+                dbPost.featured = post.featured;
+                dbPost.page = post.page;
+                dbPost.status = post.status;
+                dbPost.language = post.language;
+                dbPost.metaTitle = post.metaTitle;
+                dbPost.metaDescription = post.metaDescription;
+                dbPost.createdAt = post.createdAt;
+                dbPost.createdBy = post.createdBy;
+                dbPost.updatedAt = post.updatedAt;
+                dbPost.updatedBy = post.updatedBy;
+                dbPost.publishedAt = post.publishedAt;
+                dbPost.publishedBy = post.publishedBy;
+                dbPost.author = post.author;
+                dbPost.save();
                 syncResult.stats.numUpdates++;
+                savedPost = dbPost;
             }
 
             // Delete any existing post/tag associations
             List<PostTag> dbPostTags = new Select()
                     .from(PostTag.class)
-                    .where("post_id = ?", post.getId())
+                    .where("post_id = ?", savedPost.getId())
                     .execute();
             for (PostTag dbPostTag : dbPostTags) {
                 dbPostTag.delete();
@@ -663,7 +743,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         .executeSingle();
                 if (dbTag != null) {
                     PostTag postTag = new PostTag();
-                    postTag.post = post;
+                    postTag.post = savedPost;
                     postTag.tag = dbTag;
                     postTag.save();
                     syncResult.stats.numInserts++;
@@ -672,6 +752,38 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             ActiveAndroid.setTransactionSuccessful();
         } finally {
             ActiveAndroid.endTransaction();
+        }
+    }
+
+    /**
+     * Create a conflict record when a pot is changed both locally and remotely
+     *
+     * @param local
+     * @param remote
+     */
+    private void createConflict(Post local, Post remote) {
+        // Check if conflict record exits
+        PostConflict postConflict = new Select()
+                .from(PostConflict.class)
+                .where("post_id = ?", local.getId())
+                .executeSingle();
+
+        // Create or update the record
+        if (postConflict == null) {
+            postConflict = new PostConflict();
+            postConflict.blog = local.blog;
+            postConflict.post = local;
+            postConflict.title = remote.title;
+            postConflict.markdown = remote.markdown;
+            postConflict.updatedAt = remote.updatedAt;
+            postConflict.updatedBy = remote.updatedBy;
+            postConflict.save();
+        } else if (!postConflict.updatedAt.equals(remote.updatedAt)) {
+            postConflict.title = remote.title;
+            postConflict.markdown = remote.markdown;
+            postConflict.updatedAt = remote.updatedAt;
+            postConflict.updatedBy = remote.updatedBy;
+            postConflict.save();
         }
     }
 

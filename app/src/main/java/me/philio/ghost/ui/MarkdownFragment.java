@@ -367,11 +367,9 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
         if (!mPost.syncLocalChanges &&
                 (mPost.status == Post.Status.DRAFT && mDraftSyncStrategy == SYNC_IMMEDIATELY) ||
                 (mPost.status == Post.Status.PUBLISHED && mPublishedSyncStrategy == SYNC_IMMEDIATELY)) {
-            mPost.updatedLocally = true;
             mPost.syncLocalChanges = true;
             mPost.save(true);
-        } else if (!mPost.updatedLocally) {
-            mPost.updatedLocally = true;
+        } else if (mPost.getId() == null) {
             mPost.save();
         }
 
