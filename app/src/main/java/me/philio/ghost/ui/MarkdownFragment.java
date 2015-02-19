@@ -117,6 +117,11 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
     private PostDraft mDraft;
 
     /**
+     * A flag to indicate if revision number has been updated (first change during editing)
+     */
+    public boolean mRevisionUpdated;
+
+    /**
      * Views
      */
     @InjectView(R.id.edit_title)
@@ -261,6 +266,10 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
                     if (getLoaderManager().getLoader(LOADER_POST_DRAFT) == null) {
                         getLoaderManager().initLoader(LOADER_POST_DRAFT, null, this);
                     }
+                } else if (cursor != null && cursor.getCount() == 1) {
+                    // Post was updated externally (e.g. by sync)
+                    cursor.moveToFirst();
+                    mPost.loadFromCursor(cursor);
                 }
                 break;
             case LOADER_POST_DRAFT:
@@ -354,28 +363,27 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        // Track changes to the post
-        boolean postUpdated = false;
-
-        // Flag the post as having local updates
-        if (!mPost.updatedLocally) {
+        // Update post record flags if necessary
+        if (!mPost.syncLocalChanges &&
+                (mPost.status == Post.Status.DRAFT && mDraftSyncStrategy == SYNC_IMMEDIATELY) ||
+                (mPost.status == Post.Status.PUBLISHED && mPublishedSyncStrategy == SYNC_IMMEDIATELY)) {
             mPost.updatedLocally = true;
-            postUpdated = true;
-        }
-
-        // Flag the post to be synced based on sync strategy
-        if ((mPost.status == Post.Status.DRAFT && mDraftSyncStrategy == SYNC_IMMEDIATELY) ||
-                (mPost.status == Post.Status.PUBLISHED &&
-                        mPublishedSyncStrategy == SYNC_IMMEDIATELY)) {
             mPost.syncLocalChanges = true;
             mPost.save(true);
-        } else if (postUpdated) {
+        } else if (!mPost.updatedLocally) {
+            mPost.updatedLocally = true;
             mPost.save();
         }
 
         // Save the draft
         mDraft.title = mEditTitle.getText().toString();
         mDraft.markdown = mEditMarkdown.getText().toString();
+        if (!mRevisionUpdated) {
+            mDraft.revision++;
+            mDraft.revisionEdit = 0;
+        } else {
+            mDraft.revisionEdit++;
+        }
         mDraft.save();
 
         // Notify activity that the post has changed
