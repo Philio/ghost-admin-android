@@ -27,4 +27,7 @@
     <dimen name="floating_action_button_with_shadow_width">58dp</dimen>
     <dimen name="floating_action_button_with_shadow_height">60dp</dimen>
 
+    <!-- Settings -->
+    <dimen name="settings_internal_padding">@dimen/keyline_1</dimen>
+
 </resources>

@@ -28,10 +28,7 @@
             android:cacheColorHint="@android:color/transparent"
             android:clipToPadding="false"
             android:drawSelectorOnTop="false"
-            android:paddingBottom="@dimen/preference_fragment_padding_bottom"
-            android:paddingLeft="@dimen/preference_fragment_padding_side"
-            android:paddingRight="@dimen/preference_fragment_padding_side"
-            android:paddingTop="0dip"
+            android:padding="@dimen/settings_internal_padding"
             android:scrollbarAlwaysDrawVerticalTrack="true"
             android:scrollbarStyle="@integer/preference_fragment_scrollbarStyle" />
 
