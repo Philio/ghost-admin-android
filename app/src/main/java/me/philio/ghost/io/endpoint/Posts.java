@@ -73,7 +73,7 @@ public interface Posts {
      * @param id       The id of the post
      * @param callback Response callback
      */
-    @GET("/posts/{id}?include=tags")
+    @GET("/posts/{id}?status=all&include=tags")
     public void getPost(
             @Path("id") int id,
             Callback<PostsContainer> callback);
@@ -83,7 +83,7 @@ public interface Posts {
      *
      * @param id The id of the post
      */
-    @GET("/posts/{id}?include=tags")
+    @GET("/posts/{id}?status=all&include=tags")
     public PostsContainer blockingGetPost(
             @Path("id") int id);
 

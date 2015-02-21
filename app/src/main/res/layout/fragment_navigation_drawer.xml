@@ -22,7 +22,7 @@
             android:id="@+id/header_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?android:selectableItemBackground"
+            android:background="?attr/selectableItemBackground"
             android:padding="@dimen/keyline_1">
 
             <me.philio.ghost.ui.widget.BezelImageView

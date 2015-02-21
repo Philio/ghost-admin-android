@@ -561,13 +561,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .where("blog_id = ? AND remote_id = ?", user.blog.getId(), user.id)
                 .executeSingle();
 
-        // Check to see if record needs saving
-        if (dbUser != null) {
-            // Check if user was actually updated
-            if (user.updatedAt.compareTo(dbUser.updatedAt) <= 0) {
-                Log.d(TAG, "User is unchanged");
-                return;
-            }
+        // Check if user was actually updated
+        if (dbUser != null && user.updatedAt.compareTo(dbUser.updatedAt) <= 0) {
+            Log.d(TAG, "User is unchanged");
+            return;
         }
 
         // Save the record
@@ -592,13 +589,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .where("blog_id = ? AND remote_id = ?", setting.blog.getId(), setting.id)
                 .executeSingle();
 
-        // Check to see if record needs saving
-        if (dbSetting != null) {
-            // Check if setting was actually updated
-            if (setting.updatedAt.compareTo(dbSetting.updatedAt) <= 0) {
-                Log.d(TAG, "Setting is unchanged");
-                return;
-            }
+        // Check if setting was actually updated
+        if (dbSetting != null && setting.updatedAt.compareTo(dbSetting.updatedAt) <= 0) {
+            Log.d(TAG, "Setting is unchanged");
+            return;
         }
 
         // Save the record
@@ -623,13 +617,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .where("blog_id = ? AND remote_id = ?", tag.blog.getId(), tag.id)
                 .executeSingle();
 
-        // Check to see if record needs saving
-        if (dbTag != null) {
-            // Check if tag was actually updated
-            if (tag.updatedAt.compareTo(dbTag.updatedAt) <= 0) {
-                Log.d(TAG, "Tag is unchanged");
-                return;
-            }
+        // Check if tag was actually updated
+        if (dbTag != null && tag.updatedAt.compareTo(dbTag.updatedAt) <= 0) {
+            Log.d(TAG, "Tag is unchanged");
+            return;
         }
 
         // Save the record
@@ -654,38 +645,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 .where("blog_id = ? AND remote_id = ?", post.blog.getId(), post.id)
                 .executeSingle();
 
-        // Check to see if record needs saving
-        if (dbPost != null) {
-            // Check latest draft for local changes
-            boolean localChanges = false;
-            PostDraft postDraft = new Select()
-                    .from(PostDraft.class)
-                    .where("post_id = ?", post.getId())
-                    .executeSingle();
-            if (postDraft != null && (dbPost.localRevision != postDraft.revision ||
-                    dbPost.localRevisionEdit != postDraft.revisionEdit)) {
-                Log.d(TAG, "A newer draft exists");
-                localChanges = true;
-            }
-
-            // If local updates exist, skip but check for conflicts
-            if (localChanges && !dbPost.updatedAt.equals(post.updatedAt)) {
-                Log.d(TAG, "Record is conflicted, changed locally and remotely");
-                if (!dbPost.remoteConflicted) {
-                    // Mark the post as conflicted
-                    dbPost.remoteConflicted = true;
-                    dbPost.save();
-                    syncResult.stats.numUpdates++;
-                }
-                createConflict(dbPost, post);
-                return;
-            }
-
-            // Check if post was actually updated
-            if (dbPost.updatedAt != null && post.updatedAt.compareTo(dbPost.updatedAt) <= 0) {
-                Log.d(TAG, "Post is unchanged");
-                return;
-            }
+        // Check if post was actually updated
+        if (dbPost != null && dbPost.updatedAt != null &&
+                post.updatedAt.compareTo(dbPost.updatedAt) <= 0) {
+            Log.d(TAG, "Post is unchanged");
+            return;
         }
 
         // Save the record
@@ -693,12 +657,41 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         try {
             Post savedPost;
 
-            // Save the post
-            if (dbPost == null) {
-                post.save();
-                syncResult.stats.numInserts++;
-                savedPost = post;
-            } else {
+            if (dbPost != null) {
+                // Check latest draft for local changes
+                boolean localChanges = false;
+                PostDraft postDraft = new Select()
+                        .from(PostDraft.class)
+                        .where("post_id = ?", dbPost.getId())
+                        .executeSingle();
+                if (postDraft != null && (dbPost.localRevision != postDraft.revision ||
+                        dbPost.localRevisionEdit != postDraft.revisionEdit)) {
+                    Log.d(TAG, "A newer draft exists");
+                    localChanges = true;
+                }
+
+                // If local updates exist, skip but check for conflicts
+                if (localChanges && !dbPost.updatedAt.equals(post.updatedAt)) {
+                    Log.d(TAG, "Record is conflicted, changed locally and remotely");
+                    if (!dbPost.remoteConflicted) {
+                        // Mark the post as conflicted
+                        dbPost.remoteConflicted = true;
+                        dbPost.save();
+                        syncResult.stats.numUpdates++;
+                    }
+                    createConflict(dbPost, post);
+                    return;
+                }
+
+                // Update the draft if necessary
+                if (postDraft != null) {
+                    postDraft.title = post.title;
+                    postDraft.markdown = post.markdown;
+                    postDraft.save();
+                    syncResult.stats.numUpdates++;
+                }
+
+                // Update the post
                 dbPost.uuid = post.uuid;
                 dbPost.title = post.title;
                 dbPost.slug = post.slug;
@@ -721,6 +714,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 dbPost.save();
                 syncResult.stats.numUpdates++;
                 savedPost = dbPost;
+            } else {
+                post.save();
+                syncResult.stats.numInserts++;
+                savedPost = post;
             }
 
             // Delete any existing post/tag associations

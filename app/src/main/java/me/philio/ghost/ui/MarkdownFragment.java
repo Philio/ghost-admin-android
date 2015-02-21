@@ -268,8 +268,7 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
                     }
                 } else if (cursor != null && cursor.getCount() == 1) {
                     // Post was updated externally (e.g. by sync)
-                    cursor.moveToFirst();
-                    mPost.loadFromCursor(cursor);
+                    // TODO
                 }
                 break;
             case LOADER_POST_DRAFT:
@@ -288,6 +287,10 @@ public class MarkdownFragment extends Fragment implements LoaderManager.LoaderCa
 
                     // Enable the UI
                     enableUi();
+                } else if (cursor != null && cursor.getCount() == 1) {
+                    // Draft was updated externally (sync may have added changes while editor was
+                    // open but no changes made)
+                    // TODO
                 }
             case LOADER_BLOG:
                 if (mPost == null) {

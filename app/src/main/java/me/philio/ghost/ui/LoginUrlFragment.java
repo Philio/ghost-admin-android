@@ -36,6 +36,7 @@ import android.widget.TextView;
 import com.google.gson.JsonObject;
 
 import java.net.HttpURLConnection;
+import java.util.Locale;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -137,7 +138,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
 
         // Fix lack of textAllCaps prior to ICS
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            mTxtNext.setText(getString(R.string.action_next).toUpperCase());
+            mTxtNext.setText(getString(R.string.action_next).toUpperCase(Locale.getDefault()));
         }
     }
 
