@@ -265,13 +265,13 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.img_sync:
                         ImageView sync = (ImageView) view;
                         if (mConflicts.containsKey(post)) {
-                            sync.setImageResource(R.drawable.ic_sync_problem);
+                            sync.setImageResource(R.drawable.ic_notification_sync_problem);
                             sync.setColorFilter(getResources().getColor(R.color.red_500));
                             sync.setVisibility(View.VISIBLE);
                         } else if (mDrafts.containsKey(post) &&
                                 (mDrafts.get(post).revision != post.localRevision ||
                                 mDrafts.get(post).revisionEdit != post.localRevisionEdit)) {
-                            sync.setImageResource(R.drawable.ic_sync);
+                            sync.setImageResource(R.drawable.ic_notification_sync);
                             sync.setColorFilter(getResources().getColor(R.color.text_secondary));
                             sync.setVisibility(View.VISIBLE);
                         } else {
