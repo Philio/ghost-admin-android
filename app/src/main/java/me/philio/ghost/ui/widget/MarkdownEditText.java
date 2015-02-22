@@ -90,6 +90,9 @@ public class MarkdownEditText extends EditText {
      * Check preferences related to editing
      */
     private void checkPreferences() {
+        if (isInEditMode()) {
+            return;
+        }
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         int mode = Integer.parseInt(preferences.getString(PreferenceConstants.KEY_EDITING_MODE,
                 Integer.toString(PreferenceConstants.EDITING_MODE_DEFAULT)));

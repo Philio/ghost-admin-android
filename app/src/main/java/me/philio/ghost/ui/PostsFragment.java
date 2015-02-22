@@ -39,6 +39,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -207,8 +208,9 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         mAccountManager = AccountManager.get(getActivity());
 
         // Set up list adapater
-        String[] from = new String[]{"image", "title", "published_at"};
-        int[] to = new int[]{R.id.img_post, R.id.txt_title, R.id.txt_subtitle};
+        String[] from = new String[]{"image", "title", "sync_status", "featured", "published_at"};
+        int[] to = new int[]{R.id.img_post, R.id.txt_title, R.id.img_sync, R.id.img_featured,
+                R.id.txt_subtitle};
         mAdapter = new SimpleCursorAdapter(getActivity(), R.layout.item_post, null, from, to, 0);
         mAdapter.setViewBinder(new SimpleCursorAdapter.ViewBinder() {
             @Override
@@ -260,6 +262,31 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                             return true;
                         }
                         break;
+                    case R.id.img_sync:
+                        ImageView sync = (ImageView) view;
+                        if (mConflicts.containsKey(post)) {
+                            sync.setImageResource(R.drawable.ic_sync_problem);
+                            sync.setColorFilter(getResources().getColor(R.color.red_500));
+                            sync.setVisibility(View.VISIBLE);
+                        } else if (mDrafts.containsKey(post) &&
+                                (mDrafts.get(post).revision != post.localRevision ||
+                                mDrafts.get(post).revisionEdit != post.localRevisionEdit)) {
+                            sync.setImageResource(R.drawable.ic_sync);
+                            sync.setColorFilter(getResources().getColor(R.color.text_secondary));
+                            sync.setVisibility(View.VISIBLE);
+                        } else {
+                            sync.setVisibility(View.GONE);
+                        }
+                        return true;
+                    case R.id.img_featured:
+                        ImageView featured = (ImageView) view;
+                        if (post.featured) {
+                            featured.setColorFilter(getResources().getColor(R.color.text_secondary));
+                            featured.setVisibility(View.VISIBLE);
+                        } else {
+                            featured.setVisibility(View.GONE);
+                        }
+                        return true;
                     case R.id.txt_subtitle:
                         // Format the subtitle like on the web admin
                         TextView subTitle = (TextView) view;
@@ -452,7 +479,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
                 // Return loader
                 return new CursorLoader(getActivity(), ContentProvider.createUri(Post.class, null),
-                        null, builder.toString(), new String[]{mBlog.getId().toString()},
+                        new String[]{"*", "1 AS sync_status"}, builder.toString(),
+                        new String[]{mBlog.getId().toString()},
                         "status ASC, published_at DESC, created_at DESC");
         }
         return null;

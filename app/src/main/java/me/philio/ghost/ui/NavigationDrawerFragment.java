@@ -804,6 +804,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
                 android.R.attr.textColorPrimary, R.attr.colorAccent});
         int textColorPrimary = getResources().getColor(typedArray.getResourceId(0, 0));
         int colorAccent = getResources().getColor(typedArray.getResourceId(1, 0));
+        typedArray.recycle();
 
         // Colour the icon/title
         if (selected) {
