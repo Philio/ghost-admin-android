@@ -18,6 +18,7 @@ package me.philio.ghost.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -43,6 +44,7 @@ public class PreviewFragment extends Fragment {
     /**
      * Arguments
      */
+    private static final String ARG_TITLE = "title";
     private static final String ARG_MARKDOWN = "markdown";
     private static final String ARG_URL_PREFIX = "url_prefix";
     private static final String ARG_SHOW_OPTIONS = "show_options";
@@ -59,6 +61,11 @@ public class PreviewFragment extends Fragment {
      * Content padding for the webview
      */
     private static final int CONTENT_PADDING = 8;
+
+    /**
+     * Post title
+     */
+    private String mTitle;
 
     /**
      * Markdown content
@@ -94,9 +101,11 @@ public class PreviewFragment extends Fragment {
      * @param urlPrefix URL prefix to fix any incomplete URLs
      * @return A new instance of fragment PreviewFragment.
      */
-    public static PreviewFragment newInstance(String markdown, String urlPrefix, boolean showOptions) {
+    public static PreviewFragment newInstance(String title, String markdown, String urlPrefix,
+                                              boolean showOptions) {
         PreviewFragment fragment = new PreviewFragment();
         Bundle args = new Bundle();
+        args.putString(ARG_TITLE, title);
         args.putString(ARG_MARKDOWN, markdown);
         args.putString(ARG_URL_PREFIX, urlPrefix);
         args.putBoolean(ARG_SHOW_OPTIONS, showOptions);
@@ -110,6 +119,9 @@ public class PreviewFragment extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
+            if (args.containsKey(ARG_TITLE)) {
+                mTitle = args.getString(ARG_TITLE);
+            }
             if (args.containsKey(ARG_MARKDOWN)) {
                 mMarkdown = args.getString(ARG_MARKDOWN);
             }
@@ -152,20 +164,33 @@ public class PreviewFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_preview, menu);
+    public void onResume() {
+        super.onResume();
+        updateTitle();
     }
 
-    public void updatePreview(String markdown, String urlPrefix, boolean showOptions) {
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.post_actions, menu);
+    }
+
+    public void updatePreview(String title, String markdown, String urlPrefix, boolean showOptions) {
+        mTitle = title;
         mMarkdown = markdown;
         mUrlPrefix = urlPrefix;
         mShowOptions = showOptions;
+
+        updateTitle();
 
         if (mMarkdown != null) {
             loadContent(mMarkdown);
         }
 
         setHasOptionsMenu(showOptions);
+    }
+
+    private void updateTitle() {
+        ((ActionBarActivity) getActivity()).getSupportActionBar().setTitle(mTitle);
     }
 
     private void loadContent(String markdown) {

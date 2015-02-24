@@ -54,6 +54,12 @@ public class MainActivity extends BaseActivity implements
     private static final String TAG = MainActivity.class.getName();
 
     /**
+     * Saved state
+     */
+    private static final String STATE_TITLE = "title";
+    private static final String STATE_FAB_VISIBILITY = "fab_visibility";
+
+    /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
     private NavigationDrawerFragment mNavigationDrawerFragment;
@@ -106,8 +112,16 @@ public class MainActivity extends BaseActivity implements
         // Listen for changes in the back stack
         getSupportFragmentManager().addOnBackStackChangedListener(this);
 
+        // Restore title of current fragment
+        if (savedInstanceState != null && savedInstanceState.containsKey(STATE_TITLE)) {
+            mTitle = savedInstanceState.getString(STATE_TITLE);
+            getSupportActionBar().setTitle(mTitle);
+        }
+
         // Reveal the add button after a short delay
-        showAdd(FAB_INITIAL_REVEAL_DELAY);
+        if (savedInstanceState == null || savedInstanceState.getBoolean(STATE_FAB_VISIBILITY)) {
+            showAdd(FAB_INITIAL_REVEAL_DELAY);
+        }
     }
 
     @Override
@@ -127,6 +141,18 @@ public class MainActivity extends BaseActivity implements
         unregisterReceiver(mReceiver);
 
         super.onStop();
+    }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Store the title of the current fragment
+        outState.putString(STATE_TITLE, mTitle);
+
+        // Store visibility of the FAB
+        outState.putBoolean(STATE_FAB_VISIBILITY, mAddBtn.getVisibility() == View.VISIBLE);
     }
 
     @Override
@@ -150,6 +176,14 @@ public class MainActivity extends BaseActivity implements
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        // Make sure handler has nothing scheduled
+        mHandler.removeCallbacksAndMessages(null);
+
+        super.onDestroy();
     }
 
     @Override
@@ -216,7 +250,8 @@ public class MainActivity extends BaseActivity implements
         switch (v.getId()) {
             case R.id.btn_add:
                 Intent intent = new Intent(this, EditorActivity.class);
-                intent.putExtra(EditorActivity.EXTRA_ACCOUNT, mNavigationDrawerFragment.getSelectedAccount());
+                intent.putExtra(EditorActivity.EXTRA_ACCOUNT,
+                        mNavigationDrawerFragment.getSelectedAccount());
                 startActivity(intent);
                 break;
         }
@@ -269,12 +304,13 @@ public class MainActivity extends BaseActivity implements
     public void onListItemClick(Post post, PostDraft postDraft) {
         mPreviewId = post.getId();
 
-        getSupportActionBar().setTitle(R.string.title_preview);
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
                         android.R.anim.fade_in, android.R.anim.fade_out)
-                .replace(R.id.container, PreviewFragment.newInstance(postDraft == null ?
-                        post.markdown : postDraft.markdown, post.blog.url, true))
+                .replace(R.id.container, PreviewFragment.newInstance(
+                        postDraft == null ? post.title : postDraft.title,
+                        postDraft == null ? post.markdown : postDraft.markdown,
+                        post.blog.url, true))
                 .addToBackStack(null)
                 .commit();
     }

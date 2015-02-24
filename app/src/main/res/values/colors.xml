@@ -29,8 +29,8 @@
     <!-- Other colours -->
     <color name="inset_foreground">#3000</color>
     <color name="popup_background">#333</color>
-    <color name="list_selected">#EEE</color>
-    <color name="list_pressed">#EEE</color>
-    <color name="list_selected_pressed">#DDD</color>
+    <color name="list_selected">#1000</color>
+    <color name="list_pressed">#1000</color>
+    <color name="list_selected_pressed">#2000</color>
     <color name="shadow_end">#1000</color>
 </resources>

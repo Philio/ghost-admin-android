@@ -93,7 +93,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         // Replace url fragment with login fragment
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
-                        android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                        R.anim.slide_in_left, R.anim.slide_out_right)
                 .replace(R.id.container, LoginFragment.newInstance(blogUrl))
                 .addToBackStack(null)
                 .commit();

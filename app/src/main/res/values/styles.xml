@@ -9,6 +9,7 @@
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="android:windowBackground">@color/window_background</item>
         <item name="windowActionModeOverlay">true</item>
+        <item name="actionModeBackground">?attr/colorPrimary</item>
     </style>
 
     <!-- Default theme with no ActionBar -->
@@ -22,5 +23,9 @@
 
     <!-- Splash theme -->
     <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.NoActionBar" />
+
+    <style name="Theme.Ghost.ActionMode" parent="Widget.AppCompat.ActionMode">
+        <item name="android:background">?attr/colorPrimary</item>
+    </style>
 
 </resources>

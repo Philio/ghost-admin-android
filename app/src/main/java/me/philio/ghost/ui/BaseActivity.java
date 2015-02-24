@@ -22,10 +22,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -89,6 +91,11 @@ public abstract class BaseActivity extends ActionBarActivity {
     @Optional
     protected LinearLayout mAlerts;
 
+    /**
+     * Active action mode
+     */
+    protected ActionMode mActionMode;
+
     @Override
     public void setContentView(int layoutResID) {
         super.setContentView(layoutResID);
@@ -139,6 +146,38 @@ public abstract class BaseActivity extends ActionBarActivity {
         }
 
         super.onStop();
+    }
+
+    @Override
+    public void onSupportActionModeStarted(ActionMode mode) {
+        mActionMode = mode;
+
+        // Make sure status bar colour is correct on lollipop up
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Resources.Theme theme = getTheme();
+            TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
+            getWindow().setStatusBarColor(getResources().getColor(typedArray.getResourceId(0, 0)));
+            typedArray.recycle();
+        }
+    }
+
+    @Override
+    public void onSupportActionModeFinished(ActionMode mode) {
+        mActionMode = null;
+
+        // Restore status bar transparency
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(android.R.color.transparent));
+        }
+    }
+
+    /**
+     * Finish action mode if it exists
+     */
+    public void finishActionMode() {
+        if (mActionMode != null) {
+            mActionMode.finish();
+        }
     }
 
     /**

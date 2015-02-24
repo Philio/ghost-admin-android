@@ -31,6 +31,8 @@ import android.support.v4.content.Loader;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,6 +41,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -71,7 +74,7 @@ import me.philio.ghost.util.ImageUtils;
  * interface.
  */
 public class PostsFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>,
-        SwipeRefreshLayout.OnRefreshListener {
+        SwipeRefreshLayout.OnRefreshListener, AdapterView.OnItemLongClickListener {
 
     /**
      * Logging tag
@@ -79,7 +82,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     private static final String TAG = PostsFragment.class.getName();
 
     /**
-     * Filters to deterine which posts to show
+     * Filters to determine which posts to show
      */
     public static final int SHOW_POSTS = 0x1;
     public static final int SHOW_PAGES = 0x2;
@@ -161,6 +164,46 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
      */
     @InjectView(R.id.txt_empty_info)
     protected TextView mEmptyInfoText;
+
+    /**
+     * Contextual action mode
+     */
+    private ActionMode mActionMode;
+
+    /**
+     * Position of item related to action mode
+     */
+    private int mActionModePosition;
+
+    /**
+     * Contextual action mode callback
+     */
+    private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
+
+        @Override
+        public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+            MenuInflater inflater = actionMode.getMenuInflater();
+            inflater.inflate(R.menu.post_actions, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode actionMode) {
+            getListView().getChildAt(mActionModePosition).setSelected(false);
+            mActionMode = null;
+        }
+
+    };
 
     /**
      * Create a new instance of the fragment
@@ -325,7 +368,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        getActivity().registerForContextMenu(getListView());
         super.onViewCreated(view, savedInstanceState);
+
+        // Setup list
+        getListView().setOnItemLongClickListener(this);
 
         // Setup swipe to refresh
         mSwipeRefreshLayout.setOnRefreshListener(this);
@@ -336,7 +383,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_posts, menu);
+        inflater.inflate(R.menu.search, menu);
 
         // TODO App was crashing here because getActivity returned null, needs investigation
         if (getActivity() == null) {
@@ -401,6 +448,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onDestroyView() {
+        getActivity().unregisterForContextMenu(getListView());
         mListener.onSwipeRefreshDestroyed();
         super.onDestroyView();
     }
@@ -416,6 +464,10 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
 
+        if (mActionMode != null) {
+            mActionMode.finish();
+        }
+
         if (null != mListener) {
             // Notify the active callbacks interface (the activity, if the
             // fragment is attached to one) that an item has been selected.
@@ -429,6 +481,20 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                 getLoaderManager().restartLoader(LOADER_POSTS, null, PostsFragment.this);
             }
         }
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        if (mActionMode != null) {
+            mActionMode.finish();
+        }
+
+        // Setup action mode
+        mActionMode = ((ActionBarActivity) getActivity())
+                .startSupportActionMode(mActionModeCallback);
+        mActionModePosition = position;
+        view.setSelected(true);
+        return true;
     }
 
     @Override

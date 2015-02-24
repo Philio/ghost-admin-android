@@ -87,7 +87,7 @@ public class EditorActivity extends BaseActivity implements
         }
 
         // Create new preview fragment instance
-        mPreviewFragment = PreviewFragment.newInstance(null, null, false);
+        mPreviewFragment = PreviewFragment.newInstance(null, null, null, false);
 
         // Setup viewpager (for mobile)
         if (mViewPager != null) {
@@ -108,7 +108,7 @@ public class EditorActivity extends BaseActivity implements
 
     @Override
     public void onPostChanged(Post post, PostDraft draft) {
-        mPreviewFragment.updatePreview(draft.markdown, post.blog.url, false);
+        mPreviewFragment.updatePreview(draft.title, draft.markdown, post.blog.url, false);
     }
 
     /**

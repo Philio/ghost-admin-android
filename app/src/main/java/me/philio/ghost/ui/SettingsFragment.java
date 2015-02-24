@@ -25,7 +25,6 @@ import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NavUtils;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -148,7 +147,7 @@ public class SettingsFragment extends PreferenceFragment implements Preference.O
                     public boolean onPreferenceClick(Preference preference) {
                         getFragmentManager().beginTransaction()
                                 .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
-                                        android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                                        R.anim.slide_in_left, R.anim.slide_out_right)
                                 .replace(R.id.container, SettingsFragment.newInstance(account))
                                 .addToBackStack(null)
                                 .commit();

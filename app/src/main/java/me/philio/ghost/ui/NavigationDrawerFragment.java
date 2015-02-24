@@ -31,6 +31,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -103,6 +104,11 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
      * Remember the position of the selected item.
      */
     private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
+
+    /**
+     * Remember if drawer toggle is enabled
+     */
+    private static final String STATE_TOGGLE_ENABLED = "toggle_enabled";
 
     /**
      * Per the design guidelines, you should show the drawer on launch until the user manually
@@ -182,6 +188,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     private int mCurrentSelectedItem = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+    private boolean mDrawerToggleEnabled = true;
 
     /**
      * Account manager
@@ -264,6 +271,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         if (savedInstanceState != null) {
             mSelectedAccount = savedInstanceState.getParcelable(STATE_SELECTED_ACCOUNT);
             mCurrentSelectedItem = savedInstanceState.getInt(STATE_SELECTED_POSITION);
+            mDrawerToggleEnabled = savedInstanceState.getBoolean(STATE_TOGGLE_ENABLED);
             mFromSavedInstanceState = true;
         }
 
@@ -291,7 +299,9 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         populateAccountDetails();
 
         // Select either the default item (0) or the last selected item.
-        selectItem(mCurrentSelectedItem);
+        if (!mFromSavedInstanceState) {
+            selectItem(mCurrentSelectedItem);
+        }
     }
 
     @Override
@@ -313,6 +323,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         super.onSaveInstanceState(outState);
         outState.putParcelable(STATE_SELECTED_ACCOUNT, mSelectedAccount);
         outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedItem);
+        outState.putBoolean(STATE_TOGGLE_ENABLED, mDrawerToggleEnabled);
     }
 
     @Override
@@ -481,10 +492,13 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         }
 
         // Set status bar colour for Lollipop
-        Resources.Theme theme = getActivity().getTheme();
-        TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
-        mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(typedArray
-                .getResourceId(0, 0)));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Resources.Theme theme = getActivity().getTheme();
+            TypedArray typedArray = theme.obtainStyledAttributes(new int[]{R.attr.colorPrimaryDark});
+            mDrawerLayout.setStatusBarBackgroundColor(getResources().getColor(typedArray
+                    .getResourceId(0, 0)));
+            typedArray.recycle();
+        }
 
         // Set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -536,7 +550,14 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
                 getActivity().supportInvalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                super.onDrawerStateChanged(newState);
+                ((BaseActivity) getActivity()).finishActionMode();
+            }
         };
+        mDrawerToggle.setDrawerIndicatorEnabled(mDrawerToggleEnabled);
 
         // If the user hasn't 'learned' about the drawer, open it to introduce them to the drawer,
         // per the navigation drawer design guidelines.
@@ -565,6 +586,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
     public void setDrawerIndicatorEnabled(boolean enabled) {
         if (mDrawerToggle != null) {
+            mDrawerToggleEnabled = enabled;
             mDrawerToggle.setDrawerIndicatorEnabled(enabled);
         }
     }
