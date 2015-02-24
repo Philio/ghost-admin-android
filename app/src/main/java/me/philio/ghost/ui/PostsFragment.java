@@ -368,7 +368,6 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        getActivity().registerForContextMenu(getListView());
         super.onViewCreated(view, savedInstanceState);
 
         // Setup list
