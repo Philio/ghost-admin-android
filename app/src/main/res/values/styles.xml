@@ -24,8 +24,4 @@
     <!-- Splash theme -->
     <style name="Theme.Ghost.Splash" parent="Theme.AppCompat.NoActionBar" />
 
-    <style name="Theme.Ghost.ActionMode" parent="Widget.AppCompat.ActionMode">
-        <item name="android:background">?attr/colorPrimary</item>
-    </style>
-
 </resources>
