@@ -32,5 +32,5 @@
     <color name="list_selected">#1000</color>
     <color name="list_pressed">#1000</color>
     <color name="list_selected_pressed">#2000</color>
-    <color name="shadow_end">#1000</color>
+    <color name="shadow_end">#04000000</color>
 </resources>

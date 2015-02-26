@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:propertyName="rotationY"
+    android:repeatCount="5"
+    android:repeatMode="reverse"
+    android:valueFrom="0"
+    android:valueTo="90" />

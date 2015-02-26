@@ -142,10 +142,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             Blog blog = getBlog(blogUrl, email);
 
             // Sync local changes
-            syncLocal(account, blog, syncResult);
+            syncLocal(blog, syncResult);
 
             // Sync remote changes
-            syncRemote(account, blog, syncResult);
+            syncRemote(blog, syncResult);
         } catch (AuthenticatorException | OperationCanceledException | IOException | RetrofitError |
                 NoSuchAlgorithmException e) {
             Log.e(TAG, "Sync error: " + e.getMessage());
@@ -220,11 +220,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Sync local changes back to the server
      *
-     * @param account    The account to sync
      * @param blog       The blog associated with the account
      * @param syncResult Sync result
      */
-    private void syncLocal(Account account, Blog blog, SyncResult syncResult) {
+    private void syncLocal(Blog blog, SyncResult syncResult) {
         List<Post> updatedPosts = new Select()
                 .from(Post.class)
                 .where("blog_id = ? AND sync_local_changes = ? AND remote_conflicted = ? AND remote_deleted = ?",
@@ -247,7 +246,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 Post remotePost = postsContainer.posts.get(0);
                 if (!remotePost.updatedAt.equals(post.updatedAt)) {
                     // Post edited remotely, create conflict
-                    createConflict(post, remotePost);
+                    createConflict(post, remotePost, syncResult);
                     continue;
                 }
             }
@@ -304,6 +303,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             post.syncLocalChanges = false;
 
             post.save();
+            syncResult.stats.numUpdates++;
         }
     }
 
@@ -313,11 +313,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * functionality doesn't yet look like it exists in the Ghost API.
      * TODO Hopefully this can be optimised at a later date, depends on the API
      *
-     * @param account    The account to sync
      * @param blog       The blog associated with the account
      * @param syncResult Sync result
      */
-    private void syncRemote(Account account, Blog blog, SyncResult syncResult) throws AuthenticatorException,
+    private void syncRemote(Blog blog, SyncResult syncResult) throws AuthenticatorException,
             OperationCanceledException, IOException, RetrofitError, NoSuchAlgorithmException {
         // Clear the image queue
         mImageQueue.clear();
@@ -483,7 +482,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Look within post markdown for images to download and cache for offline viewing
      *
-     * @param post
+     * @param post Post to search
      */
     private void findImages(Post post) {
         Matcher matcher = Pattern.compile("!\\[.*\\]\\((.*)\\)").matcher(post.markdown);
@@ -497,9 +496,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Save content (expects images)
      *
-     * @param blog
-     * @param path
-     * @param notificationUri
+     * @param blog            Blog record
+     * @param path            Image path
+     * @param notificationUri URI to notify of changes
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
@@ -531,6 +530,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Connect
         URL url = new URL(path);
         URLConnection connection = url.openConnection();
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(60000);
         connection.connect();
 
         // Save the image as a temporary file as IO errors on bitmap decode never throw an error
@@ -541,18 +542,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Decode the file
         Log.d(TAG, "Decoding to file: " + filename);
         ImageUtils.decodeScale(new FileInputStream(file), filename, 2048, 2048);
-        file.delete();
-        syncResult.stats.numInserts++;
+        boolean delete = file.delete();
+        if (!delete) {
+            Log.e(TAG, "Failed to delete temporary file");
+        }
         if (notificationUri != null) {
             getContext().getContentResolver().notifyChange(notificationUri, null);
         }
+        syncResult.stats.numInserts++;
     }
 
     /**
      * Save a user record if necessary
      *
-     * @param user
-     * @param syncResult
+     * @param user       User record
+     * @param syncResult Sync result
      */
     private void saveUser(User user, SyncResult syncResult) {
         // Get the local record
@@ -579,8 +583,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Save a setting record if necessary
      *
-     * @param setting
-     * @param syncResult
+     * @param setting    Setting record
+     * @param syncResult Sync result
      */
     private void saveSetting(Setting setting, SyncResult syncResult) {
         // Get the local record
@@ -607,8 +611,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Save a tag record if necessary
      *
-     * @param tag
-     * @param syncResult
+     * @param tag        Tag record
+     * @param syncResult Sync result
      */
     private void saveTag(Tag tag, SyncResult syncResult) {
         // Get the local record
@@ -635,8 +639,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Save a post record if necessary
      *
-     * @param post
-     * @param syncResult
+     * @param post       Post record
+     * @param syncResult Sync result
      */
     private void savePost(Post post, SyncResult syncResult) {
         // Get the local record
@@ -679,7 +683,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         dbPost.save();
                         syncResult.stats.numUpdates++;
                     }
-                    createConflict(dbPost, post);
+                    createConflict(dbPost, post, syncResult);
                     return;
                 }
 
@@ -755,10 +759,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     /**
      * Create a conflict record when a pot is changed both locally and remotely
      *
-     * @param local
-     * @param remote
+     * @param local      Local version of a post
+     * @param remote     Remote version of a post
+     * @param syncResult Sync result
      */
-    private void createConflict(Post local, Post remote) {
+    private void createConflict(Post local, Post remote, SyncResult syncResult) {
         // Check if conflict record exits
         PostConflict postConflict = new Select()
                 .from(PostConflict.class)
@@ -775,12 +780,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             postConflict.updatedAt = remote.updatedAt;
             postConflict.updatedBy = remote.updatedBy;
             postConflict.save();
+            syncResult.stats.numInserts++;
         } else if (!postConflict.updatedAt.equals(remote.updatedAt)) {
             postConflict.title = remote.title;
             postConflict.markdown = remote.markdown;
             postConflict.updatedAt = remote.updatedAt;
             postConflict.updatedBy = remote.updatedBy;
             postConflict.save();
+            syncResult.stats.numUpdates++;
         }
     }
 

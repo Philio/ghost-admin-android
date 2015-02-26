@@ -20,8 +20,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -56,7 +54,6 @@ import com.activeandroid.content.ContentProvider;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -134,10 +131,10 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
      * Item icons
      */
     private static final int[] ICONS = new int[]{
-            R.drawable.ic_action_action_description,
-            R.drawable.ic_action_action_description,
-            R.drawable.ic_action_action_settings,
-            R.drawable.ic_action_action_help
+            R.drawable.ic_action_description,
+            R.drawable.ic_action_description,
+            R.drawable.ic_action_settings,
+            R.drawable.ic_action_help
     };
 
     /**
@@ -451,12 +448,8 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
 
     @Override
     public void run(AccountManagerFuture<Bundle> future) {
-        try {
-            Bundle result = future.getResult();
-            // TODO
-        } catch (OperationCanceledException | IOException | AuthenticatorException e) {
-            Log.e(TAG, "Add account operation failed: " + e.getMessage());
-        }
+        // Probably not needed as account list is refreshed on resume as could be updated outside
+        // the app without the app's knowledge
     }
 
     /**
@@ -580,10 +573,6 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
         populateAccountItems();
     }
 
-    public boolean isDrawerOpen() {
-        return mDrawerLayout != null && mDrawerLayout.isDrawerOpen(mContainerView);
-    }
-
     public void setDrawerIndicatorEnabled(boolean enabled) {
         if (mDrawerToggle != null) {
             mDrawerToggleEnabled = enabled;
@@ -668,7 +657,7 @@ public class NavigationDrawerFragment extends Fragment implements View.OnClickLi
     /**
      * Change the active account
      *
-     * @param account
+     * @param account Account to set active
      */
     private void changeAccount(Account account) {
         // Change selected account

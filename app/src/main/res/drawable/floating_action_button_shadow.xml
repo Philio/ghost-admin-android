@@ -3,10 +3,11 @@
     android:shape="oval">
     <gradient
         android:endColor="@color/shadow_end"
-        android:gradientRadius="84"
+        android:gradientRadius="93"
         android:startColor="@android:color/black"
         android:type="radial" />
     <padding
-        android:bottom="4dp"
-        android:right="2dp" />
+        android:bottom="6dp"
+        android:left="3dp"
+        android:right="3dp" />
 </shape>

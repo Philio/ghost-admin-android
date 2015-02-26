@@ -18,11 +18,16 @@ package me.philio.ghost.ui;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
@@ -35,6 +40,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.util.Pair;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -171,9 +178,14 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     private ActionMode mActionMode;
 
     /**
-     * Position of item related to action mode
+     * Post related to the current action mode
      */
-    private int mActionModePosition;
+    private Post mActionModePost;
+
+    /**
+     * Array of drawables related to position in list
+     */
+    private SparseArray<Pair<BezelImageView, Drawable>> mPostImages = new SparseArray<>();
 
     /**
      * Contextual action mode callback
@@ -194,12 +206,17 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
         @Override
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.edit:
+                    return true;
+            }
             return false;
         }
 
         @Override
         public void onDestroyActionMode(ActionMode actionMode) {
-            getListView().getChildAt(mActionModePosition).setSelected(false);
+            // Clear selection and remove reference
+            clearSelection();
             mActionMode = null;
         }
 
@@ -264,7 +281,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.img_post:
                         // If post image exists replace placeholder
                         BezelImageView imageView = (BezelImageView) view;
-                        if (post.image != null) {
+                        if (post.image != null && !post.equals(mActionModePost)) {
                             try {
                                 String path = ImageUtils.getUrl(post.blog, post.image);
                                 String filename = ImageUtils.getFilename(getActivity(), mBlog,
@@ -294,7 +311,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                                     PorterDuff.Mode.SRC_ATOP);
 
                             // Make sure the image resource is correct (if view is recycled)
-                            imageView.setImageResource(R.drawable.ic_action_action_description);
+                            if (post.equals(mActionModePost)) {
+                                imageView.setImageResource(R.drawable.ic_action_done);
+                            } else {
+                                imageView.setImageResource(R.drawable.ic_action_description);
+                            }
                         }
                         return true;
                     case R.id.txt_title:
@@ -313,7 +334,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                             sync.setVisibility(View.VISIBLE);
                         } else if (mDrafts.containsKey(post) &&
                                 (mDrafts.get(post).revision != post.localRevision ||
-                                mDrafts.get(post).revisionEdit != post.localRevisionEdit)) {
+                                        mDrafts.get(post).revisionEdit != post.localRevisionEdit)) {
                             sync.setImageResource(R.drawable.ic_notification_sync);
                             sync.setColorFilter(getResources().getColor(R.color.text_secondary));
                             sync.setVisibility(View.VISIBLE);
@@ -447,7 +468,6 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onDestroyView() {
-        getActivity().unregisterForContextMenu(getListView());
         mListener.onSwipeRefreshDestroyed();
         super.onDestroyView();
     }
@@ -461,10 +481,9 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
         if (mActionMode != null) {
             mActionMode.finish();
+            return;
         }
 
         if (null != mListener) {
@@ -480,19 +499,29 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                 getLoaderManager().restartLoader(LOADER_POSTS, null, PostsFragment.this);
             }
         }
+        clearSelection();
     }
 
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-        if (mActionMode != null) {
+        if (mActionMode != null && position == getListView().getCheckedItemPosition()) {
             mActionMode.finish();
+            return true;
         }
 
         // Setup action mode
         mActionMode = ((ActionBarActivity) getActivity())
                 .startSupportActionMode(mActionModeCallback);
-        mActionModePosition = position;
-        view.setSelected(true);
+        mActionModePost = new Post();
+        mActionModePost.loadFromCursor((Cursor) getListAdapter().getItem(position));
+        getListView().setItemChecked(position, true);
+
+        // Animate the circle
+        BezelImageView imageView = (BezelImageView) view.findViewById(R.id.img_post);
+        if (mPostImages.get(position) == null) {
+            mPostImages.put(position, new Pair<>(imageView, imageView.getDrawable()));
+        }
+        spinImage(imageView);
         return true;
     }
 
@@ -605,6 +634,48 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     @Override
     public void onRefresh() {
         mListener.onRefresh();
+    }
+
+    private void spinImage(final BezelImageView imageView) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            Animator animator = AnimatorInflater.loadAnimator(getActivity(), R.animator.spin_y);
+            animator.setTarget(imageView);
+            animator.setDuration(100);
+            animator.addListener(new AnimatorListenerAdapter() {
+
+                int repetitions;
+                Drawable original;
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                    repetitions++;
+
+                    if (original == null) {
+                        original = imageView.getDrawable();
+                    }
+
+                    if (repetitions % 2 == 1) {
+                        if (imageView.getDrawable().equals(original)) {
+                            imageView.setImageResource(R.drawable.ic_action_done);
+                        } else {
+                            imageView.setImageDrawable(original);
+                        }
+                    }
+                }
+            });
+            animator.start();
+        }
+    }
+
+    private void clearSelection() {
+        int position = getListView().getCheckedItemPosition();
+        getListView().setItemChecked(position, false);
+        mActionModePost = null;
+        if (mPostImages.get(position) != null) {
+            Pair<BezelImageView, Drawable> image = mPostImages.get(position);
+            image.first.setImageDrawable(image.second);
+            mPostImages.delete(position);
+        }
     }
 
     /**
