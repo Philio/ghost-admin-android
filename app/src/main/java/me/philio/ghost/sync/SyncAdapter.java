@@ -542,8 +542,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         // Decode the file
         Log.d(TAG, "Decoding to file: " + filename);
         ImageUtils.decodeScale(new FileInputStream(file), filename, 2048, 2048);
-        boolean delete = file.delete();
-        if (!delete) {
+        if (!file.delete()) {
             Log.e(TAG, "Failed to delete temporary file");
         }
         if (notificationUri != null) {

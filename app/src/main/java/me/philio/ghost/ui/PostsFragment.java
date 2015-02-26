@@ -188,6 +188,11 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
     private SparseArray<Pair<BezelImageView, Drawable>> mPostImages = new SparseArray<>();
 
     /**
+     * Animator for coin spin effect
+     */
+    private Animator mAnimator;
+
+    /**
      * Contextual action mode callback
      */
     private ActionMode.Callback mActionModeCallback = new ActionMode.Callback() {
@@ -281,6 +286,10 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.img_post:
                         // If post image exists replace placeholder
                         BezelImageView imageView = (BezelImageView) view;
+                        if (post.equals(mActionModePost) && mAnimator != null
+                                && mAnimator.isRunning()) {
+                            return true;
+                        }
                         if (post.image != null && !post.equals(mActionModePost)) {
                             try {
                                 String path = ImageUtils.getUrl(post.blog, post.image);
@@ -514,14 +523,16 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                 .startSupportActionMode(mActionModeCallback);
         mActionModePost = new Post();
         mActionModePost.loadFromCursor((Cursor) getListAdapter().getItem(position));
-        getListView().setItemChecked(position, true);
 
         // Animate the circle
         BezelImageView imageView = (BezelImageView) view.findViewById(R.id.img_post);
         if (mPostImages.get(position) == null) {
             mPostImages.put(position, new Pair<>(imageView, imageView.getDrawable()));
         }
-        spinImage(imageView);
+        spinImage(imageView, imageView.getDrawable());
+
+        // Lastly set the item as checked as this refreshes the list
+        getListView().setItemChecked(position, true);
         return true;
     }
 
@@ -636,23 +647,18 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         mListener.onRefresh();
     }
 
-    private void spinImage(final BezelImageView imageView) {
+    private void spinImage(final BezelImageView imageView, final Drawable original) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            Animator animator = AnimatorInflater.loadAnimator(getActivity(), R.animator.spin_y);
-            animator.setTarget(imageView);
-            animator.setDuration(100);
-            animator.addListener(new AnimatorListenerAdapter() {
+            mAnimator = AnimatorInflater.loadAnimator(getActivity(), R.animator.spin_y);
+            mAnimator.setTarget(imageView);
+            mAnimator.setDuration(100);
+            mAnimator.addListener(new AnimatorListenerAdapter() {
 
                 int repetitions;
-                Drawable original;
 
                 @Override
                 public void onAnimationRepeat(Animator animation) {
                     repetitions++;
-
-                    if (original == null) {
-                        original = imageView.getDrawable();
-                    }
 
                     if (repetitions % 2 == 1) {
                         if (imageView.getDrawable().equals(original)) {
@@ -662,8 +668,9 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         }
                     }
                 }
+
             });
-            animator.start();
+            mAnimator.start();
         }
     }
 
