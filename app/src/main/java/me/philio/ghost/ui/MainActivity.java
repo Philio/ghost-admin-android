@@ -85,9 +85,9 @@ public class MainActivity extends BaseActivity implements
     private String mTitle;
 
     /**
-     * Id of the post displayed in the preview
+     * Post displayed in the preview
      */
-    private long mPreviewId;
+    private Post mPreviewPost;
 
     /**
      * Views
@@ -162,7 +162,7 @@ public class MainActivity extends BaseActivity implements
                 if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                     getSupportFragmentManager().popBackStack();
                 }
-                break;
+                return true;
             case R.id.edit:
                 if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                     getSupportFragmentManager()
@@ -171,9 +171,11 @@ public class MainActivity extends BaseActivity implements
                 Intent intent = new Intent(this, EditorActivity.class);
                 intent.putExtra(EditorActivity.EXTRA_ACCOUNT,
                         mNavigationDrawerFragment.getSelectedAccount());
-                intent.putExtra(EditorActivity.EXTRA_POST_ID, mPreviewId);
+                intent.putExtra(EditorActivity.EXTRA_POST_ID, mPreviewPost.getId());
                 startActivity(intent);
-                break;
+                return true;
+            case R.id.delete:
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -302,7 +304,7 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     public void onListItemClick(Post post, PostDraft postDraft) {
-        mPreviewId = post.getId();
+        mPreviewPost = post;
 
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,

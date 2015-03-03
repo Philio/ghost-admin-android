@@ -24,6 +24,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -213,6 +214,14 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
         public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
             switch (menuItem.getItemId()) {
                 case R.id.edit:
+                    Intent intent = new Intent(getActivity(), EditorActivity.class);
+                    intent.putExtra(EditorActivity.EXTRA_ACCOUNT, mAccount);
+                    intent.putExtra(EditorActivity.EXTRA_POST_ID, mActionModePost.getId());
+                    startActivity(intent);
+                    actionMode.finish();
+                    return true;
+                case R.id.delete:
+                    actionMode.finish();
                     return true;
             }
             return false;
@@ -286,10 +295,6 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                     case R.id.img_post:
                         // If post image exists replace placeholder
                         BezelImageView imageView = (BezelImageView) view;
-                        if (post.equals(mActionModePost) && mAnimator != null
-                                && mAnimator.isRunning()) {
-                            return true;
-                        }
                         if (post.image != null && !post.equals(mActionModePost)) {
                             try {
                                 String path = ImageUtils.getUrl(post.blog, post.image);
@@ -321,6 +326,9 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
 
                             // Make sure the image resource is correct (if view is recycled)
                             if (post.equals(mActionModePost)) {
+                                if (mAnimator != null && mAnimator.isRunning()) {
+                                    return true;
+                                }
                                 imageView.setImageResource(R.drawable.ic_action_done);
                             } else {
                                 imageView.setImageResource(R.drawable.ic_action_description);
@@ -654,6 +662,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
             mAnimator.setDuration(100);
             mAnimator.addListener(new AnimatorListenerAdapter() {
 
+                // Number of times the animation has repeated
                 int repetitions;
 
                 @Override

@@ -66,8 +66,23 @@ public class ImageUtils {
      */
     public static String getFilename(Context context, Blog blog, String path) throws
             UnsupportedEncodingException, NoSuchAlgorithmException {
+        return getFilename(context, blog.getId(), path);
+    }
+
+    /**
+     * Get filename for a given path in a blog
+     *
+     * @param context
+     * @param blogId
+     * @param path
+     * @return
+     * @throws UnsupportedEncodingException
+     * @throws NoSuchAlgorithmException
+     */
+    public static String getFilename(Context context, long blogId, String path) throws
+            UnsupportedEncodingException, NoSuchAlgorithmException {
         // Generate a filename
-        return context.getFilesDir().getAbsolutePath() + "/content/" + Long.toString(blog.getId()) +
+        return context.getFilesDir().getAbsolutePath() + "/content/" + Long.toString(blogId) +
                 "/" + sha1(path) + ".png";
     }
 
@@ -94,9 +109,9 @@ public class ImageUtils {
      */
     private static String bytesToString(byte[] bytes) {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            builder.append(Character.forDigit((bytes[i] >> 4) & 0xF, 16));
-            builder.append(Character.forDigit((bytes[i] & 0xF), 16));
+        for (byte aByte : bytes) {
+            builder.append(Character.forDigit((aByte >> 4) & 0xF, 16));
+            builder.append(Character.forDigit((aByte & 0xF), 16));
         }
         return builder.toString();
     }
@@ -135,7 +150,6 @@ public class ImageUtils {
      * @param filename    Filename to save as
      * @param maxWidth    Maximum width
      * @param maxHeight   Maximum height
-     * @return
      */
     public static void decodeScale(InputStream inputStream, String filename, int maxWidth, int maxHeight) throws FileNotFoundException {
         // Decode stream to bitmap

@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "me.philio.ghost"
-        minSdkVersion 10
+        minSdkVersion 11
         targetSdkVersion 21
         versionCode 1
         versionName "0.1.0"

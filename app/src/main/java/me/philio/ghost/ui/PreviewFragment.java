@@ -200,6 +200,15 @@ public class PreviewFragment extends Fragment {
         // Tweak HTML
         html = String.format(HTML_FORMAT, CONTENT_PADDING, html);
 
+        // Check for local copies of images
+        /*
+        Matcher matcher = Pattern.compile("<img.*src=\"([^\"]*)\"[^>]*>").matcher(html);
+        while (matcher.find()) {
+            Log.e("Match", "" + matcher.group(0));
+            Log.e("Match", "" + matcher.group(1));
+        }
+        */
+
         // Add domain prefix for images and links that start with a /
         html = html.replaceAll("<img(.*)src=\"/", "<img$1src=\"" + mUrlPrefix + "/");
         html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mUrlPrefix + "/");
