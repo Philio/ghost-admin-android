@@ -5,8 +5,10 @@ Ghost Writer for Android
 
 An open source offline editor for the [Ghost](https://ghost.org/) blogging software.
 
-This app is under development and is expected to be released to
-[Google Play](https://play.google.com/) soon.
+The app is under active development, but also being used as a test bed for new features from Android
+5.0 Lollipop and Google's material design so no release date is currently set. The app is nearing
+feature completeness and I am hoping to push a release to [Google Play](https://play.google.com/) in
+the coming weeks.
 
 Contributions to the project are welcome, please contact me to discuss if you're interested.
 
@@ -17,7 +19,7 @@ This is a high level view of the main features and current progress and is very 
 * Implement Ghost API [COMPLETE]
 * Login to multiple blogs [COMPLETE]
 * Sync data to the device for offline usage [COMPLETE]
-* Sync changes from the device to the server [IN PROGRESS]
+* Sync changes from the device to the server [COMPLETE]
 * Navigation and account switching [COMPLETE]
 * Display list of posts and pages on a blog [COMPLETE]
 * Markdown rich text editor [COMPLETE]
@@ -25,6 +27,17 @@ This is a high level view of the main features and current progress and is very 
 * Image upload [NOT STARTED]
 * App settings [COMPLETE]
 * Tablet layouts [NOT STARTED]
+* Conflict resolution [IN PROGRESS]
+
+# Building the project
+
+The latest version of Android Studio (1.1) is recommended. Checked in version of code should build
+and run, but is not guaranteed complete or bug free at this stage.
+
+# Target devices
+
+Should work on all devices from Honeycomb 3.0 upwards. Originally also supporting Gingerbread, this
+has been pulled for now due to bugs.
 
 # Third party libraries
 
