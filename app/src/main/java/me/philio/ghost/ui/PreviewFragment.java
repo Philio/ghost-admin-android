@@ -125,6 +125,8 @@ public class PreviewFragment extends Fragment {
     protected ParallaxScrollView mScrollView;
     @InjectView(R.id.img_post)
     protected ParallaxImageView mImgPost;
+    @InjectView(R.id.view_padding)
+    protected View mViewPadding;
     @InjectView(R.id.webview)
     protected WebView mWebView;
 
@@ -232,7 +234,7 @@ public class PreviewFragment extends Fragment {
     public void onStop() {
         // Restore action bar colour if necessary
         if (mImgPost.getVisibility() == View.VISIBLE) {
-            resetActionBarColor();
+            resetActionBar();
         }
 
         super.onStop();
@@ -292,10 +294,12 @@ public class PreviewFragment extends Fragment {
                         Color.blue(color))));
     }
 
-    private void resetActionBarColor() {
+    private void resetActionBar() {
+        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
+
+        // Restore colour
         int color = getResources().getColor(R.color.primary);
-        ((ActionBarActivity) getActivity()).getSupportActionBar()
-                .setBackgroundDrawable(new ColorDrawable(color));
+        actionBar.setBackgroundDrawable(new ColorDrawable(color));
     }
 
     private void updateImage() {
@@ -304,21 +308,25 @@ public class PreviewFragment extends Fragment {
                 String path = ImageUtils.getUrl(mBlogUrl, mImage);
                 String filename = ImageUtils.getFilename(getActivity(), mBlogId, path);
                 if (ImageUtils.fileExists(filename)) {
-                    Picasso.with(getActivity()).load(new File(filename)).fit().centerCrop().into(mImgPost);
+                    Picasso.with(getActivity()).load(new File(filename)).fit().centerCrop()
+                            .into(mImgPost);
                 } else {
                     Picasso.with(getActivity()).load(path).fit().centerCrop().into(mImgPost);
                 }
+                mViewPadding.setVisibility(View.GONE);
                 mImgPost.setVisibility(View.VISIBLE);
                 ((ActionBarActivity) getActivity()).getSupportActionBar()
                         .setBackgroundDrawable(new ColorDrawable(getResources()
                                 .getColor(android.R.color.transparent)));
             } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
                 mImgPost.setVisibility(View.GONE);
-                resetActionBarColor();
+                mViewPadding.setVisibility(View.VISIBLE);
+                resetActionBar();
             }
         } else {
             mImgPost.setVisibility(View.GONE);
-            resetActionBarColor();
+            mViewPadding.setVisibility(View.VISIBLE);
+            resetActionBar();
         }
     }
 

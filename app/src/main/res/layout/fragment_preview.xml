@@ -13,7 +13,14 @@
         <me.philio.ghost.ui.widget.ParallaxImageView
             android:id="@+id/img_post"
             android:layout_width="match_parent"
-            android:layout_height="250dp" />
+            android:layout_height="250dp"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/view_padding"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:visibility="visible" />
 
         <WebView
             android:id="@+id/webview"
