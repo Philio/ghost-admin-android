@@ -161,8 +161,9 @@ public class MainActivity extends BaseActivity implements
             case android.R.id.home:
                 if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                     getSupportFragmentManager().popBackStack();
+                    return true;
                 }
-                return true;
+                break;
             case R.id.edit:
                 if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
                     getSupportFragmentManager()
