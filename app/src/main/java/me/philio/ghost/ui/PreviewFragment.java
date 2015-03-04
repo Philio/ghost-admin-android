@@ -19,6 +19,7 @@ package me.philio.ghost.ui;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -30,9 +31,15 @@ import android.webkit.WebView;
 
 import com.commonsware.cwac.anddown.AndDown;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghost.R;
+import me.philio.ghost.util.ImageUtils;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -42,11 +49,18 @@ import me.philio.ghost.R;
 public class PreviewFragment extends Fragment {
 
     /**
+     * Logging tag
+     */
+    private static final String TAG = PreviewFragment.class.getName();
+
+    /**
      * Arguments
      */
     private static final String ARG_TITLE = "title";
     private static final String ARG_MARKDOWN = "markdown";
-    private static final String ARG_URL_PREFIX = "url_prefix";
+    private static final String ARG_IMAGE = "image";
+    private static final String ARG_BLOG_ID = "blog_id";
+    private static final String ARG_BLOG_URL = "blog_url";
     private static final String ARG_SHOW_OPTIONS = "show_options";
 
     /**
@@ -73,9 +87,19 @@ public class PreviewFragment extends Fragment {
     private String mMarkdown;
 
     /**
+     * Post image
+     */
+    private String mImage;
+
+    /**
+     * Blog id
+     */
+    private long mBlogId;
+
+    /**
      * URL prefix
      */
-    private String mUrlPrefix;
+    private String mBlogUrl;
 
     /**
      * Show options menu
@@ -97,17 +121,24 @@ public class PreviewFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param markdown  Markdown to display
-     * @param urlPrefix URL prefix to fix any incomplete URLs
-     * @return A new instance of fragment PreviewFragment.
+     * @param title       Post title
+     * @param markdown    Markdown to display
+     * @param image       Post image
+     * @param blogId      Blog id
+     * @param blogUrl     URL of the blog
+     * @param showOptions Show options in action bar
+     * @return An instance of the fragment
      */
-    public static PreviewFragment newInstance(String title, String markdown, String urlPrefix,
-                                              boolean showOptions) {
+    public static PreviewFragment newInstance(String title, String markdown, String image,
+                                              long blogId, String blogUrl, boolean showOptions) {
+        Log.e(TAG, "" + blogId);
         PreviewFragment fragment = new PreviewFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MARKDOWN, markdown);
-        args.putString(ARG_URL_PREFIX, urlPrefix);
+        args.putString(ARG_IMAGE, image);
+        args.putLong(ARG_BLOG_ID, blogId);
+        args.putString(ARG_BLOG_URL, blogUrl);
         args.putBoolean(ARG_SHOW_OPTIONS, showOptions);
         fragment.setArguments(args);
         return fragment;
@@ -125,8 +156,14 @@ public class PreviewFragment extends Fragment {
             if (args.containsKey(ARG_MARKDOWN)) {
                 mMarkdown = args.getString(ARG_MARKDOWN);
             }
-            if (args.containsKey(ARG_URL_PREFIX)) {
-                mUrlPrefix = args.getString(ARG_URL_PREFIX);
+            if (args.containsKey(ARG_IMAGE)) {
+                mImage = args.getString(ARG_IMAGE);
+            }
+            if (args.containsKey(ARG_BLOG_ID)) {
+                mBlogId = args.getLong(ARG_BLOG_ID);
+            }
+            if (args.containsKey(ARG_BLOG_URL)) {
+                mBlogUrl = args.getString(ARG_BLOG_URL);
             }
             if (args.containsKey(ARG_SHOW_OPTIONS)) {
                 mShowOptions = args.getBoolean(ARG_SHOW_OPTIONS);
@@ -174,19 +211,29 @@ public class PreviewFragment extends Fragment {
         inflater.inflate(R.menu.post_actions, menu);
     }
 
-    public void updatePreview(String title, String markdown, String urlPrefix, boolean showOptions) {
+    /**
+     * Update the preview
+     *
+     * @param title    Post title
+     * @param markdown Markdown to display
+     * @param image    Post image
+     * @param blogId   Blog id
+     * @param blogUrl  URL of the blog
+     */
+    public void updatePreview(String title, String markdown, String image, long blogId,
+                              String blogUrl) {
         mTitle = title;
         mMarkdown = markdown;
-        mUrlPrefix = urlPrefix;
-        mShowOptions = showOptions;
+        mImage = image;
+        mBlogId = blogId;
+        mBlogUrl = blogUrl;
 
         updateTitle();
 
         if (mMarkdown != null) {
             loadContent(mMarkdown);
         }
-
-        setHasOptionsMenu(showOptions);
+        ;
     }
 
     private void updateTitle() {
@@ -201,17 +248,22 @@ public class PreviewFragment extends Fragment {
         html = String.format(HTML_FORMAT, CONTENT_PADDING, html);
 
         // Check for local copies of images
-        /*
         Matcher matcher = Pattern.compile("<img.*src=\"([^\"]*)\"[^>]*>").matcher(html);
         while (matcher.find()) {
-            Log.e("Match", "" + matcher.group(0));
-            Log.e("Match", "" + matcher.group(1));
+            try {
+                String imageUrl = ImageUtils.getUrl(mBlogUrl, matcher.group(1));
+                String filename = ImageUtils.getFilename(getActivity(), mBlogId, imageUrl);
+                if (ImageUtils.fileExists(filename)) {
+                    html = html.replaceAll(matcher.group(1), "file://" + filename);
+                }
+            } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                continue;
+            }
         }
-        */
 
         // Add domain prefix for images and links that start with a /
-        html = html.replaceAll("<img(.*)src=\"/", "<img$1src=\"" + mUrlPrefix + "/");
-        html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mUrlPrefix + "/");
+        html = html.replaceAll("<img(.*)src=\"/", "<img$1src=\"" + mBlogUrl + "/");
+        html = html.replaceAll("<a(.*)href=\"/", "<a$1href=\"" + mBlogUrl + "/");
 
         if (mWebView != null) {
             mWebView.loadDataWithBaseURL(null, html, "text/html", "utf-8", null);

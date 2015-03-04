@@ -514,6 +514,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         // Generate a filename
         String filename = ImageUtils.getFilename(getContext(), blog, path);
+        Log.d(TAG, "Local file: " + filename);
 
         // Make sure destination directory exists
         if (!ImageUtils.ensureDirectory(filename.substring(0, filename.lastIndexOf('/')))) {

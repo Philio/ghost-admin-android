@@ -46,12 +46,23 @@ public class ImageUtils {
      * @return
      */
     public static String getUrl(Blog blog, String path) {
+        return getUrl(blog.url, path);
+    }
+
+    /**
+     * Work out the URL of an image
+     *
+     * @param blogUrl
+     * @param path
+     * @return
+     */
+    public static String getUrl(String blogUrl, String path) {
         if (path.startsWith("http://") || path.startsWith("https://")) {
             return path;
         } else if (path.startsWith("//")) {
             return "https:" + path;
         }
-        return blog.url + path;
+        return blogUrl + path;
     }
 
     /**

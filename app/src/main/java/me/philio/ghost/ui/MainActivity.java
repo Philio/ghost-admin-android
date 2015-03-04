@@ -312,7 +312,7 @@ public class MainActivity extends BaseActivity implements
                 .replace(R.id.container, PreviewFragment.newInstance(
                         postDraft == null ? post.title : postDraft.title,
                         postDraft == null ? post.markdown : postDraft.markdown,
-                        post.blog.url, true))
+                        post.image, post.blog.getId(), post.blog.url, true))
                 .addToBackStack(null)
                 .commit();
     }
