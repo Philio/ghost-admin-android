@@ -300,9 +300,8 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                                 String path = ImageUtils.getUrl(post.blog, post.image);
                                 String filename = ImageUtils.getFilename(getActivity(), mBlog,
                                         path);
-                                File cover = new File(filename);
-                                if (cover.exists()) {
-                                    Picasso.with(getActivity()).load(cover).fit().centerCrop()
+                                if (ImageUtils.fileExists(filename)) {
+                                    Picasso.with(getActivity()).load(new File(filename)).fit().centerCrop()
                                             .into(imageView);
                                 }
                             } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {

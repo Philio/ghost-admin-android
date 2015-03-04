@@ -16,8 +16,11 @@
 
 package me.philio.ghost.ui;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,7 +33,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.commonsware.cwac.anddown.AndDown;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
@@ -39,6 +44,8 @@ import java.util.regex.Pattern;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghost.R;
+import me.philio.ghost.ui.widget.ParallaxImageView;
+import me.philio.ghost.ui.widget.ParallaxScrollView;
 import me.philio.ghost.util.ImageUtils;
 
 /**
@@ -114,6 +121,10 @@ public class PreviewFragment extends Fragment {
     /**
      * Views
      */
+    @InjectView(R.id.scrollview)
+    protected ParallaxScrollView mScrollView;
+    @InjectView(R.id.img_post)
+    protected ParallaxImageView mImgPost;
     @InjectView(R.id.webview)
     protected WebView mWebView;
 
@@ -184,6 +195,15 @@ public class PreviewFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        // Listen for scroll events
+        mScrollView.setOnScrollListener(new ParallaxScrollView.OnScrollListener() {
+            @Override
+            public void onScrollChanged(int l, int t, int oldl, int oldt) {
+                if (mImgPost.getVisibility() == View.VISIBLE) {
+                    updateActionBarColor(t);
+                }
+            }
+        });
         // Set up web view
         mWebView.setOnTouchListener(new View.OnTouchListener() {
 
@@ -193,6 +213,8 @@ public class PreviewFragment extends Fragment {
 
         });
         mWebView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
+
+        updateImage();
 
         // Load HTML into webview
         if (mMarkdown != null) {
@@ -204,6 +226,16 @@ public class PreviewFragment extends Fragment {
     public void onResume() {
         super.onResume();
         updateTitle();
+    }
+
+    @Override
+    public void onStop() {
+        // Restore action bar colour if necessary
+        if (mImgPost.getVisibility() == View.VISIBLE) {
+            resetActionBarColor();
+        }
+
+        super.onStop();
     }
 
     @Override
@@ -228,16 +260,66 @@ public class PreviewFragment extends Fragment {
         mBlogId = blogId;
         mBlogUrl = blogUrl;
 
+        mScrollView.scrollTo(0, 0);
         updateTitle();
+        updateImage();
 
         if (mMarkdown != null) {
             loadContent(mMarkdown);
         }
-        ;
     }
 
     private void updateTitle() {
         ((ActionBarActivity) getActivity()).getSupportActionBar().setTitle(mTitle);
+    }
+
+    private void updateActionBarColor(int position) {
+        ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
+
+        // Fling produces negative values, so always use as 0 to prevent flicker
+        position = position < 0 ? 0 : position;
+
+        // Calculate alpha amount
+        int alpha;
+        alpha = (position <= (mImgPost.getHeight() - actionBar.getHeight())) ?
+                (int) (255 * (float) position / (mImgPost.getHeight() - actionBar.getHeight())) :
+                255;
+
+        // Apply colour to action bar
+        int color = getResources().getColor(R.color.primary);
+        actionBar.setBackgroundDrawable(
+                new ColorDrawable(Color.argb(alpha, Color.red(color), Color.green(color),
+                        Color.blue(color))));
+    }
+
+    private void resetActionBarColor() {
+        int color = getResources().getColor(R.color.primary);
+        ((ActionBarActivity) getActivity()).getSupportActionBar()
+                .setBackgroundDrawable(new ColorDrawable(color));
+    }
+
+    private void updateImage() {
+        if (mImage != null && !mImage.isEmpty()) {
+            try {
+                String path = ImageUtils.getUrl(mBlogUrl, mImage);
+                String filename = ImageUtils.getFilename(getActivity(), mBlogId, path);
+                if (ImageUtils.fileExists(filename)) {
+                    Picasso.with(getActivity()).load(new File(filename)).fit().centerCrop().into(mImgPost);
+                } else {
+                    Picasso.with(getActivity()).load(path).fit().centerCrop().into(mImgPost);
+                }
+                mImgPost.setVisibility(View.VISIBLE);
+                ((ActionBarActivity) getActivity()).getSupportActionBar()
+                        .setBackgroundDrawable(new ColorDrawable(getResources()
+                                .getColor(android.R.color.transparent)));
+            } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                mImgPost.setVisibility(View.GONE);
+                resetActionBarColor();
+            }
+        } else {
+            mImgPost.setVisibility(View.GONE);
+            resetActionBarColor();
+        }
     }
 
     private void loadContent(String markdown) {
@@ -251,8 +333,8 @@ public class PreviewFragment extends Fragment {
         Matcher matcher = Pattern.compile("<img.*src=\"([^\"]*)\"[^>]*>").matcher(html);
         while (matcher.find()) {
             try {
-                String imageUrl = ImageUtils.getUrl(mBlogUrl, matcher.group(1));
-                String filename = ImageUtils.getFilename(getActivity(), mBlogId, imageUrl);
+                String path = ImageUtils.getUrl(mBlogUrl, matcher.group(1));
+                String filename = ImageUtils.getFilename(getActivity(), mBlogId, path);
                 if (ImageUtils.fileExists(filename)) {
                     html = html.replaceAll(matcher.group(1), "file://" + filename);
                 }
