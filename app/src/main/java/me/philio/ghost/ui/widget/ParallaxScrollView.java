@@ -77,7 +77,7 @@ public class ParallaxScrollView extends ScrollView {
 
         // If parallax image is visible, adjust y position
         if (mParallaxImageView != null && mParallaxImageView.getVisibility() == VISIBLE) {
-            mParallaxImageView.setTranslationY(t / 2);
+            mParallaxImageView.setTranslationY((int) (t / 1.8));
         }
 
         // Send event to listener
