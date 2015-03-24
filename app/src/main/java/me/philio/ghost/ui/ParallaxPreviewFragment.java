@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Phil Bayfield
+ * Copyright 2014 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,16 @@
 
 package me.philio.ghost.ui;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,7 +33,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.commonsware.cwac.anddown.AndDown;
+import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.regex.Matcher;
@@ -36,22 +44,26 @@ import java.util.regex.Pattern;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import me.philio.ghost.R;
+import me.philio.ghost.ui.widget.ParallaxImageView;
+import me.philio.ghost.ui.widget.ParallaxScrollView;
 import me.philio.ghost.util.ImageUtils;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link PreviewFragment#newInstance} factory method to
+ * Use the {@link ParallaxPreviewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PreviewFragment extends Fragment {
+public class ParallaxPreviewFragment extends Fragment {
 
     /**
      * Arguments
      */
     private static final String ARG_TITLE = "title";
     private static final String ARG_MARKDOWN = "markdown";
+    private static final String ARG_IMAGE = "image";
     private static final String ARG_BLOG_ID = "blog_id";
     private static final String ARG_BLOG_URL = "blog_url";
+    private static final String ARG_SHOW_OPTIONS = "show_options";
 
     /**
      * HTML format
@@ -77,6 +89,11 @@ public class PreviewFragment extends Fragment {
     private String mMarkdown;
 
     /**
+     * Post image
+     */
+    private String mImage;
+
+    /**
      * Blog id
      */
     private long mBlogId;
@@ -87,19 +104,29 @@ public class PreviewFragment extends Fragment {
     private String mBlogUrl;
 
     /**
+     * Show options menu
+     */
+    private boolean mShowOptions;
+
+    /**
+     * Action bar
+     */
+    private ActionBar mActionBar;
+
+    /**
      * Instance of the AndDown markdown parser
      */
     private AndDown mAndDown = new AndDown();
 
     /**
-     * Toolbar
+     * Views
      */
-    @InjectView(R.id.toolbar)
-    protected Toolbar mToolbar;
-
-    /**
-     * Webview for preview
-     */
+    @InjectView(R.id.scrollview)
+    protected ParallaxScrollView mScrollView;
+    @InjectView(R.id.img_post)
+    protected ParallaxImageView mImgPost;
+    @InjectView(R.id.view_padding)
+    protected View mViewPadding;
     @InjectView(R.id.webview)
     protected WebView mWebView;
 
@@ -107,20 +134,24 @@ public class PreviewFragment extends Fragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param title    Post title
-     * @param markdown Markdown to display
-     * @param blogId   Blog id
-     * @param blogUrl  URL of the blog
+     * @param title       Post title
+     * @param markdown    Markdown to display
+     * @param image       Post image
+     * @param blogId      Blog id
+     * @param blogUrl     URL of the blog
+     * @param showOptions Show options in action bar
      * @return An instance of the fragment
      */
-    public static PreviewFragment newInstance(String title, String markdown, long blogId,
-                                              String blogUrl) {
-        PreviewFragment fragment = new PreviewFragment();
+    public static ParallaxPreviewFragment newInstance(String title, String markdown, String image,
+                                              long blogId, String blogUrl, boolean showOptions) {
+        ParallaxPreviewFragment fragment = new ParallaxPreviewFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TITLE, title);
         args.putString(ARG_MARKDOWN, markdown);
+        args.putString(ARG_IMAGE, image);
         args.putLong(ARG_BLOG_ID, blogId);
         args.putString(ARG_BLOG_URL, blogUrl);
+        args.putBoolean(ARG_SHOW_OPTIONS, showOptions);
         fragment.setArguments(args);
         return fragment;
     }
@@ -137,26 +168,47 @@ public class PreviewFragment extends Fragment {
             if (args.containsKey(ARG_MARKDOWN)) {
                 mMarkdown = args.getString(ARG_MARKDOWN);
             }
+            if (args.containsKey(ARG_IMAGE)) {
+                mImage = args.getString(ARG_IMAGE);
+            }
             if (args.containsKey(ARG_BLOG_ID)) {
                 mBlogId = args.getLong(ARG_BLOG_ID);
             }
             if (args.containsKey(ARG_BLOG_URL)) {
                 mBlogUrl = args.getString(ARG_BLOG_URL);
             }
+            if (args.containsKey(ARG_SHOW_OPTIONS)) {
+                mShowOptions = args.getBoolean(ARG_SHOW_OPTIONS);
+            }
         }
+
+        setHasOptionsMenu(mShowOptions);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_preview, container, false);
+        View view = inflater.inflate(R.layout.fragment_parallax_preview, container, false);
         ButterKnife.inject(this, view);
         return view;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
+        // Get reference to action bar, if there is one
+        mActionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
+
+        // Listen for scroll events and update ActionBar colour
+        mScrollView.setOnScrollListener(new ParallaxScrollView.OnScrollListener() {
+            @Override
+            public void onScrollChanged(int l, int t, int oldl, int oldt) {
+                if (mImgPost.getVisibility() == View.VISIBLE) {
+                    updateActionBarColor(t);
+                }
+            }
+        });
+
         // Set up web view
         mWebView.setOnTouchListener(new View.OnTouchListener() {
 
@@ -166,6 +218,8 @@ public class PreviewFragment extends Fragment {
 
         });
         mWebView.getSettings().setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
+
+        updateImage();
 
         // Load HTML into webview
         if (mMarkdown != null) {
@@ -179,21 +233,41 @@ public class PreviewFragment extends Fragment {
         updateTitle();
     }
 
+    @Override
+    public void onStop() {
+        // Restore action bar colour if necessary
+        if (mImgPost.getVisibility() == View.VISIBLE) {
+            resetActionBar();
+        }
+
+        super.onStop();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.post_actions, menu);
+    }
+
     /**
      * Update the preview
      *
      * @param title    Post title
      * @param markdown Markdown to display
+     * @param image    Post image
      * @param blogId   Blog id
      * @param blogUrl  URL of the blog
      */
-    public void updatePreview(String title, String markdown, long blogId, String blogUrl) {
+    public void updatePreview(String title, String markdown, String image, long blogId,
+                              String blogUrl) {
         mTitle = title;
         mMarkdown = markdown;
+        mImage = image;
         mBlogId = blogId;
         mBlogUrl = blogUrl;
 
+        mScrollView.scrollTo(0, 0);
         updateTitle();
+        updateImage();
 
         if (mMarkdown != null) {
             loadContent(mMarkdown);
@@ -201,7 +275,69 @@ public class PreviewFragment extends Fragment {
     }
 
     private void updateTitle() {
-        mToolbar.setTitle(mTitle);
+        if (mActionBar != null) {
+            mActionBar.setTitle(mTitle);
+        }
+    }
+
+    private void updateActionBarColor(int position) {
+        if (mActionBar == null) {
+            return;
+        }
+
+        // Fling produces negative values, so always use as 0 to prevent flicker
+        position = position < 0 ? 0 : position;
+
+        // Calculate alpha amount
+        int alpha;
+        alpha = (position <= (mImgPost.getHeight() - mActionBar.getHeight())) ?
+                (int) (255 * (float) position / (mImgPost.getHeight() - mActionBar.getHeight())) :
+                255;
+
+        // Apply colour to action bar
+        int color = getResources().getColor(R.color.primary);
+        mActionBar.setBackgroundDrawable(
+                new ColorDrawable(Color.argb(alpha, Color.red(color), Color.green(color),
+                        Color.blue(color))));
+    }
+
+    private void resetActionBar() {
+        if (mActionBar == null) {
+            return;
+        }
+
+        // Restore colour
+        int color = getResources().getColor(R.color.primary);
+        mActionBar.setBackgroundDrawable(new ColorDrawable(color));
+    }
+
+    private void updateImage() {
+        if (mImage != null && !mImage.isEmpty()) {
+            try {
+                String path = ImageUtils.getUrl(mBlogUrl, mImage);
+                String filename = ImageUtils.getFilename(getActivity(), mBlogId, path);
+                if (ImageUtils.fileExists(filename)) {
+                    Picasso.with(getActivity()).load(new File(filename)).fit().centerCrop()
+                            .into(mImgPost);
+                } else {
+                    Picasso.with(getActivity()).load(path).fit().centerCrop().into(mImgPost);
+                }
+                mViewPadding.setVisibility(View.GONE);
+                mImgPost.setVisibility(View.VISIBLE);
+                if (mActionBar != null) {
+                    mActionBar.setBackgroundDrawable(new ColorDrawable(getResources()
+                            .getColor(android.R.color.transparent)));
+                }
+            } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+                mImgPost.setVisibility(View.GONE);
+                mViewPadding.setVisibility(View.VISIBLE);
+                resetActionBar();
+            }
+        } else {
+            mImgPost.setVisibility(View.GONE);
+            mViewPadding.setVisibility(View.VISIBLE);
+            resetActionBar();
+        }
     }
 
     private void loadContent(String markdown) {

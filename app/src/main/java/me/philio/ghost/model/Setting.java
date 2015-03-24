@@ -96,7 +96,13 @@ public class Setting extends Model {
         GHOST_HEAD,
 
         @SerializedName("ghost_foot")
-        GHOST_FOOT;
+        GHOST_FOOT,
+
+        @SerializedName("labs")
+        LABS,
+
+        @SerializedName("navigation")
+        NAVIGATION,
 
     }
 

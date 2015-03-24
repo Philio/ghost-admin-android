@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2015 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ public class Post extends Model {
 
     @Column(name = "created_by")
     @SerializedName("created_by")
-    public int createdBy;
+    public Integer createdBy;
 
     @Column(name = "updated_at")
     @SerializedName("updated_at")
@@ -133,7 +133,7 @@ public class Post extends Model {
 
     @Column(name = "updated_by")
     @SerializedName("updated_by")
-    public int updatedBy;
+    public Integer updatedBy;
 
     @Column(name = "published_at")
     @SerializedName("published_at")
@@ -141,7 +141,7 @@ public class Post extends Model {
 
     @Column(name = "published_by")
     @SerializedName("published_by")
-    public int publishedBy;
+    public Integer publishedBy;
 
     @Column(name = "author")
     @SerializedName("author")
@@ -163,6 +163,12 @@ public class Post extends Model {
      */
     @Column(name = "local_revision_edit")
     public transient int localRevisionEdit;
+
+    /**
+     * A flag to indicate that the record was deleted locally
+     */
+    @Column(name = "local_deleted")
+    public transient boolean localDeleted;
 
     /**
      * A flag to indicate if local changes should be synced

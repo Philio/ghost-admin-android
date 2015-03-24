@@ -77,4 +77,7 @@
     <string name="about_copyright">Copyright %s Phil Bayfield</string>
     <string name="about_open_source"><![CDATA[This application is free and open source. Please visit the <a href="https://github.com/Philio/ghost-admin-android">Github project</a> to report bugs, get the code or contribute to the project.]]></string>
 
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

@@ -342,19 +342,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         SettingsContainer settingsContainer = settings.blockingGetSettings(Setting.Type.BLOG,
                 1);
         for (Setting setting : settingsContainer.settings) {
-            setting.blog = blog;
-            saveSetting(setting, syncResult);
+            if (setting.key != null) {
+                setting.blog = blog;
+                saveSetting(setting, syncResult);
 
-            // If setting contains an image queue it for download
-            switch (setting.key) {
-                case LOGO:
-                case COVER:
-                    if (setting.value != null && !setting.value.trim().isEmpty()) {
-                        Log.d(TAG, "Queuing image download: " + setting.value);
-                        mImageQueue.add(new Pair<>(setting.value,
-                                ContentProvider.createUri(Setting.class, null)));
-                    }
-                    break;
+                // If setting contains an image queue it for download
+                switch (setting.key) {
+                    case LOGO:
+                    case COVER:
+                        if (setting.value != null && !setting.value.trim().isEmpty()) {
+                            Log.d(TAG, "Queuing image download: " + setting.value);
+                            mImageQueue.add(new Pair<>(setting.value,
+                                    ContentProvider.createUri(Setting.class, null)));
+                        }
+                        break;
+                }
+            } else {
+                Log.d(TAG, "Skipped unknown setting");
             }
         }
 

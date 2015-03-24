@@ -310,7 +310,7 @@ public class MainActivity extends BaseActivity implements
         getSupportFragmentManager().beginTransaction()
                 .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out,
                         android.R.anim.fade_in, android.R.anim.fade_out)
-                .replace(R.id.container, PreviewFragment.newInstance(
+                .replace(R.id.container, ParallaxPreviewFragment.newInstance(
                         postDraft == null ? post.title : postDraft.title,
                         postDraft == null ? post.markdown : postDraft.markdown,
                         post.image, post.blog.getId(), post.blog.url, true))

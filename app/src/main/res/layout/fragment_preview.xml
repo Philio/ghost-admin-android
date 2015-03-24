@@ -1,31 +1,32 @@
-<me.philio.ghost.ui.widget.ParallaxScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/scrollview"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="me.philio.ghost.ui.PreviewFragment">
 
-    <LinearLayout
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="2dp"
+        app:contentInsetEnd="@dimen/keyline_1"
+        app:contentInsetLeft="@dimen/keyline_1"
+        app:contentInsetRight="@dimen/keyline_1"
+        app:contentInsetStart="@dimen/keyline_1"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-        <me.philio.ghost.ui.widget.ParallaxImageView
-            android:id="@+id/img_post"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:visibility="gone" />
-
-        <View
-            android:id="@+id/view_padding"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:visibility="visible" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar">
 
         <WebView
             android:id="@+id/webview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:ignore="WebViewLayout" />
-    </LinearLayout>
-</me.philio.ghost.ui.widget.ParallaxScrollView>
+            android:layout_height="wrap_content" />
+
+    </ScrollView>
+</RelativeLayout>

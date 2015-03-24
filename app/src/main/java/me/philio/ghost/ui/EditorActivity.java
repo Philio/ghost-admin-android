@@ -73,7 +73,6 @@ public class EditorActivity extends BaseActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
         ButterKnife.inject(this);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Check extras
         Bundle extras = getIntent().getExtras();
@@ -87,7 +86,7 @@ public class EditorActivity extends BaseActivity implements
         }
 
         // Create new preview fragment instance
-        mPreviewFragment = PreviewFragment.newInstance(null, null, null, 0, null, false);
+        mPreviewFragment = PreviewFragment.newInstance(null, null, 0, null);
 
         // Setup viewpager (for mobile)
         if (mViewPager != null) {
@@ -108,7 +107,7 @@ public class EditorActivity extends BaseActivity implements
 
     @Override
     public void onPostChanged(Post post, PostDraft draft) {
-        mPreviewFragment.updatePreview(draft.title, draft.markdown, post.image, post.blog.getId(),
+        mPreviewFragment.updatePreview(draft.title, draft.markdown, post.blog.getId(),
                 post.blog.url);
     }
 

@@ -1,31 +1,43 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingBottom="@dimen/keyline_1"
-    android:paddingTop="@dimen/keyline_1"
     tools:context="me.philio.ghost.ui.MarkdownFragment">
 
-    <EditText
-        android:id="@+id/edit_title"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="12dp"
-        android:layout_marginRight="12dp"
-        android:enabled="false"
-        android:hint="@string/editor_title_hint"
-        android:imeOptions="flagNoExtractUi"
-        android:maxLines="1"
-        android:singleLine="true"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textStyle="bold" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="2dp"
+        app:contentInsetEnd="13dp"
+        app:contentInsetLeft="13dp"
+        app:contentInsetRight="13dp"
+        app:contentInsetStart="13dp"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+        <EditText
+            android:id="@+id/edit_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:hint="@string/editor_title_hint"
+            android:imeOptions="flagNoExtractUi"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textStyle="bold" />
+    </android.support.v7.widget.Toolbar>
 
     <me.philio.ghost.ui.widget.MarkdownEditText
         android:id="@+id/edit_markdown"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/edit_title"
+        android:layout_below="@+id/toolbar"
         android:layout_marginLeft="@dimen/keyline_1"
         android:layout_marginRight="@dimen/keyline_1"
         android:layout_marginTop="8dp"
