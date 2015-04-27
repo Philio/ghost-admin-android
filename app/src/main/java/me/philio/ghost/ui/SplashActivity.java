@@ -22,29 +22,34 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 import me.philio.ghost.R;
 
-public class SplashActivity extends ActionBarActivity implements AccountManagerCallback<Bundle> {
+public class SplashActivity extends AppCompatActivity implements AccountManagerCallback<Bundle> {
+
+    /**
+     * Slash screen delay in ms
+     */
+    private static final int SPLASH_DELAY_MS = 2000;
 
     /**
      * Timer to start next activity
      */
-    private Timer mTimer;
+    private Timer timer;
 
     /**
      * The account manager
      */
-    private AccountManager mAccountManager;
+    private AccountManager accountManager;
 
     /**
      * If addAccount has been called
      */
-    private boolean mAuthRequested;
+    private boolean authRequested;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,46 +57,23 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
         setContentView(R.layout.activity_splash);
 
         // Get account manager
-        mAccountManager = AccountManager.get(this);
+        accountManager = AccountManager.get(this);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
 
-        // Schedule a timer to kick off account/authentication checks after a short delay
-        if (mAuthRequested) {
-            return;
+        // Start timer
+        if (!authRequested) {
+            startTimer();
         }
-        mTimer = new Timer();
-        mTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                // Check if already logged in
-                Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
-
-                if (accounts != null && accounts.length > 0) {
-                    // Logged in, show main screen
-                    Intent intent = new Intent(SplashActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    // Not logged in, start authentication
-                    mAuthRequested = true;
-                    mAccountManager.addAccount(getString(R.string.account_type), null, null, null,
-                            SplashActivity.this, SplashActivity.this, null);
-                }
-            }
-        }, 2000);
     }
 
     @Override
     protected void onStop() {
-        // Stop any running timer
-        if (mTimer != null) {
-            mTimer.cancel();
-            mTimer.purge();
-        }
+        // Stop running timer
+        stopTimer();
 
         super.onStop();
     }
@@ -99,7 +81,7 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
     @Override
     public void run(AccountManagerFuture<Bundle> future) {
         // Check if account exists now
-        Account[] accounts = mAccountManager.getAccountsByType(getString(R.string.account_type));
+        Account[] accounts = accountManager.getAccountsByType(getString(R.string.account_type));
         if (accounts != null && accounts.length > 0) {
             // Logged in, show main screen
             Intent intent = new Intent(this, MainActivity.class);
@@ -108,6 +90,43 @@ public class SplashActivity extends ActionBarActivity implements AccountManagerC
 
         // Whatever happened, we're done here
         finish();
+    }
+
+    /**
+     * Schedule a timer to kick off account/authentication checks after a short delay
+     */
+    private void startTimer() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                // Check if already logged in
+                Account[] accounts = accountManager
+                        .getAccountsByType(getString(R.string.account_type));
+
+                if (accounts != null && accounts.length > 0) {
+                    // Logged in, show main screen
+                    Intent intent = new Intent(SplashActivity.this, MainActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    // Not logged in, start authentication
+                    authRequested = true;
+                    accountManager.addAccount(getString(R.string.account_type), null, null, null,
+                            SplashActivity.this, SplashActivity.this, null);
+                }
+            }
+        }, SPLASH_DELAY_MS);
+    }
+
+    /**
+     * Stop the timer
+     */
+    private void stopTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer.purge();
+        }
     }
 
 }

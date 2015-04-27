@@ -20,7 +20,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.MenuItem;
 
 import com.activeandroid.ActiveAndroid;
@@ -58,8 +57,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
         setContentView(R.layout.activity_login);
 
         // Add login url fragment to request the blog url to login to
-        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.container);
-        if (fragment == null) {
+        if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, LoginUrlFragment.newInstance())
                     .commit();

@@ -15,7 +15,7 @@
     <!-- Default theme with no ActionBar -->
     <style name="Theme.Ghost.NoActionBar">
         <item name="windowActionBar">false</item>
-        <item name="android:windowNoTitle">true</item>
+        <item name="windowNoTitle">true</item>
     </style>
 
     <!-- Default theme with no ActionBar for use with nav drawer -->
