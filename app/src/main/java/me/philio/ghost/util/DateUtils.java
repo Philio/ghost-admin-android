@@ -24,8 +24,6 @@ import me.philio.ghost.R;
 
 /**
  * Utils to display friendly date formats like the web admin
- * <p/>
- * Created by phil on 18/12/2014.
  */
 public class DateUtils {
 

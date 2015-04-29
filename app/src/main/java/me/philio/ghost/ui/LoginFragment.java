@@ -101,16 +101,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener,
     /**
      * Views
      */
-    @InjectView(R.id.toolbar)
-    Toolbar mToolbar;
-    @InjectView(R.id.progressbar)
-    ProgressBar mProgressBar;
-    @InjectView(R.id.edit_email)
-    EditText mEditEmail;
-    @InjectView(R.id.txt_email_hint)
-    TextView mTxtEmailHint;
-    @InjectView(R.id.txt_email_error)
-    TextView mTxtEmailError;
+    @InjectView(R.id.toolbar) Toolbar mToolbar;
+    @InjectView(R.id.progressbar) ProgressBar mProgressBar;
+    @InjectView(R.id.edit_email) EditText mEditEmail;
+    @InjectView(R.id.txt_email_hint) TextView mTxtEmailHint;
+    @InjectView(R.id.txt_email_error) TextView mTxtEmailError;
     @InjectView(R.id.edit_password)
     EditText mEditPassword;
     @InjectView(R.id.txt_password_hint)

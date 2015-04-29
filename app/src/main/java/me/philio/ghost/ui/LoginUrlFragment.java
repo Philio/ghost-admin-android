@@ -36,6 +36,7 @@ import android.widget.TextView;
 import com.google.gson.JsonObject;
 
 import java.net.HttpURLConnection;
+import java.util.List;
 import java.util.Locale;
 
 import butterknife.ButterKnife;
@@ -46,7 +47,6 @@ import butterknife.OnItemSelected;
 import butterknife.OnTextChanged;
 import me.philio.ghost.R;
 import me.philio.ghost.io.GhostClient;
-import me.philio.ghost.io.endpoint.Discovery;
 import retrofit.Callback;
 import retrofit.RetrofitError;
 import retrofit.client.Header;
@@ -60,8 +60,7 @@ import retrofit.client.Response;
  * Use the {@link LoginUrlFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class LoginUrlFragment extends Fragment implements View.OnClickListener,
-        View.OnFocusChangeListener, Callback<JsonObject> {
+public class LoginUrlFragment extends Fragment implements Callback<JsonObject> {
 
     /**
      * Logging tag
@@ -71,35 +70,28 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     /**
      * Listener
      */
-    private OnFragmentInteractionListener mListener;
+    private OnFragmentInteractionListener listener;
 
     /**
      * REST client
      */
-    private GhostClient mClient = new GhostClient();
+    private GhostClient ghostClient = new GhostClient();
 
     /**
      * Blog URL
      */
-    private String mBlogUrl;
+    private String blogUrl;
 
     /**
      * Views
      */
-    @InjectView(R.id.toolbar)
-    Toolbar mToolbar;
-    @InjectView(R.id.progressbar)
-    ProgressBar mProgressBar;
-    @InjectView(R.id.spinner_scheme)
-    Spinner mSpinnerScheme;
-    @InjectView(R.id.edit_url)
-    EditText mEditUrl;
-    @InjectView(R.id.txt_url_hint)
-    TextView mTxtUrlHint;
-    @InjectView(R.id.txt_url_error)
-    TextView mTxtUrlError;
-    @InjectView(R.id.txt_next)
-    TextView mTxtNext;
+    @InjectView(R.id.toolbar) Toolbar toolbar;
+    @InjectView(R.id.progressbar) ProgressBar progressBar;
+    @InjectView(R.id.spinner_scheme) Spinner spinnerScheme;
+    @InjectView(R.id.edit_url) EditText editUrl;
+    @InjectView(R.id.txt_url_hint) TextView txtUrlHint;
+    @InjectView(R.id.txt_url_error) TextView txtUrlError;
+    @InjectView(R.id.txt_next) TextView txtNext;
 
     /**
      * Use this factory method to create a new instance of
@@ -115,7 +107,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            listener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -134,11 +126,11 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         // Set title
-        mToolbar.setTitle(R.string.title_activity_login);
+        toolbar.setTitle(R.string.title_activity_login);
 
         // Fix lack of textAllCaps prior to ICS
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            mTxtNext.setText(getString(R.string.action_next).toUpperCase(Locale.getDefault()));
+            txtNext.setText(getString(R.string.action_next).toUpperCase(Locale.getDefault()));
         }
     }
 
@@ -147,68 +139,61 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
         super.onResume();
 
         // Make sure hint is visible after config changes/restored state
-        if (mEditUrl.getText().length() > 0) {
-            mTxtUrlHint.setVisibility(View.VISIBLE);
+        if (editUrl.getText().length() > 0) {
+            txtUrlHint.setVisibility(View.VISIBLE);
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        listener = null;
     }
 
     @OnClick(R.id.txt_next)
-    @Override
     public void onClick(final View v) {
-        switch (v.getId()) {
-            case R.id.txt_next:
-                // Hide keyboard
-                InputMethodManager inputMethodManager = (InputMethodManager) getActivity()
-                        .getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        // Hide keyboard
+        InputMethodManager inputMethodManager = (InputMethodManager) getActivity()
+                .getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-                // Make sure URL is all lower case and remove trailing slashes
-                String url = mEditUrl.getText().toString().trim().toLowerCase();
-                while (url.endsWith("/")) {
-                    url = url.substring(0, url.length() - 1);
-                }
-                mEditUrl.setText(url);
+        // Make sure URL is all lower case and remove trailing slashes
+        String url = editUrl.getText().toString().trim().toLowerCase();
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        editUrl.setText(url);
 
-                // Check that the URL looks valid
-                if (mEditUrl.getText().toString().isEmpty()) {
-                    setUrlError(getString(R.string.error_field_required));
-                } else if (!Patterns.WEB_URL.matcher(mEditUrl.getText().toString()).matches()) {
-                    setUrlError(getString(R.string.error_invalid_url));
-                } else {
-                    setUrlError(null);
-                    mTxtNext.setEnabled(false);
-                    mProgressBar.setVisibility(View.VISIBLE);
+        // Check that the URL looks valid
+        if (editUrl.getText().toString().isEmpty()) {
+            setUrlError(getString(R.string.error_field_required));
+        } else if (!Patterns.WEB_URL.matcher(editUrl.getText().toString()).matches()) {
+            setUrlError(getString(R.string.error_invalid_url));
+        } else {
+            setUrlError(null);
+            txtNext.setEnabled(false);
+            progressBar.setVisibility(View.VISIBLE);
 
-                    // Try and check for a valid ghost install at the URL
-                    // We're expecting a 401 with a JSON response
-                    mBlogUrl = mSpinnerScheme.getSelectedItem().toString() + mEditUrl.getText().toString();
+            // Try and check for a valid ghost install at the URL
+            // We're expecting a 401 with a JSON response
+            blogUrl = spinnerScheme.getSelectedItem().toString() + editUrl.getText().toString();
 
-                    // Run discovery test
-                    mClient.setBlogUrl(mBlogUrl);
-                    Discovery discovery = mClient.createDiscovery();
-                    discovery.test(this);
-                }
-                break;
+            // Run discovery test
+            ghostClient.setBlogUrl(blogUrl);
+            ghostClient.createDiscovery().test(this);
         }
     }
 
     @OnFocusChange(R.id.edit_url)
-    @Override
     public void onFocusChange(View v, boolean hasFocus) {
         switch (v.getId()) {
             case R.id.edit_url:
                 if (hasFocus) {
-                    mTxtUrlHint.setVisibility(View.VISIBLE);
-                    mEditUrl.setHint(null);
-                } else if (mEditUrl.getText().length() == 0) {
-                    mTxtUrlHint.setVisibility(View.INVISIBLE);
-                    mEditUrl.setHint(R.string.prompt_blog_url);
+                    txtUrlHint.setVisibility(View.VISIBLE);
+                    editUrl.setHint(null);
+                } else if (editUrl.getText().length() == 0) {
+                    txtUrlHint.setVisibility(View.INVISIBLE);
+                    editUrl.setHint(R.string.prompt_blog_url);
                 }
                 break;
         }
@@ -216,7 +201,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
 
     @OnTextChanged(R.id.edit_url)
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if ((before != 0 || count != 0) && mTxtUrlError.getVisibility() == View.VISIBLE) {
+        if ((before != 0 || count != 0) && txtUrlError.getVisibility() == View.VISIBLE) {
             setUrlError(null);
         }
     }
@@ -246,20 +231,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
 
                 // Get the redirect url and examine to attempt to provide most
                 // useful error message
-                String redirectUrl = null;
-                for (Header header : error.getResponse().getHeaders()) {
-                    if (header.getName() == null) {
-                        continue;
-                    }
-                    if (header.getName().equals("Location")) {
-                        String value = header.getValue();
-                        if (value.endsWith("/ghost/api/v0.1/")) {
-                            redirectUrl = value.substring(0, value.length() - 16);
-                        } else {
-                            redirectUrl = value;
-                        }
-                    }
-                }
+                String redirectUrl = getRedirectUrl(error.getResponse().getHeaders());
                 if (redirectUrl != null) {
                     setUrlError(getString(R.string.error_redirect_url_to, redirectUrl));
                 } else {
@@ -271,7 +243,7 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                 Object body = error.getBodyAs(JsonObject.class);
                 if (body != null && body instanceof JsonObject) {
                     Log.d(TAG, "Url looks good!");
-                    mListener.onValidUrl(mBlogUrl);
+                    listener.onValidUrl(blogUrl);
                 } else {
                     setUrlError(getString(R.string.error_invalid_url));
                 }
@@ -280,8 +252,32 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
                 setUrlError(getString(R.string.error_invalid_url));
                 break;
         }
-        mTxtNext.setEnabled(true);
-        mProgressBar.setVisibility(View.INVISIBLE);
+        txtNext.setEnabled(true);
+        progressBar.setVisibility(View.INVISIBLE);
+    }
+
+    /**
+     * Get redirect url from Location header if it exists
+     *
+     * @param headers
+     * @return
+     */
+    private String getRedirectUrl(List<Header> headers) {
+        String redirectUrl = null;
+        for (Header header : headers) {
+            if (header.getName() == null) {
+                continue;
+            }
+            if (header.getName().equals("Location")) {
+                String value = header.getValue();
+                if (value.contains(GhostClient.BASE_PATH)) {
+                    redirectUrl = value.substring(0, value.indexOf(GhostClient.BASE_PATH));
+                } else {
+                    redirectUrl = value;
+                }
+            }
+        }
+        return redirectUrl;
     }
 
     /**
@@ -290,11 +286,11 @@ public class LoginUrlFragment extends Fragment implements View.OnClickListener,
      * @param message
      */
     private void setUrlError(String message) {
-        mTxtUrlError.setText(message);
+        txtUrlError.setText(message);
         if (message != null) {
-            mTxtUrlError.setVisibility(View.VISIBLE);
+            txtUrlError.setVisibility(View.VISIBLE);
         } else {
-            mTxtUrlError.setVisibility(View.GONE);
+            txtUrlError.setVisibility(View.GONE);
         }
     }
 

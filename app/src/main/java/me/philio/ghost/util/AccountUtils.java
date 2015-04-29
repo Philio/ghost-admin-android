@@ -20,25 +20,20 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Bundle;
 
 import me.philio.ghost.R;
+import me.philio.ghost.model.Token;
+
+import static me.philio.ghost.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
+import static me.philio.ghost.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
+import static me.philio.ghost.account.AccountConstants.KEY_BLOG_URL;
+import static me.philio.ghost.account.AccountConstants.KEY_EMAIL;
 
 /**
  * Created by phil on 23/12/2014.
  */
 public class AccountUtils {
-
-    /**
-     * Get an account name
-     *
-     * @param blogUrl
-     * @param email
-     * @return
-     */
-    public static String getName(String blogUrl, String email) {
-        Uri uri = Uri.parse(blogUrl);
-        return email + " (" + uri.getHost() + ")";
-    }
 
     /**
      * Check if an account already exists
@@ -51,13 +46,43 @@ public class AccountUtils {
     public static boolean accountExists(Context context, String blogUrl, String email) {
         AccountManager accountManager = AccountManager.get(context);
         Account[] accounts = accountManager.getAccountsByType(context.getString(R.string.account_type));
-        String name = getName(blogUrl, email);
+        String name = generateName(blogUrl, email);
         for (Account account : accounts) {
             if (account.name.equals(name)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Generate an account name
+     *
+     * @param blogUrl
+     * @param email
+     * @return
+     */
+    public static String generateName(String blogUrl, String email) {
+        Uri uri = Uri.parse(blogUrl);
+        return email + " (" + uri.getHost() + ")";
+    }
+
+    /**
+     * Create account user data bundle
+     *
+     * @param blogUrl
+     * @param email
+     * @param token
+     * @return
+     */
+    public static Bundle createUserBundle(String blogUrl, String email, Token token) {
+        Bundle userdata = new Bundle();
+        userdata.putString(KEY_BLOG_URL, blogUrl);
+        userdata.putString(KEY_EMAIL, email);
+        userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
+        userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Long.toString(System.currentTimeMillis() +
+                (token.expires * 1000)));
+        return userdata;
     }
 
 }

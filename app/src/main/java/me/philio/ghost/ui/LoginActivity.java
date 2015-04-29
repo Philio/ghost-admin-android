@@ -22,8 +22,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 
-import com.activeandroid.ActiveAndroid;
-
 import me.philio.ghost.R;
 import me.philio.ghost.account.AccountAuthenticatorActionBarActivity;
 import me.philio.ghost.model.Blog;
@@ -31,11 +29,8 @@ import me.philio.ghost.model.Token;
 import me.philio.ghost.model.User;
 import me.philio.ghost.sync.SyncHelper;
 import me.philio.ghost.util.AccountUtils;
+import me.philio.ghost.util.DatabaseUtils;
 
-import static me.philio.ghost.account.AccountConstants.KEY_ACCESS_TOKEN_EXPIRES;
-import static me.philio.ghost.account.AccountConstants.KEY_ACCESS_TOKEN_TYPE;
-import static me.philio.ghost.account.AccountConstants.KEY_BLOG_URL;
-import static me.philio.ghost.account.AccountConstants.KEY_EMAIL;
 import static me.philio.ghost.account.AccountConstants.TOKEN_TYPE_ACCESS;
 import static me.philio.ghost.account.AccountConstants.TOKEN_TYPE_REFRESH;
 
@@ -49,7 +44,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     /**
      * The url of the blog
      */
-    private String mBlogUrl;
+    private String blogUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +81,7 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     @Override
     public void onValidUrl(String blogUrl) {
         // Store for later
-        mBlogUrl = blogUrl;
+        this.blogUrl = blogUrl;
 
         // Replace url fragment with login fragment
         getSupportFragmentManager().beginTransaction()
@@ -100,14 +95,9 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
     @Override
     public void onSuccess(String email, String password, Token token, User user) {
         // Create the account
-        Account account = new Account(AccountUtils.getName(mBlogUrl, email),
+        Account account = new Account(AccountUtils.generateName(blogUrl, email),
                 getString(R.string.account_type));
-        Bundle userdata = new Bundle();
-        userdata.putString(KEY_BLOG_URL, mBlogUrl);
-        userdata.putString(KEY_EMAIL, email);
-        userdata.putString(KEY_ACCESS_TOKEN_TYPE, token.tokenType);
-        userdata.putString(KEY_ACCESS_TOKEN_EXPIRES, Long.toString(System.currentTimeMillis() +
-                (token.expires * 1000)));
+        Bundle userdata = AccountUtils.createUserBundle(blogUrl, email, token);
 
         // Add account to the system
         AccountManager accountManager = AccountManager.get(this);
@@ -119,17 +109,10 @@ public class LoginActivity extends AccountAuthenticatorActionBarActivity impleme
 
         // Create initial database records
         Blog blog = new Blog();
-        blog.url = mBlogUrl;
+        blog.url = blogUrl;
         blog.email = email;
         user.blog = blog;
-        ActiveAndroid.beginTransaction();
-        try {
-            blog.save();
-            user.save();
-            ActiveAndroid.setTransactionSuccessful();
-        } finally {
-            ActiveAndroid.endTransaction();
-        }
+        DatabaseUtils.saveInTransaction(blog, user);
 
         // Enable sync for the account
         SyncHelper.enableSync(account, getString(R.string.content_authority));

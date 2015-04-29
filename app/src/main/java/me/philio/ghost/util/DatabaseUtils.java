@@ -16,6 +16,8 @@
 
 package me.philio.ghost.util;
 
+import com.activeandroid.ActiveAndroid;
+import com.activeandroid.Model;
 import com.activeandroid.query.Select;
 
 import me.philio.ghost.model.Blog;
@@ -54,6 +56,23 @@ public class DatabaseUtils {
                 .from(User.class)
                 .where("blog_id = ? AND email = ?", blog.getId(), email)
                 .executeSingle();
+    }
+
+    /**
+     * Save multiple records in a single transaction
+     *
+     * @param models Models to save
+     */
+    public static void saveInTransaction(Model... models) {
+        ActiveAndroid.beginTransaction();
+        try {
+            for (Model model : models) {
+                model.save();
+            }
+            ActiveAndroid.setTransactionSuccessful();
+        } finally {
+            ActiveAndroid.endTransaction();
+        }
     }
 
 }

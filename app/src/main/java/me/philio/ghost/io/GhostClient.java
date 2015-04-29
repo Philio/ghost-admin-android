@@ -42,14 +42,14 @@ import retrofit.converter.GsonConverter;
 public class GhostClient {
 
     /**
+     * The path of the API from the ghost web root
+     */
+    public static final String BASE_PATH = "/ghost/api/v0.1";
+
+    /**
      * User agent
      */
     private static final String USER_AGENT = "GhostAdmin/" + BuildConfig.VERSION_NAME;
-
-    /**
-     * The path of the API from the ghost web root
-     */
-    private static final String BASE_PATH = "/ghost/api/v0.1";
 
     /**
      * The URL of the blog
