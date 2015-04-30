@@ -381,7 +381,7 @@ public class PostsFragment extends ListFragment implements LoaderManager.LoaderC
                         } else {
                             subTitle.setTextColor(getResources().getColor(R.color.text_secondary));
                             subTitle.setText(getString(R.string.post_published_ago,
-                                    DateUtils.format(getActivity(), post.publishedAt)));
+                                    DateUtils.friendlyFormat(getActivity(), post.publishedAt)));
                             return true;
                         }
                 }

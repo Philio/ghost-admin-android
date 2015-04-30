@@ -58,13 +58,13 @@ public class DateUtils {
     private static final long YEAR = DAY * 365;
 
     /**
-     * Format a date
+     * Format a date into a human friendly string
      *
      * @param context
      * @param date
      * @return
      */
-    public static String format(Context context, Date date) {
+    public static String friendlyFormat(Context context, Date date) {
         long difference = System.currentTimeMillis() - date.getTime();
 
         if (difference < MINUTE) {
