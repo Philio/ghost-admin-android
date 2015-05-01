@@ -23,9 +23,10 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 
 import me.philio.ghost.BuildConfig;
+import me.philio.ghost.R;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.robolectric.Robolectric.setupActivity;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -40,8 +41,9 @@ public class LoginActivityTest {
     }
 
     @Test
-    public void testActivityIsSetUp() {
-        assertThat(loginActivity, notNullValue());
+    public void testFragmentIsAdded() {
+        assertThat(loginActivity.getSupportFragmentManager().findFragmentById(R.id.container),
+                instanceOf(LoginUrlFragment.class));
     }
 
 }

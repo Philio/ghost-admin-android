@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2015 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,12 +53,7 @@ import retrofit.client.Header;
 import retrofit.client.Response;
 
 /**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link LoginUrlFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link LoginUrlFragment#newInstance} factory method to
- * create an instance of this fragment.
+ * A fragment to request and validate a blog URL
  */
 public class LoginUrlFragment extends Fragment implements Callback<JsonObject> {
 
@@ -301,7 +296,7 @@ public class LoginUrlFragment extends Fragment implements Callback<JsonObject> {
      */
     public interface OnFragmentInteractionListener {
 
-        public void onValidUrl(String blogUrl);
+        void onValidUrl(String blogUrl);
 
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2015 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,9 @@ public class DateUtils {
     public static String friendlyFormat(Context context, Date date) {
         long difference = System.currentTimeMillis() - date.getTime();
 
-        if (difference < MINUTE) {
+        if (difference < 0) {
+            return null;
+        } else if (difference < MINUTE) {
             return context.getResources().getQuantityString(R.plurals.post_seconds,
                     (int) (difference / SECOND));
         } else if (difference < HOUR) {
@@ -82,11 +84,10 @@ public class DateUtils {
         } else if (difference < YEAR) {
             return context.getResources().getQuantityString(R.plurals.post_months,
                     (int) (difference / MONTH), (int) (difference / MONTH));
-        } else if (difference > 0) {
+        } else {
             return context.getResources().getQuantityString(R.plurals.post_years,
                     (int) (difference / YEAR), (int) (difference / YEAR));
         }
-        return null;
     }
 
 }

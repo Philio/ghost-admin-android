@@ -25,7 +25,7 @@ import org.robolectric.annotation.Config;
 import me.philio.ghost.BuildConfig;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.robolectric.Robolectric.setupActivity;
 
 @RunWith(RobolectricGradleTestRunner.class)
@@ -40,8 +40,8 @@ public class SplashActivityTest  {
     }
 
     @Test
-    public void testActivityIsSetUp() {
-        assertThat(splashActivity, notNullValue());
+    public void testNoActionBar() {
+        assertThat(splashActivity.getSupportActionBar(), nullValue());
     }
 
 }
