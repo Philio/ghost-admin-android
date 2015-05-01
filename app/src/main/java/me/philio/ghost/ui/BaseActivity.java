@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Phil Bayfield
+ * Copyright 2015 Phil Bayfield
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.net.ConnectivityManager;
 import android.os.Build;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -40,10 +40,8 @@ import me.philio.ghost.R;
 
 /**
  * Base activity for generic functionality shared across activities
- * <p/>
- * Created by phil on 15/12/2014.
  */
-public abstract class BaseActivity extends ActionBarActivity {
+public abstract class BaseActivity extends AppCompatActivity {
 
     /**
      * Logging tag
@@ -65,36 +63,32 @@ public abstract class BaseActivity extends ActionBarActivity {
     /**
      * Broadcast receiver for network events
      */
-    private NetworkStateReceiver mReceiver = new NetworkStateReceiver();
+    private NetworkStateReceiver networkStateReceiver = new NetworkStateReceiver();
 
     /**
      * Current network state
      */
-    private boolean mNetworkConnected;
+    private boolean networkConnected;
 
     /**
      * ActionBar height, used to calculate the number of pixels for network status alert
      */
-    private int mActionBarHeight;
+    private int actionBarHeight;
 
     /**
      * Toolbar
      */
-    @InjectView(R.id.toolbar)
-    @Optional
-    protected Toolbar mToolbar;
+    @InjectView(R.id.toolbar) @Optional Toolbar toolbar;
 
     /**
      * Layout for showing network alerts
      */
-    @InjectView(R.id.layout_alerts)
-    @Optional
-    protected LinearLayout mAlerts;
+    @InjectView(R.id.layout_alerts) @Optional LinearLayout alertsLayout;
 
     /**
      * Active action mode
      */
-    protected ActionMode mActionMode;
+    protected ActionMode actionMode;
 
     @Override
     public void setContentView(int layoutResID) {
@@ -122,8 +116,8 @@ public abstract class BaseActivity extends ActionBarActivity {
         ButterKnife.inject(this);
 
         // Set up the toolbar
-        if (mToolbar != null) {
-            setSupportActionBar(mToolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
         }
     }
 
@@ -131,18 +125,19 @@ public abstract class BaseActivity extends ActionBarActivity {
     protected void onStart() {
         super.onStart();
 
-        if (mAlerts != null) {
-            // Recieve network connectivity change broadcasts
-            mReceiver.setInitialState();
-            registerReceiver(mReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        if (alertsLayout != null) {
+            // Receive network connectivity change broadcasts
+            networkStateReceiver.setInitialState();
+            registerReceiver(networkStateReceiver,
+                    new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
     }
 
     @Override
     protected void onStop() {
-        if (mAlerts != null) {
+        if (alertsLayout != null) {
             // Stop receiving broadcasts
-            unregisterReceiver(mReceiver);
+            unregisterReceiver(networkStateReceiver);
         }
 
         super.onStop();
@@ -150,7 +145,7 @@ public abstract class BaseActivity extends ActionBarActivity {
 
     @Override
     public void onSupportActionModeStarted(ActionMode mode) {
-        mActionMode = mode;
+        actionMode = mode;
 
         // Make sure status bar colour is correct on lollipop up
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -163,7 +158,7 @@ public abstract class BaseActivity extends ActionBarActivity {
 
     @Override
     public void onSupportActionModeFinished(ActionMode mode) {
-        mActionMode = null;
+        actionMode = null;
 
         // Restore status bar transparency
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -175,8 +170,8 @@ public abstract class BaseActivity extends ActionBarActivity {
      * Finish action mode if it exists
      */
     public void finishActionMode() {
-        if (mActionMode != null) {
-            mActionMode.finish();
+        if (actionMode != null) {
+            actionMode.finish();
         }
     }
 
@@ -184,27 +179,27 @@ public abstract class BaseActivity extends ActionBarActivity {
      * Slide up the network error view
      */
     private void showNetworkError() {
-        if (mActionBarHeight == 0) {
+        if (actionBarHeight == 0) {
             setActionBarHeight();
         }
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            ValueAnimator animator = ValueAnimator.ofInt(0, mActionBarHeight);
+            ValueAnimator animator = ValueAnimator.ofInt(0, actionBarHeight);
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @TargetApi(11)
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
+                    ViewGroup.LayoutParams layoutParams = alertsLayout.getLayoutParams();
                     layoutParams.height = value;
-                    mAlerts.setLayoutParams(layoutParams);
+                    alertsLayout.setLayoutParams(layoutParams);
                 }
             });
             animator.setDuration(750);
             animator.start();
         } else {
-            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-            layoutParams.height = mActionBarHeight;
-            mAlerts.setLayoutParams(layoutParams);
+            ViewGroup.LayoutParams layoutParams = alertsLayout.getLayoutParams();
+            layoutParams.height = actionBarHeight;
+            alertsLayout.setLayoutParams(layoutParams);
         }
     }
 
@@ -212,27 +207,27 @@ public abstract class BaseActivity extends ActionBarActivity {
      * Slide down the network error view
      */
     private void hideNetworkError() {
-        if (mActionBarHeight == 0) {
+        if (actionBarHeight == 0) {
             setActionBarHeight();
         }
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.HONEYCOMB) {
-            ValueAnimator anim = ValueAnimator.ofInt(mActionBarHeight, 0);
+            ValueAnimator anim = ValueAnimator.ofInt(actionBarHeight, 0);
             anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @TargetApi(11)
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     int value = (Integer) animation.getAnimatedValue();
-                    ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
+                    ViewGroup.LayoutParams layoutParams = alertsLayout.getLayoutParams();
                     layoutParams.height = value;
-                    mAlerts.setLayoutParams(layoutParams);
+                    alertsLayout.setLayoutParams(layoutParams);
                 }
             });
             anim.setDuration(750);
             anim.start();
         } else {
-            ViewGroup.LayoutParams layoutParams = mAlerts.getLayoutParams();
-            layoutParams.height = mActionBarHeight;
-            mAlerts.setLayoutParams(layoutParams);
+            ViewGroup.LayoutParams layoutParams = alertsLayout.getLayoutParams();
+            layoutParams.height = actionBarHeight;
+            alertsLayout.setLayoutParams(layoutParams);
         }
     }
 
@@ -240,11 +235,14 @@ public abstract class BaseActivity extends ActionBarActivity {
      * Set the height of the ActionBar
      */
     private void setActionBarHeight() {
-        mActionBarHeight = getSupportActionBar().getHeight();
-        if (mActionBarHeight == 0) {
+        actionBarHeight = 0;
+        if (getSupportActionBar() != null) {
+            actionBarHeight = getSupportActionBar().getHeight();
+        }
+        if (actionBarHeight == 0) {
             TypedArray styledAttributes = getTheme()
                     .obtainStyledAttributes(new int[]{R.attr.actionBarSize});
-            mActionBarHeight = styledAttributes.getDimensionPixelSize(0, 0);
+            actionBarHeight = styledAttributes.getDimensionPixelSize(0, 0);
         }
     }
 
@@ -259,20 +257,20 @@ public abstract class BaseActivity extends ActionBarActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean state = isConnected();
-            if (state != mNetworkConnected) {
-                if (mNetworkConnected) {
+            if (state != networkConnected) {
+                if (networkConnected) {
                     showNetworkError();
-                    mNetworkConnected = false;
+                    networkConnected = false;
                 } else {
                     hideNetworkError();
-                    mNetworkConnected = true;
+                    networkConnected = true;
                 }
             }
         }
 
         public void setInitialState() {
-            mNetworkConnected = isConnected();
-            if (!mNetworkConnected) {
+            networkConnected = isConnected();
+            if (!networkConnected) {
                 showNetworkError();
             }
         }

@@ -75,7 +75,7 @@ public class DateUtilsParameterizedTest {
     }
 
     @Test
-    public void testFriendlyFormat() {
+    public void shouldFriendlyFormatDate() {
         assertThat(DateUtils.friendlyFormat(RuntimeEnvironment.application, input),
                 is(getPlural(expectedId, expectedQuantity)));
     }

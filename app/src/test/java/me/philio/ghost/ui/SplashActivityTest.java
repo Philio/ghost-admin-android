@@ -40,7 +40,7 @@ public class SplashActivityTest  {
     }
 
     @Test
-    public void testNoActionBar() {
+    public void shouldNotBeNull() {
         assertThat(splashActivity.getSupportActionBar(), nullValue());
     }
 

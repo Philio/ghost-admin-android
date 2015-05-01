@@ -34,7 +34,7 @@ import static org.hamcrest.core.IsNull.nullValue;
 public class DateUtilsTest {
 
     @Test
-    public void testFriendlyFormatFutureDateNull() {
+    public void shouldReturnNullForFutureDate() {
         Date futureDate = new Date(System.currentTimeMillis() + 1000000);
         String formatted = DateUtils.friendlyFormat(RuntimeEnvironment.application, futureDate);
         assertThat(formatted, nullValue());
