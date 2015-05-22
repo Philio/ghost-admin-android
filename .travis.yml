@@ -1,9 +1,6 @@
 language: android
 android:
   components:
-    - platform-tools
-    - tools
-    - android-21
-    - extra
-    
+    - android-22
+
 script: ./gradlew clean build test
