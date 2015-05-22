@@ -7,4 +7,5 @@ android:
     - extra-android-support
     - extra-android-m2repository
 
-script: ./gradlew clean build test
+script: ./gradlew build
+script: ./gradlew test
