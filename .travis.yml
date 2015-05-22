@@ -5,3 +5,4 @@ android:
     - tools
     - android-21
     - extra
+  script: ./gradlew clean build
