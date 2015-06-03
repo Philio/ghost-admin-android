@@ -49,7 +49,7 @@
         android:background="@android:color/white"
         android:elevation="10dp"
         android:fitsSystemWindows="true"
-        app:insetForeground="@color/inset_foreground">
+        app:scrimInsetForeground="@color/inset_foreground">
 
         <fragment
             android:id="@+id/navigation_drawer"

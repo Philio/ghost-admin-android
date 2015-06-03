@@ -2,8 +2,8 @@
 <resources>
 
     <!-- Styleable for ScrimInsetsFrameLayout -->
-    <declare-styleable name="ScrimInsetsView">
-        <attr name="insetForeground" format="reference|color" />
+    <declare-styleable name="ScrimInsetsScrollView">
+        <attr name="scrimInsetForeground" format="reference|color" />
     </declare-styleable>
 
     <!-- Styleable for BezelImageView -->
