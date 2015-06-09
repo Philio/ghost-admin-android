@@ -21,19 +21,19 @@ import android.view.MenuItem;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.fakes.RoboMenuItem;
 
 import me.philio.ghost.BuildConfig;
 import me.philio.ghost.R;
+import me.philio.ghost.RobolectricDataBindingTestRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.robolectric.Robolectric.setupActivity;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricDataBindingTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 21)
 public class LoginActivityTest {
 

@@ -3,7 +3,7 @@ apply plugin: 'com.android.databinding'
 
 android {
     compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+    buildToolsVersion "23.0.0 rc1"
 
     defaultConfig {
         applicationId "me.philio.ghost"

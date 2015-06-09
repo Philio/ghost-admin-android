@@ -18,18 +18,18 @@ package me.philio.ghost.util;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.util.Date;
 
 import me.philio.ghost.BuildConfig;
+import me.philio.ghost.RobolectricDataBindingTestRunner;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.nullValue;
 
-@RunWith(RobolectricGradleTestRunner.class)
+@RunWith(RobolectricDataBindingTestRunner.class)
 @Config(constants = BuildConfig.class, emulateSdk = 21)
 public class DateUtilsTest {
 
