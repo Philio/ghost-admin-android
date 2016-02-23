@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Account type -->
+    <string name="account_type">me.philio.ghost.account</string>
+
+    <!-- Content authority -->
+    <string name="content_authority">me.philio.ghost</string>
+
+    <!-- Translator remark -->
+    <string name="translator_name">Ivan Ip(lifehome)</string>
+    <string name="translator_email">m@lifeho.me</string>
+</resources>

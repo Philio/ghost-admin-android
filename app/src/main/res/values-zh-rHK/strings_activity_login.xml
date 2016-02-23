@@ -1,0 +1,25 @@
+<resources>
+    <!-- Strings related to login -->
+    <string name="title_activity_login">新增帳戶</string>
+    <string name="login_into">登入到你的部落格</string>
+    <string name="prompt_blog_url">部落格網址</string>
+    <string name="prompt_email">電郵地址</string>
+    <string name="prompt_password">帳戶密碼</string>
+    <string name="action_next">下一步</string>
+    <string name="action_sign_in">登入</string>
+    <string-array name="url_schemes">
+        <item>http://</item>
+        <item>https://</item>
+    </string-array>
+    <string name="error_invalid_url">打錯網址啊！睇清楚你打咗啲乜啦！</string>
+    <string name="error_redirect_url">咦，你條網址識自轉嘅？</string>
+    <string name="error_redirect_url_to">條Link將會轉址到： %1$s</string>
+    <string name="error_invalid_email">咪亂打Email啦屌你，好好玩呀？</string>
+    <string name="error_incorrect_email">打錯Email啊！睇清楚你打咗啲乜啦！</string>
+    <string name="error_email_exists">呢個Email有人用左！</string>
+    <string name="error_invalid_password">好短呀你。。。個密碼，再長啲啦！</string>
+    <string name="error_incorrect_password">打錯密碼呀！再打過啦！</string>
+    <string name="error_field_required">你無填呢格喎～！</string>
+    <string name="error_no_connectivity">請先連接到互聯網，然後再嘗試。</string>
+    <string name="error_profile">無法載入你的個人檔案</string>
+</resources>

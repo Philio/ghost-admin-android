@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Titles -->
+    <string name="app_name">Ghost 筆記簿</string>
+    <string name="ghost">Ghost</string>
+    <string name="writer">Writer</string>
+    <string name="title_activity_editor">編輯器</string>
+    <string name="title_activity_settings">個人化設定</string>
+    <string name="title_activity_about">關於</string>
+    <string name="title_posts">文章</string>
+    <string name="title_pages">頁面</string>
+    <string name="title_preview">預覽</string>
+
+    <!-- Menu titles -->
+    <string name="menu_title_edit">編輯</string>
+    <string name="menu_title_delete">移除</string>
+
+    <!-- Name of the content provider in the sync menu -->
+    <string name="provider_sync_name">文章及個人化設定</string>
+
+    <!-- Navigation drawer -->
+    <string name="navigation_drawer_posts">文章</string>
+    <string name="navigation_drawer_pages">頁面</string>
+    <string name="navigation_drawer_settings">設定</string>
+    <string name="navigation_drawer_about">關於</string>
+    <string name="navigation_drawer_add_account">新增帳戶</string>
+    <string name="navigation_drawer_open">開啟選單</string>
+    <string name="navigation_drawer_close">關閉選單</string>
+
+    <!-- Account warning dialog -->
+    <string name="dialog_account_title">帳戶資料遺失</string>
+    <string name="dialog_account_body">資料復原程序進行中，請稍候數分鐘；同時請確保本機已連接互聯網。</string>
+
+    <!-- Posts -->
+    <string name="post_search_hint">搜尋...</string>
+    <string name="post_draft">草稿</string>
+    <string name="post_page">頁面</string>
+    <string name="post_published_ago">於%1$s前發佈</string>
+
+    <plurals name="post_seconds">
+        <item quantity="other">幾秒</item>
+    </plurals>
+    <plurals name="post_minutes">
+        <item quantity="one">一分鐘</item>
+        <item quantity="few">幾分鐘</item>
+        <item quantity="other">%d分鐘</item>
+    </plurals>
+    <plurals name="post_hours">
+        <item quantity="one">一小時</item>
+        <item quantity="other">%d小時</item>
+    </plurals>
+    <plurals name="post_days">
+        <item quantity="one">一日</item>
+        <item quantity="other">%d日</item>
+    </plurals>
+    <plurals name="post_months">
+        <item quantity="one">一個月</item>
+        <item quantity="other">%d個月</item>
+    </plurals>
+    <plurals name="post_years">
+        <item quantity="one">一年</item>
+        <item quantity="other">%d年</item>
+    </plurals>
+
+    <string name="post_empty_title">呢度無嘢睇啊！</string>
+    <string name="post_empty_info">你新黎㗎？定啱啱加左新帳戶？等多陣啦，通常需要幾分鐘時間去同步所有設定、文章、草稿等等嘅嘢㗎！</string>
+    <string name="post_empty_search_info">搵唔到你想要嘅嘢喎～</string>
+
+    <!-- Editor -->
+    <string name="editor_title_hint">文章標題</string>
+    <string name="editor_markdown_hint">Markdown</string>
+    <string name="editor_default_title">(未改名嘅文)</string>
+
+    <!-- About -->
+    <string name="about_version">版本號：%s</string>
+    <string name="about_copyright">版權由 Phil Bayfield(%s) 持有，並由 Ivan Ip(lifehome) 翻譯繁體中文(香港)語系。</string>
+    <string name="about_open_source"><![CDATA[呢個係一個免費而Open source嘅軟件；如果你想回報BUG、或者幫手寫code，可以去 <a href="https://github.com/Philio/ghost-admin-android">Github</a> 出返幾分力～]]></string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">屌你，望咩春啊？:o)</string>
+
+</resources>

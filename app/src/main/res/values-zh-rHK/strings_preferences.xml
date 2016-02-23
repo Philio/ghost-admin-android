@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Global settings -->
+    <string name="prefs_cat_general">一般</string>
+    <string name="prefs_cat_accounts">帳戶</string>
+    <string name="prefs_cat_data_usage">數據用量</string>
+
+    <string name="prefs_editing_mode">編輯模式</string>
+    <string-array name="prefs_editing_mode_entries">
+        <item>所見即所得</item>
+        <item>純文字</item>
+    </string-array>
+    <string-array name="prefs_editing_mode_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string name="prefs_sync_drafts">同步變更為草稿</string>
+    <string name="prefs_sync_published">同步變更到已發佈文章</string>
+    <string-array name="prefs_sync_when_entries">
+        <item>即時同步</item>
+        <item>離開編輯器時同步</item>
+        <item>手動</item>
+    </string-array>
+    <string-array name="prefs_sync_when_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <!-- Account specific settings -->
+    <string name="prefs_account_sync">同步文章及個人化設定</string>
+    <string-array name="prefs_account_sync_when_entries">
+        <item>使用系統設定</item>
+        <item>即時同步</item>
+        <item>離開編輯器時同步</item>
+        <item>手動</item>
+    </string-array>
+    <string-array name="prefs_account_sync_when_values">
+        <item>-1</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+</resources>
